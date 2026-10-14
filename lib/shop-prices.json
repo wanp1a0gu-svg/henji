@@ -1,0 +1,26 @@
+{
+  "amber-bracelet": {
+    "price": 119.0,
+    "nameEn": "Red Amber Multi-Loop Bracelet"
+  },
+  "multigem-bracelet": {
+    "price": 299.0,
+    "nameEn": "Multigem Harmony Bracelet"
+  },
+  "fox-pendant": {
+    "price": 79.0,
+    "nameEn": "Nine-Tailed Fox Crystal Pendant"
+  },
+  "jade-leaf-pendant": {
+    "price": 59.0,
+    "nameEn": "Hetian Jade Leaf Pendant"
+  },
+  "amber-pendant": {
+    "price": 119.0,
+    "nameEn": "Royal Amber Statement Pendant"
+  },
+  "amethyst-bracelet": {
+    "price": 39.0,
+    "nameEn": "Amethyst & Quartz Bracelet"
+  }
+}

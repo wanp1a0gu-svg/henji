@@ -1,0 +1,20 @@
+name = "mingli-bazi-api"
+main = "bazi-api.js"
+compatibility_date = "2025-01-01"
+account_id = "59e145750d6b95f64641c0142bb28229"
+
+[vars]
+DOUBAO_MODEL = "ep-m-20260408172909-vsfqd"
+
+# 密钥（已设置）：wrangler secret put DOUBAO_API_KEY
+
+# ── 限流 KV（防刷）──────────────────────────────────────────────
+# 启用步骤（需要 Workers 权限的 API Token）：
+#   1. wrangler kv namespace create MINGLI_RATE_LIMIT
+#   2. 把返回的 id 填入下面的 id 并取消注释
+#   3. wrangler deploy
+# 未绑定 KV 时，Worker 会自动跳过限流（其余防护照常生效）。
+
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT"
+# id = "<创建后填入>"

@@ -1,0 +1,8 @@
+{
+  "name": "测试",
+  "birthDate": "1995-08-15",
+  "birthTime": "14:30",
+  "gender": "female",
+  "focus": "career",
+  "locale": "zh"
+}

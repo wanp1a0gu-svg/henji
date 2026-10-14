@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+::selection {
+  background: rgba(201, 168, 124, 0.25);
+  color: #f7f3ed;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090807;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 124, 0.2);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 168, 124, 0.35);
+}
+
+body {
+  background-color: #090807;
+  color: #f7f3ed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: 'Noto Serif SC', 'Noto Serif', Georgia, serif;
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-accent/10;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #f7f3ed 0%, #c9a87c 55%, #a3845f 100%);
+  }
+
+  .bg-accent-dark {
+    background-color: #a3845f;
+  }
+
+  .glow {
+    box-shadow: 0 0 60px rgba(201, 168, 124, 0.12);
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 30px rgba(201, 168, 124, 0.08);
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(135deg, rgba(201, 168, 124, 0.4), rgba(201, 168, 124, 0.05)) 1;
+  }
+
+  .divider-gold {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #c9a87c, transparent);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 手机端适配                                                          */
+/* ------------------------------------------------------------------ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  /* iOS Safari：表单聚焦时字号 < 16px 会强制放大页面 */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* iOS 日期/时间输入：统一外观 + 保证触控高度（≥44px） */
+  input[type="date"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 44px;
+    text-align: left;
+  }
+
+  /* 手机上减小大标题字距，避免拥挤 */
+  .text-gradient {
+    letter-spacing: 0.01em;
+  }
+}
+
+/* ---- 小痕（CatAssistant）动效 ---- */
+/* 落地压缩回弹（跳到右下角时） */
+@keyframes cat-squash {
+  0% { transform: scale(1, 1); }
+  35% { transform: scale(1.14, 0.84) translateY(4%); }
+  70% { transform: scale(0.96, 1.04); }
+  100% { transform: scale(1, 1); }
+}
+.cat-landed .cat-full-img {
+  animation: cat-squash 0.45s ease-out;
+}
+/* 探头时的偶尔歪头（围绕基准倾角小幅摆动；基准倾角由外层容器控制） */
+@keyframes cat-head-tilt {
+  0%, 84%, 100% { transform: rotate(0deg); }
+  88% { transform: rotate(-8deg); }
+  92% { transform: rotate(7deg); }
+  96% { transform: rotate(-3deg); }
+}
+.cat-peeking .cat-head-img {
+  animation: cat-head-tilt 7s ease-in-out infinite;
+}
+/* 气泡出现 */
+@keyframes cat-bubble-in {
+  0% { opacity: 0; transform: translateY(6px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.cat-bubble {
+  animation: cat-bubble-in 0.35s ease-out;
+}

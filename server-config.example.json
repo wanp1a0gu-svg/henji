@@ -1,0 +1,25 @@
+{
+  "_readme": "这是 server-config.json 的脱敏示例。⚠️ 真实文件 server-config.json 已被 .gitignore 排除，不会入库。新电脑首次搭建时：(1) 复制本文件为 server-config.json，(2) 用真实值替换下方占位符。值从哪来：豆包 Key 与 PayPal 凭证向站主要，或从 .mingli-migrate-code.zip 中的原文件取。环境变量优先于本文件。",
+  "_fields": {
+    "DOUBAO_API_KEY": "豆包大模型 API Key（AI 解读/对话必需）",
+    "DOUBAO_MODEL": "豆包模型 ID，默认 ep-m-20260408172909-vsfqd",
+    "PAYPAL_ENV": "live | sandbox，切换两套 PayPal 凭证",
+    "PAYPAL_CLIENT_ID": "PayPal 应用 Client ID（公开信息，前端加载 SDK 用）",
+    "PAYPAL_SECRET": "PayPal 应用 Secret（★ 仅服务端，绝不可外泄）",
+    "PAYPAL_SANDBOX_CLIENT_ID": "沙盒 Client ID，PAYPAL_ENV=sandbox 时使用",
+    "PAYPAL_SANDBOX_SECRET": "沙盒 Secret",
+    "PAYPAL_WEBHOOK_ID": "PayPal Webhook ID（live）",
+    "PAYPAL_EVENTS_TOKEN": "对账接口 GET /api/paypal/events?token= 的令牌"
+  },
+
+  "DOUBAO_API_KEY": "在此填真实豆包 API Key",
+  "DOUBAO_MODEL": "ep-m-20260408172909-vsfqd",
+
+  "PAYPAL_ENV": "live",
+  "PAYPAL_CLIENT_ID": "在此填真实 Client ID",
+  "PAYPAL_SECRET": "在此填真实 Secret",
+  "PAYPAL_SANDBOX_CLIENT_ID": "在此填沙盒 Client ID",
+  "PAYPAL_SANDBOX_SECRET": "在此填沙盒 Secret",
+  "PAYPAL_WEBHOOK_ID": "在此填 Webhook ID",
+  "PAYPAL_EVENTS_TOKEN": "在此填对账令牌"
+}

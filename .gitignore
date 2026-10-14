@@ -1,0 +1,86 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# typescript（Next 自动生成）
+*.tsbuildinfo
+next-env.d.ts
+
+# ── 本项目补充（痕迹 Traces）──────────────────────────────
+
+# 静态导出与发布目录（可再生，不入库）
+/dist/
+/release/
+/release-old/
+
+# 编辑器/临时备份文件（★ server.js.bak-preshensha 等历史备份一律不入库)
+*.bak
+*.bak-*
+*~
+*.orig
+
+# ── ★ 密钥与个人配置：绝不入库 ──
+/server-config.json
+.env
+.env.local
+.env*.local
+.env.production
+*.pem
+*.key
+
+# ⚠️ server-config.json 已排除。server.js 找不到它时会退化为
+#    无 AI / 无支付功能的纯静态服务。新电脑 clone 后需手动创建：
+#    从 .mingli-migrate-code.zip 取，或照 server-config.example.json 填写。
+
+# ── 大文件：讲座视频不入库（113MB，clone 会很慢）──
+/public/videos/
+# 视频获取方式见 交接文档.md；本地从 .mingli-migrate/可选-大文件/ 拷回
+
+# 日志与运行时数据
+*.log
+/data/
+*.jsonl
+.sites-app.log
+
+# 根目录历史遗留测试残留（待清理，见交接文档 P3）
+/test-doubao.json
+/test-doubao.ps1
+/test-worker.json
+/doubao-test.json
+/prod-response.json
+/pages-response.json
+
+# 工具产物
+.wrangler/
+
+# misc
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# 未引用目录（历史遗留，待清理）
+/i18n/
+/messages/
+
+# vercel
+.vercel
