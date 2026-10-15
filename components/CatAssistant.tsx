@@ -562,18 +562,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                   <div className="py-3 text-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/brand/xiaohen.png" alt="" className="mx-auto mb-3 h-20 w-20 object-contain" />
-                    <p className="mb-4 text-sm text-muted">{t.catIntro}</p>
-                    <div className="mx-auto flex max-w-[290px] flex-col gap-2">
-                      {t.suggestions.slice(0, 4).map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => send(s)}
-                          className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-left text-[11px] leading-relaxed text-muted transition hover:border-accent/40 hover:text-foreground"
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
+                    <p className="text-sm text-muted">{t.catIntro}</p>
                   </div>
                 )}
 
