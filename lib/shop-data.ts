@@ -23,7 +23,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "amber-bracelet",
     image: "/shop/amber-bracelet.webp",
-    price: 0.01,
+    price: 1,
     name: "Red Amber Multi-Loop Bracelet",
     nameZh: "天然血珀多圈手串",
     desc:
@@ -34,7 +34,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "multigem-bracelet",
     image: "/shop/multigem-bracelet.webp",
-    price: 0.01,
+    price: 1,
     name: "Multigem Harmony Bracelet",
     nameZh: "【万物生】多宝手串",
     desc:
@@ -45,7 +45,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "fox-pendant",
     image: "/shop/fox-pendant.webp",
-    price: 0.01,
+    price: 1,
     name: "Nine-Tailed Fox Crystal Pendant",
     nameZh: "九尾狐白水晶吊坠",
     desc:
@@ -56,7 +56,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "jade-leaf-pendant",
     image: "/shop/jade-leaf-pendant.webp",
-    price: 0.01,
+    price: 1,
     name: "Hetian Jade Leaf Pendant",
     nameZh: "和田玉冰透满绿叶子吊坠",
     desc:
@@ -67,7 +67,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "amber-pendant",
     image: "/shop/amber-pendant.webp",
-    price: 0.01,
+    price: 1,
     name: "Royal Amber Statement Pendant",
     nameZh: "天然血珀重工大吊坠",
     desc:
@@ -78,7 +78,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
   {
     id: "amethyst-bracelet",
     image: "/shop/amethyst-bracelet.webp",
-    price: 0.01,
+    price: 1,
     name: "Amethyst & Quartz Bracelet",
     nameZh: "【紫梦星河】紫水晶多宝手串",
     desc:
