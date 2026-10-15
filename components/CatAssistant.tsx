@@ -13,6 +13,22 @@ import { BaguaChart } from "./BaguaChart";
 
 const API = "/api/chat";
 
+/* ── 小桌宠物理与节奏参数 ── */
+const GRAVITY = 2600; // 下落重力 px/s²
+const BOUNCE = 0.42; // 落地反弹系数
+const MIN_BOUNCE = 90; // 落地速度低于此值就稳住（不再弹）
+const SLEEP_AFTER = 75000; // 无互动 75 秒后打盹
+const CAT_W = 90; // 钳制用近似宽度
+
+/** 各小动作的持续时间（毫秒） */
+const MICRO_MS: Record<string, number> = {
+  look: 2000,
+  hop: 960,
+  stretch: 1800,
+  alert: 620,
+  squash: 520,
+};
+
 interface CatTurn {
   role: "user" | "assistant";
   content: string;
@@ -41,145 +57,315 @@ async function poll(jobId: string): Promise<any> {
 }
 
 /**
- * 「小痕」浮动助手：右下角墨猫按钮，点击弹出对话窗。
- * 全站可用；复用 /api/chat 与知识库链路；未登录时展示登录引导。
+ * 「小痕」小桌宠：常驻屏幕角落，自己做小动作（呼吸 / 歪头 / 蹦跳 / 打盹）。
+ * 可以拎起来拖走，松手受重力落到屏幕底部、弹一下；点它开聊。
  */
 export function CatAssistant({ locale }: { locale: Locale }) {
   const t = getChatMessages(locale);
   const { user, loading } = useAuth();
-  // peek=探头躲在右边；resting=落地待命；open=对话打开
-  const [mode, setMode] = useState<"peek" | "resting" | "open">("peek");
-  const [bubbleOn, setBubbleOn] = useState(false);
-  const [landed, setLanded] = useState(false);
-  // 拖拽（位置持久化到 localStorage）
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+
+  /* ── 桌宠状态 ── */
+  const [chatOpen, setChatOpen] = useState(false);
+  const [asleep, setAsleep] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const dragRef = useRef<{ px: number; py: number; bx: number; by: number } | null>(null);
+  const [micro, setMicro] = useState(""); // 当前小动作
+  const [bubbleOn, setBubbleOn] = useState(false);
+  const [x, setX] = useState(0); // 水平偏移（右锚点为 0，负值向左）
+  const [lift, setLift] = useState(0); // 离地高度（0 = 站在屏幕底部）
+  const [onLeft, setOnLeft] = useState(false);
+  const [activeTick, setActiveTick] = useState(0);
+
+  const xRef = useRef(0);
+  const liftRef = useRef(0);
+  const vyRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const microTimer = useRef<number | null>(null);
+  const asleepRef = useRef(false);
+  const dragRef = useRef<{
+    px: number;
+    py: number;
+    bx: number;
+    bl: number;
+    ly: number;
+    lt: number;
+    vy: number;
+  } | null>(null);
   const movedRef = useRef(false);
-  const posRef = useRef({ x: 0, y: 0 }); // 最新位置（拖拽期间 state 可能未及时刷新）
-  const [onLeft, setOnLeft] = useState(false); // 猫是否在屏幕左半边（决定探头方向/气泡方向）
+  const lastDragEndRef = useRef(0);
 
-  const computeOnLeft = (next: { x: number }) => {
-    try {
-      const centerX = window.innerWidth - 58 + next.x;
-      setOnLeft(centerX < window.innerWidth / 2);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("traces_cat_pos");
-      if (raw) {
-        const p = JSON.parse(raw);
-        if (p && typeof p.x === "number" && typeof p.y === "number") {
-          setPos(p);
-          posRef.current = p;
-          computeOnLeft(p);
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const onDragDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest("button")) {
-      // 按钮区域也允许拖拽（pointer 捕获在容器上）
-    }
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { px: e.clientX, py: e.clientY, bx: pos.x, by: pos.y };
-    movedRef.current = false;
-    setDragging(true);
-  };
-  const onDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const dx = e.clientX - d.px;
-    const dy = e.clientY - d.py;
-    if (!movedRef.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) movedRef.current = true;
-    if (!movedRef.current) return;
-    const maxX = Math.max(0, window.innerWidth - 150);
-    const maxY = Math.max(0, window.innerHeight - 200);
-    const next = {
-      x: Math.max(-maxX, Math.min(maxX, d.bx + dx)),
-      y: Math.max(-maxY, Math.min(maxY, d.by + dy)),
-    };
-    posRef.current = next;
-    setPos(next);
-    computeOnLeft(next);
-  };
-  const onDragUp = () => {
-    if (dragRef.current) {
-      try {
-        localStorage.setItem("traces_cat_pos", JSON.stringify(posRef.current));
-      } catch {
-        /* ignore */
-      }
-    }
-    dragRef.current = null;
-    setDragging(false);
-  };
   const [turns, setTurns] = useState<CatTurn[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const open = mode === "open";
+  /* ── 工具函数 ── */
 
+  const clampX = (v: number) => {
+    const vw = typeof window === "undefined" ? 1200 : window.innerWidth;
+    return Math.max(-(vw - 140), Math.min(0, v));
+  };
+  const clampLift = (v: number) => {
+    const vh = typeof window === "undefined" ? 800 : window.innerHeight;
+    return Math.max(0, Math.min(v, vh - 180));
+  };
+  const computeOnLeft = (nx: number) => {
+    try {
+      const vw = window.innerWidth;
+      const narrow = vw <= 640;
+      const cw = narrow ? 76 : 84;
+      const rightOff = narrow ? 20 : 24;
+      setOnLeft(vw - rightOff - cw / 2 + nx < vw / 2);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const flashMicro = (m: string, dur?: number) => {
+    setMicro(m);
+    if (microTimer.current !== null) clearTimeout(microTimer.current);
+    microTimer.current = window.setTimeout(() => setMicro(""), dur ?? MICRO_MS[m] ?? 1200);
+  };
+
+  const poke = () => setActiveTick((v) => v + 1);
+
+  /* ── 物理：下落 + 落地反弹 ── */
+  const runFall = (v0: number) => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    let v = v0; // px/s，向下为正
+    let last = performance.now();
+    const maxLift = clampLift(Infinity);
+    const step = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.032);
+      last = now;
+      v += GRAVITY * dt;
+      let l = liftRef.current - v * dt;
+      if (l <= 0) {
+        l = 0;
+        if (v > MIN_BOUNCE) {
+          v = -v * BOUNCE; // 反弹
+          flashMicro("squash");
+        } else {
+          liftRef.current = 0;
+          vyRef.current = 0;
+          setLift(0);
+          rafRef.current = null;
+          return;
+        }
+      } else if (l > maxLift) {
+        l = maxLift;
+        if (v < 0) v = 0;
+      }
+      liftRef.current = l;
+      vyRef.current = v;
+      setLift(l);
+      rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
+  };
+
+  /* ── 拎起来 / 拖动 ── */
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      px: e.clientX,
+      py: e.clientY,
+      bx: xRef.current,
+      bl: liftRef.current,
+      ly: e.clientY,
+      lt: performance.now(),
+      vy: 0,
+    };
+    movedRef.current = false;
+    if (asleepRef.current) {
+      setAsleep(false);
+      flashMicro("alert");
+    }
+    poke();
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.px;
+    const dy = e.clientY - d.py;
+    if (!movedRef.current) {
+      if (Math.abs(dx) <= 5 && Math.abs(dy) <= 5) return;
+      // 真正开始拖动，才进入「被拎起」状态
+      movedRef.current = true;
+      setDragging(true);
+      setBubbleOn(false);
+    }
+
+    const nx = clampX(d.bx + dx);
+    const nl = clampLift(d.bl - dy); // 往上拖 = 离地更高
+    xRef.current = nx;
+    liftRef.current = nl;
+    setX(nx);
+    setLift(nl);
+    computeOnLeft(nx);
+
+    // 记录手指/鼠标瞬时速度，松手时用于「甩」的初速度
+    const now = performance.now();
+    const dt = Math.max((now - d.lt) / 1000, 0.008);
+    const inst = (e.clientY - d.ly) / dt; // px/s，向下为正
+    d.vy = d.vy * 0.5 + inst * 0.5;
+    d.ly = e.clientY;
+    d.lt = now;
+  };
+
+  const onPointerUp = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (!d) return;
+    if (movedRef.current) {
+      setDragging(false);
+      try {
+        localStorage.setItem("traces_cat_pos", JSON.stringify({ x: xRef.current }));
+      } catch {
+        /* ignore */
+      }
+      runFall(Math.max(-1800, Math.min(2400, d.vy)));
+      lastDragEndRef.current = Date.now(); // 拖拽刚结束时忽略随后的 click
+    }
+  };
+
+  /* ── 点击：唤醒 / 开合对话窗 ── */
+  const handleCatClick = () => {
+    if (Date.now() - lastDragEndRef.current < 320) return; // 拖拽尾声的点击不算
+    poke();
+    if (asleepRef.current) {
+      setAsleep(false);
+      flashMicro("alert");
+    }
+    setChatOpen((o) => !o);
+  };
+
+  /* ── 读回保存的水平位置 ── */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("traces_cat_pos");
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p && typeof p.x === "number") {
+          const nx = clampX(p.x);
+          xRef.current = nx;
+          setX(nx);
+          computeOnLeft(nx);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── 睡眠逻辑：无互动一段时间后打盹 ── */
+  useEffect(() => {
+    if (chatOpen || dragging) {
+      setAsleep(false);
+      return;
+    }
+    const id = window.setTimeout(() => setAsleep(true), SLEEP_AFTER);
+    return () => clearTimeout(id);
+  }, [chatOpen, dragging, activeTick]);
+
+  useEffect(() => {
+    asleepRef.current = asleep;
+    if (asleep) setMicro("");
+  }, [asleep]);
+
+  /* ── 小动作调度：清醒且空闲时随机做点事 ── */
+  useEffect(() => {
+    if (asleep || dragging || chatOpen) return;
+    let timer: number;
+    let cancelled = false;
+    const schedule = () => {
+      timer = window.setTimeout(
+        () => {
+          if (cancelled) return;
+          const pick = (["look", "look", "hop", "stretch"] as const)[Math.floor(Math.random() * 4)];
+          flashMicro(pick);
+          schedule();
+        },
+        6000 + Math.random() * 11000
+      );
+    };
+    schedule();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asleep, dragging, chatOpen]);
+
+  /* ── 气泡：偶尔冒出来喊人聊天 ── */
+  useEffect(() => {
+    if (chatOpen || dragging || asleep) {
+      setBubbleOn(false);
+      return;
+    }
+    let showTimer: number;
+    let hideTimer: number;
+    let cancelled = false;
+    const schedule = (delay: number, dur: number) => {
+      showTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        setBubbleOn(true);
+        hideTimer = window.setTimeout(() => {
+          if (cancelled) return;
+          setBubbleOn(false);
+          schedule(65000 + Math.random() * 55000, 9000);
+        }, dur);
+      }, delay);
+    };
+    schedule(2500, 11000);
+    return () => {
+      cancelled = true;
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [chatOpen, dragging, asleep]);
+
+  /* ── 视口变化时重新钳制 ── */
+  useEffect(() => {
+    const onResize = () => {
+      const nx = clampX(xRef.current);
+      xRef.current = nx;
+      setX(nx);
+      const nl = clampLift(liftRef.current);
+      liftRef.current = nl;
+      setLift(nl);
+      computeOnLeft(nx);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── 卸载清理 ── */
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      if (microTimer.current !== null) clearTimeout(microTimer.current);
+    };
+  }, []);
+
+  /* ── 对话 ── */
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [turns, open]);
-
-  // 视口尺寸变化时重算左右
-  useEffect(() => {
-    const onResize = () => computeOnLeft(posRef.current);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  // 气泡：探头一会儿后冒出来（开聊时隐去）
-  useEffect(() => {
-    setBubbleOn(false);
-    if (mode === "open") return;
-    const t = setTimeout(() => setBubbleOn(true), mode === "peek" ? 2200 : 900);
-    return () => clearTimeout(t);
-  }, [mode]);
-
-  // 待命 13 秒没人理 → 缩回边上
-  useEffect(() => {
-    if (mode !== "resting") return;
-    const t = setTimeout(() => setMode("peek"), 13000);
-    return () => clearTimeout(t);
-  }, [mode]);
-
-  // 点击小猫：探头 → 跳下来落地 → 开聊；开聊中点击 → 收起并待命
-  const handleCatClick = () => {
-    if (movedRef.current) {
-      movedRef.current = false;
-      return; // 拖拽后不触发点击
-    }
-    if (mode === "open") {
-      setMode("resting");
-      return;
-    }
-    if (mode === "peek") {
-      setMode("resting"); // 触发「跳下来」过渡
-      setLanded(true);
-      setTimeout(() => setLanded(false), 520);
-      setTimeout(() => setMode("open"), 800);
-      return;
-    }
-    setMode("open");
-  };
+  }, [turns, chatOpen]);
 
   const send = async (q: string) => {
     const text = q.trim();
     if (!text || busy) return;
     setInput("");
     setBusy(true);
+    poke();
     const history = turns.filter((x) => !x.error).map((x) => ({ role: x.role, content: x.content }));
     setTurns((prev) => [
       ...prev,
@@ -224,91 +410,131 @@ export function CatAssistant({ locale }: { locale: Locale }) {
     }
   };
 
+  /* ── 渲染辅助 ── */
+  const microCls = [
+    micro === "look" ? "cat-looking" : "",
+    micro === "hop" ? "cat-hopping" : "",
+    micro === "stretch" ? "cat-stretching" : "",
+    micro === "alert" ? "cat-alert" : "",
+    micro === "squash" ? "cat-squash" : "",
+    dragging ? "cat-held" : "",
+    asleep ? "cat-doze" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const glowScale = Math.max(0.42, 1 - lift / 520);
+  const glowOpacity = Math.max(0.12, 1 - lift / 460);
+
   return (
     <>
-      {/* 浮动小猫：可拖拽（位置记忆）｜探头态只露歪头，落地/待命显示全身 */}
-      <div className="pointer-events-none fixed bottom-5 right-5 z-50 sm:bottom-6 sm:right-6">
+      {/* ── 小桌宠 ── */}
+      <div className="pointer-events-none fixed bottom-5 right-5 z-50 h-[76px] w-[76px] sm:bottom-6 sm:right-6 sm:h-[84px] sm:w-[84px]">
+        {/* 地面光晕（贴着屏幕底部，猫被拎起来时会变小变淡） */}
         <div
+          className="absolute bottom-0 left-1/2"
           style={{
-            transform: "translate(" + pos.x + "px, " + pos.y + "px)",
-            transition: dragging ? "none" : "transform 0.5s cubic-bezier(0.28, 1.5, 0.5, 1)",
+            transform: "translateX(calc(-50% + " + x + "px))",
+            willChange: "transform",
           }}
         >
           <div
-            className={"pointer-events-auto relative h-[76px] w-[76px] " + (mode === "peek" ? "cat-peeking" : "") + (landed ? " cat-landed" : "")}
-            style={{ touchAction: "none", cursor: dragging ? "grabbing" : "grab" }}
-            onPointerDown={onDragDown}
-            onPointerMove={onDragMove}
-            onPointerUp={onDragUp}
-            onPointerCancel={onDragUp}
-          >
-            {/* 头（探头态）：脖子靠屏幕边缘（身体藏屏外），脸朝页面内部看 */}
-            <div
-              className="pointer-events-none absolute bottom-2 right-0 w-[88px]"
-              style={{
-                transform:
-                  mode === "peek"
-                    ? "translateX(" + (onLeft ? "-30%" : "30%") + ") rotate(" + (onLeft ? "6deg" : "-6deg") + ")"
-                    : "translateX(0%) rotate(0deg)",
-                opacity: mode === "peek" ? 1 : 0,
-                transformOrigin: "50% 84%",
-                transition: "transform 0.7s cubic-bezier(0.28, 1.5, 0.5, 1), opacity 0.35s ease",
-              }}
-            >
+            className="cat-ground-glow h-3 w-24 rounded-[50%] blur-[2px]"
+            style={{ transform: "scale(" + glowScale + ")", opacity: glowOpacity }}
+          />
+        </div>
+
+        {/* 猫本体（位置层：水平偏移 + 离地高度） */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={t.catTitle}
+          title={t.catTitle}
+          className="pointer-events-auto absolute inset-0 select-none"
+          style={{
+            transform: "translate3d(" + x + "px, " + -lift + "px, 0)",
+            willChange: "transform",
+            touchAction: "none",
+            cursor: dragging ? "grabbing" : "grab",
+          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onClick={handleCatClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleCatClick();
+            }
+          }}
+        >
+          {/* 呼吸层 */}
+          <div className={"h-full w-full " + (asleep ? "cat-breathe-slow" : "cat-breathe")}>
+            {/* 小动作层 */}
+            <div className={"h-full w-full " + microCls}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={onLeft ? "/brand/xiaohen-head-right.png" : "/brand/xiaohen-head-left.png"}
-                alt="小痕"
-                className="cat-head-img w-full object-contain"
-                style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.55))" }}
+                src="/brand/xiaohen.png"
+                alt=""
+                draggable={false}
+                className={
+                  "cat-img pointer-events-none h-full w-full object-contain" + (asleep ? " cat-dim" : "")
+                }
+                style={{ filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.55))" }}
               />
             </div>
+          </div>
 
-            {/* 全身（落地/待命/开聊） */}
+          {/* 打盹的 Zzz */}
+          {asleep && (
+            <div className="pointer-events-none absolute -right-1 -top-4 h-9 w-9">
+              <span className="cat-zzz" style={{ animationDelay: "0s" }}>
+                z
+              </span>
+              <span className="cat-zzz" style={{ animationDelay: "0.95s" }}>
+                Z
+              </span>
+              <span className="cat-zzz" style={{ animationDelay: "1.9s" }}>
+                z
+              </span>
+            </div>
+          )}
+
+          {/* 搭话气泡（跟着拖，分侧避免出屏） */}
+          {bubbleOn && !dragging && !asleep && (
             <button
-              onClick={handleCatClick}
-              aria-label={t.catTitle}
-              title={t.catTitle}
-              className="absolute inset-0 block"
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCatClick();
+              }}
+              className={
+                "cat-bubble pointer-events-auto absolute bottom-5 w-max max-w-[210px] border border-accent/25 bg-[#141109]/95 px-3.5 py-2.5 text-left text-xs leading-relaxed text-foreground/90 shadow-lg shadow-black/40 backdrop-blur-sm " +
+                (onLeft ? "left-full ml-3 rounded-2xl rounded-bl-md" : "right-full mr-3 rounded-2xl rounded-br-md")
+              }
             >
-              <img
-                src="/brand/xiaohen.png"
-                alt="小痕"
-                className="cat-full-img h-full w-full object-contain"
-                style={{
-                  transform: mode === "peek" ? "translateY(-64px) scale(0.82)" : "translateY(0) scale(1)",
-                  opacity: mode === "peek" ? 0 : 1,
-                  filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.55))",
-                  transition: "transform 0.7s cubic-bezier(0.28, 1.5, 0.5, 1), opacity 0.3s ease 0.12s",
-                }}
+              {t.catBubble}
+              <span
+                className={
+                  "absolute -bottom-0 h-2.5 w-2.5 rotate-45 bg-[#141109]/95 " +
+                  (onLeft ? "left-2 border-b border-l border-accent/25" : "right-2 border-b border-r border-accent/25")
+                }
               />
             </button>
-
-            {/* 交互气泡（跟随拖拽位置） */}
-            {bubbleOn && (
-              <button
-                onClick={handleCatClick}
-                className={
-                  "cat-bubble pointer-events-auto absolute bottom-4 w-max max-w-[210px] border border-accent/25 bg-[#141109]/95 px-3.5 py-2.5 text-left text-xs leading-relaxed text-foreground/90 shadow-lg shadow-black/40 backdrop-blur-sm " +
-                  (onLeft ? "left-full ml-3 rounded-2xl rounded-bl-md" : "right-full mr-3 rounded-2xl rounded-br-md")
-                }
-              >
-                {t.catBubble}
-                <span
-                  className={
-                    "absolute -bottom-0 h-2.5 w-2.5 rotate-45 bg-[#141109]/95 " +
-                    (onLeft ? "left-2 border-b border-l border-accent/25" : "right-2 border-b border-r border-accent/25")
-                  }
-                />
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
 
-      {/* 对话弹窗 */}
-      {open && (
-        <div className="fixed bottom-24 right-4 z-50 flex h-[560px] max-h-[calc(100vh-7.5rem)] w-[380px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d0b09]/[0.97] shadow-2xl shadow-black/60 backdrop-blur-xl sm:right-6">
+      {/* ── 对话窗 ── */}
+      {chatOpen && (
+        <div
+          className={
+            "cat-chat fixed bottom-24 z-50 flex h-[560px] max-h-[calc(100vh-7.5rem)] w-[380px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d0b09]/[0.97] shadow-2xl shadow-black/60 backdrop-blur-xl " +
+            (onLeft ? "left-4 sm:left-6" : "right-4 sm:right-6")
+          }
+        >
           {/* 头部 */}
           <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -319,7 +545,11 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                 <span className="h-1.5 w-1.5 rounded-full bg-green-400" /> Online
               </p>
             </div>
-            <button onClick={() => setMode("resting")} className="text-muted transition hover:text-foreground" aria-label="close">
+            <button
+              onClick={() => setChatOpen(false)}
+              className="text-muted transition hover:text-foreground"
+              aria-label="close"
+            >
               <X size={16} />
             </button>
           </div>
