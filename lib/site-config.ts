@@ -13,7 +13,7 @@ export const SITE_URL = "https://mingli-club.app.workbuddy.host";
  * ⚠️ 前端仅做界面控制；真正的数据权限在数据库 RLS 策略里（auth.email() 白名单），
  *    改这里的同时必须同步更新 payment_orders / readings 的 *_select_admin 策略。
  */
-export const ADMIN_EMAILS = ["wanp1a0gu@gmail.com"];
+export const ADMIN_EMAILS = ["wanp1a0gu@gmail.com", "501183563@qq.com"];
 
 /**
  * WhatsApp contact number — international format, digits only
