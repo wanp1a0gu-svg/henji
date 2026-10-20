@@ -8,6 +8,7 @@ import { getPayMessages } from "@/lib/pay-i18n";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
 import { PayPalButton } from "./PayPalButton";
+import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
 import { BaziChart, type BaziChartData } from "./BaziChart";
 import { SignInGate } from "./SignInGate";
@@ -333,6 +334,17 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                     handleSubmit();
                   }}
                 />
+                {user && (
+                  <BalancePayButton
+                    product="bazi"
+                    locale={locale}
+                    onSuccess={() => {
+                      setPaid(true);
+                      setPayHint("");
+                      handleSubmit();
+                    }}
+                  />
+                )}
                 <p className="mt-4 text-center text-[10px] leading-relaxed text-muted/60">
                   {t("bazi.disclaimer")}
                 </p>

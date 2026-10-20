@@ -191,8 +191,7 @@ export type Database = {
       };
 
       /** 余额流水：正数=充值/赠送，负数=消费。只读，由 RPC 写入。 */
-      wallet_transactions: {
-        Row: {
+      wallet_transactions: {        Row: {
           id: number;
           owner_id: string;
           amount: string;
@@ -220,6 +219,39 @@ export type Database = {
         };
         Update: {
           note?: string | null;
+        };
+      };
+
+      /** 提现申请：申请时先冻结扣款，站长打款后置 paid，被拒则退款（kind='refund'）。 */
+      withdrawals: {
+        Row: {
+          id: number;
+          owner_id: string;
+          amount: string;
+          /** 收款 PayPal 账号（邮箱） */
+          account: string;
+          note: string | null;
+          /** pending / paid / rejected */
+          status: string;
+          admin_note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: never;
+          owner_id?: string;
+          amount: string;
+          account: string;
+          note?: string | null;
+          status?: string;
+          admin_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: string;
+          admin_note?: string | null;
+          updated_at?: string;
         };
       };
     };
@@ -274,6 +306,38 @@ export type Database = {
           p_sig: string;
         };
         Returns: { balance: string; amount: string };
+      };
+      /**
+       * 余额支付（**只应由 /api/wallet/quote 签发的凭据调用**）。
+       * p_sig = HMAC-SHA256(`${p_uid}|${p_product}|${p_amount}|${p_ts}`)
+       * 强制 p_uid = auth.uid()（只能花自己的钱），余额不足抛 INSUFFICIENT_BALANCE。
+       */
+      wallet_spend_signed: {
+        Args: {
+          p_uid: string;
+          p_product: string;
+          p_amount: string;
+          p_ts: number;
+          p_sig: string;
+        };
+        Returns: { balance: string; product: string; amount: string };
+      };
+      /**
+       * 提现申请：立即从余额扣款（冻结），生成 pending 记录。
+       * 最低 $10。异常：NOT_AUTHENTICATED / INVALID_AMOUNT / AMOUNT_TOO_SMALL /
+       * INVALID_ACCOUNT / INSUFFICIENT_BALANCE
+       */
+      wallet_withdraw_request: {
+        Args: { p_amount: string; p_account: string; p_note?: string | null };
+        Returns: { id: number; balance: string; amount: string };
+      };
+      /**
+       * 提现审核（管理员）：p_action = 'paid' 标记已打款 / 'reject' 拒绝并退款。
+       * 异常：FORBIDDEN / INVALID_ACTION / NOT_FOUND / ALREADY_SETTLED
+       */
+      wallet_withdraw_settle: {
+        Args: { p_id: number; p_action: string; p_admin_note?: string | null };
+        Returns: { id: number; status: string; balance?: string };
       };
     };
   };

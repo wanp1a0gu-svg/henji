@@ -824,6 +824,15 @@ function walletRechargeSignature(uid, amountText, orderId, ts) {
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
+/** 余额支付报价签名：HMAC(uid|product|amount|ts)，供数据库 wallet_spend_signed 验签。 */
+function walletPaySignature(uid, product, amountText, ts) {
+  const secret =
+    loadServerConfigField("WALLET_RECHARGE_SECRET") || process.env.WALLET_RECHARGE_SECRET || "";
+  if (!secret) return null;
+  const payload = [uid, product, amountText, String(ts)].join("|");
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+}
+
 function resolvePayProduct(product) {
   if (product === "bazi") return PAY_PRODUCTS.bazi;
   if (typeof product === "string" && product.indexOf("wallet:") === 0) {
@@ -884,6 +893,55 @@ function handlePayPalCreate(req, res) {
       console.error("[paypal] create failed:", (e && e.message) || e);
       return sendJson(res, 502, { error: "Failed to create payment order" });
     }
+  });
+}
+
+/**
+ * POST /api/wallet/quote { product, uid } — 余额支付报价。
+ * 价格一律取服务端价格表，签发 HMAC 凭据后由数据库 RPC 验签扣款，
+ * 客户端无法篡改金额（改了就验不过）。
+ */
+function handleWalletQuote(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+  readBody(req, (err, raw) => {
+    if (err) {
+      return sendJson(res, err.message === "too large" ? 413 : 400, {
+        error: err.message === "too large" ? "Request body too large" : "Invalid request body",
+      });
+    }
+    if (!checkRateLimit(req)) {
+      return sendJson(res, 429, { error: "Too many requests. Please try again later." });
+    }
+    let body = {};
+    try {
+      body = JSON.parse(raw || "{}");
+    } catch {
+      return sendJson(res, 400, { error: "Invalid JSON body" });
+    }
+    const product = typeof body.product === "string" ? body.product : "";
+    const uid = typeof body.uid === "string" ? body.uid.trim().slice(0, 64) : "";
+    if (!uid) return sendJson(res, 400, { error: "Missing uid" });
+
+    const item = resolvePayProduct(product);
+    // 充值商品不能用余额买余额
+    if (!item || item.wallet) return sendJson(res, 400, { error: "Unknown product" });
+
+    const ts = Math.floor(Date.now() / 1000);
+    const amountText = item.price.toFixed(2);
+    const sig = walletPaySignature(uid, product, amountText, ts);
+    if (!sig) {
+      console.error("[wallet] pay secret missing");
+      return sendJson(res, 503, { error: "Balance payment is not configured" });
+    }
+    return sendJson(res, 200, {
+      product,
+      productName: item.name,
+      amount: amountText,
+      currency: "USD",
+      uid,
+      ts,
+      sig,
+    });
   });
 }
 
@@ -1442,6 +1500,9 @@ const server = http.createServer((req, res) => {
 
   if (clean === "/api/paypal/config") {
     return sendJson(res, 200, PayPal ? PayPal.publicConfig() : { configured: false });
+  }
+  if (clean === "/api/wallet/quote") {
+    return handleWalletQuote(req, res);
   }
   if (clean === "/api/paypal/create-order") {
     return handlePayPalCreate(req, res);

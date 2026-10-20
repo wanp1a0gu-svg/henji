@@ -7,6 +7,7 @@ import { getShopMessages } from "@/lib/shop-i18n";
 import { SHOP_PRODUCTS, type ShopProduct } from "@/lib/shop-data";
 import { getPayMessages } from "@/lib/pay-i18n";
 import { PayPalButton } from "./PayPalButton";
+import { BalancePayButton } from "./BalancePayButton";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
@@ -90,6 +91,7 @@ export function ShopContent({ locale }: { locale: Locale }) {
                 {payOpen === p.id && paidId !== p.id && (
                   <div className="mt-4">
                     {user ? (
+                      <>
                       <PayPalButton
                         product={"shop:" + p.id}
                         locale={locale}
@@ -113,6 +115,12 @@ export function ShopContent({ locale }: { locale: Locale }) {
                           }
                         }}
                       />
+                      <BalancePayButton
+                        product={"shop:" + p.id}
+                        locale={locale}
+                        onSuccess={() => setPaidId(p.id)}
+                      />
+                      </>
                     ) : (
                       <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-center">
                         <p className="mb-2 text-[11px] text-muted">{pay.loginToBuy}</p>

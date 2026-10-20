@@ -56,6 +56,15 @@ export function WalletCard({ locale }: { locale: Locale }) {
   const [tier, setTier] = useState(20);
   const [credit, setCredit] = useState<"idle" | "crediting" | "ok" | "already" | "error">("idle");
 
+  // 提现弹窗
+  const [wOpen, setWOpen] = useState(false);
+  const [wAmount, setWAmount] = useState("20");
+  const [wAccount, setWAccount] = useState("");
+  const [wNote, setWNote] = useState("");
+  const [wBusy, setWBusy] = useState(false);
+  const [wState, setWState] = useState<"idle" | "ok" | "error" | "insufficient" | "tooSmall" | "badAccount">("idle");
+  const [wErr, setWErr] = useState("");
+
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -130,6 +139,46 @@ export function WalletCard({ locale }: { locale: Locale }) {
     setOpen(true);
   };
 
+  const openWithdraw = () => {
+    setWState("idle");
+    setWErr("");
+    setWAmount("20");
+    setWNote("");
+    setWAccount((user && user.email) || "");
+    setWOpen(true);
+  };
+
+  /** 提现申请：先冻结扣款，等站长打款后标记完成（被拒会退回） */
+  const submitWithdraw = async () => {
+    setWErr("");
+    setWState("idle");
+    setWBusy(true);
+    try {
+      const { data, error: err } = await getCloud().database.rpc("wallet_withdraw_request", {
+        p_amount: wAmount,
+        p_account: wAccount.trim(),
+        p_note: wNote.trim() || null,
+      });
+      if (err) {
+        const m = String(err.message || "");
+        if (m.indexOf("INSUFFICIENT_BALANCE") !== -1) return setWState("insufficient");
+        if (m.indexOf("AMOUNT_TOO_SMALL") !== -1) return setWState("tooSmall");
+        if (m.indexOf("INVALID_ACCOUNT") !== -1) return setWState("badAccount");
+        setWErr(m);
+        return setWState("error");
+      }
+      const row: any = Array.isArray(data) ? data[0] : data;
+      if (row && row.balance != null) setBalance(String(row.balance));
+      setWState("ok");
+      await load();
+    } catch (e: any) {
+      setWErr((e && e.message) || w.withdrawFailed);
+      setWState("error");
+    } finally {
+      setWBusy(false);
+    }
+  };
+
   const formatDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleString(locale, {
@@ -145,7 +194,15 @@ export function WalletCard({ locale }: { locale: Locale }) {
   };
 
   const kindLabel = (kind: string) =>
-    kind === "grant" ? w.kindGrant : kind === "purchase" ? w.kindPurchase : w.kindAdjust;
+    kind === "grant"
+      ? w.kindGrant
+      : kind === "purchase"
+        ? w.kindPurchase
+        : kind === "withdraw"
+          ? w.kindWithdraw
+          : kind === "refund"
+            ? w.kindRefund
+            : w.kindAdjust;
 
   return (
     <div>
@@ -159,13 +216,22 @@ export function WalletCard({ locale }: { locale: Locale }) {
             <p className="text-xs text-muted">{w.currencyNote}</p>
           </div>
         </div>
-        <button
-          onClick={openRecharge}
-          className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-medium text-background transition hover:bg-accent-light"
-        >
-          <Plus size={13} />
-          {w.recharge}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openRecharge}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-medium text-background transition hover:bg-accent-light"
+          >
+            <Plus size={13} />
+            {w.recharge}
+          </button>
+          <button
+            onClick={openWithdraw}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/12 px-4 py-2 text-xs text-muted transition hover:border-accent/30 hover:text-foreground"
+          >
+            <ArrowUpRight size={13} />
+            {w.withdraw}
+          </button>
+        </div>
       </div>
 
       {/* 余额 */}
@@ -318,6 +384,93 @@ export function WalletCard({ locale }: { locale: Locale }) {
           </div>
         </div>
       )}
+
+      {/* 提现弹窗 */}
+      {wOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => setWOpen(false)} />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0d0b09] p-6 shadow-2xl">
+            <button
+              onClick={() => setWOpen(false)}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-foreground"
+              aria-label={w.close}
+            >
+              <X size={16} />
+            </button>
+
+            <h3 className="font-serif text-xl">{w.withdrawTitle}</h3>
+            <p className="mt-1 mb-5 text-xs text-muted">{w.withdrawHint}</p>
+
+            {wState === "ok" ? (
+              <div className="rounded-xl border border-green-500/25 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+                <p className="flex items-center gap-2">
+                  <CheckCircle2 size={14} />
+                  {w.withdrawSuccess}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1.5 block text-[11px] text-muted/70">
+                    {w.balanceLabel} ${money(balance)}
+                  </label>
+                  <input
+                    value={wAmount}
+                    onChange={(e) => {
+                      setWAmount(e.target.value);
+                      setWState("idle");
+                    }}
+                    inputMode="decimal"
+                    placeholder="20"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm outline-none transition placeholder:text-muted/40 focus:border-accent/50"
+                  />
+                  <p className="mt-1.5 text-[10px] text-muted/50">{w.withdrawMin}</p>
+                </div>
+
+                <input
+                  value={wAccount}
+                  onChange={(e) => {
+                    setWAccount(e.target.value);
+                    setWState("idle");
+                  }}
+                  placeholder={w.withdrawAccount}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm outline-none transition placeholder:text-muted/40 focus:border-accent/50"
+                />
+
+                <input
+                  value={wNote}
+                  onChange={(e) => setWNote(e.target.value)}
+                  placeholder={w.notePlaceholder}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm outline-none transition placeholder:text-muted/40 focus:border-accent/50"
+                />
+
+                <button
+                  onClick={submitWithdraw}
+                  disabled={wBusy}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-medium text-background transition hover:bg-accent-light disabled:opacity-70"
+                >
+                  {wBusy && <Loader2 size={14} className="animate-spin" />}
+                  {w.withdrawSubmit}
+                </button>
+
+                {wState === "insufficient" && (
+                  <p className="text-center text-[11px] text-red-300">{w.payInsufficient}</p>
+                )}
+                {wState === "tooSmall" && (
+                  <p className="text-center text-[11px] text-red-300">{w.withdrawMin}</p>
+                )}
+                {wState === "badAccount" && (
+                  <p className="text-center text-[11px] text-red-300">{w.withdrawAccount}</p>
+                )}
+                {wState === "error" && (
+                  <p className="text-center text-[11px] text-red-300">{wErr || w.withdrawFailed}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
