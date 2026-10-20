@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen } from "lucide-react";
+import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { ADMIN_EMAILS } from "@/lib/site-config";
 import { getCloud } from "@/lib/cloud";
@@ -9,6 +9,7 @@ import { SHOP_PRODUCTS } from "@/lib/shop-data";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
 import { AdminSkills } from "./AdminSkills";
+import { AdminWallet } from "./AdminWallet";
 
 interface Order {
   id: number;
@@ -81,7 +82,7 @@ const fmtTime = (t: string) => {
 
 export function AdminContent({ locale }: { locale: Locale }) {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "orders" | "readings" | "traffic" | "skills">("overview");
+  const [tab, setTab] = useState<"overview" | "orders" | "readings" | "traffic" | "skills" | "wallet">("overview");
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [readings, setReadings] = useState<Reading[] | null>(null);
   const [views, setViews] = useState<PageView[] | null>(null);
@@ -277,6 +278,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const TABS = [
     { key: "overview" as const, label: "概览", icon: <Sparkles size={14} /> },
     { key: "orders" as const, label: "订单", icon: <Wallet size={14} /> },
+    { key: "wallet" as const, label: "钱包", icon: <Coins size={14} /> },
     { key: "readings" as const, label: "测算记录", icon: <FileText size={14} /> },
     { key: "traffic" as const, label: "流量", icon: <BarChart3 size={14} /> },
     { key: "skills" as const, label: "知识库", icon: <BookOpen size={14} /> },
@@ -529,6 +531,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         )}
 
         {/* 知识库 */}
+        {tab === "wallet" && <AdminWallet />}
         {tab === "skills" && <AdminSkills />}
       </div>
 

@@ -20,6 +20,7 @@ import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getSecurityMessages } from "@/lib/security-i18n";
 import { ProfileCard } from "./ProfileCard";
+import { WalletCard } from "./WalletCard";
 import { getPaymentMessages } from "@/lib/payment-i18n";
 import { useAuth } from "./AuthProvider";
 
@@ -302,6 +303,13 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
       <section className="px-6 pb-14">
         <div className="mx-auto max-w-4xl">
           <ProfileCard locale={locale} />
+        </div>
+      </section>
+
+      {/* Wallet */}
+      <section className="px-6 pb-14">
+        <div className="mx-auto max-w-4xl">
+          <WalletCard locale={locale} />
         </div>
       </section>
 
