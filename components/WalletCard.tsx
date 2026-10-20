@@ -1,11 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Loader2, Wallet } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowDownLeft,
+  ArrowUpRight,
+  CheckCircle2,
+  Loader2,
+  Plus,
+  Wallet,
+  X,
+} from "lucide-react";
 import { getCloud } from "@/lib/cloud";
 import { Locale } from "@/lib/i18n";
 import { getWalletMessages } from "@/lib/wallet-i18n";
 import { useAuth } from "./AuthProvider";
+import { PayPalButton } from "./PayPalButton";
 
 interface WalletTx {
   id: number;
@@ -17,14 +27,20 @@ interface WalletTx {
   created_at: string;
 }
 
+/** 充值档位 —— 必须与 server.js 的 WALLET_TIERS 一致（金额由服务端定价） */
+const TIERS = [10, 20, 50, 100, 200];
+
 const money = (v: string | number | null | undefined) => {
   const n = typeof v === "number" ? v : parseFloat(v || "0");
   return (Number.isFinite(n) ? n : 0).toFixed(2);
 };
 
 /**
- * 账户页 · 钱包卡：显示可用余额 + 最近交易流水。
- * 数据由 RLS 限定为「本人可见」（wallet_accounts / wallet_transactions 都只有 SELECT 策略）。
+ * 账户页 · 钱包卡：可用余额 + 充值 + 最近交易流水。
+ *
+ * 数据只读：wallet_accounts / wallet_transactions 都只有 SELECT 策略。
+ * 充值流程：PayPal 支付 → 服务端捕获并核验金额 → 返回签名凭据 →
+ *          前端拿凭据调 RPC wallet_recharge 入账（签名防伪造，见 server.js）。
  */
 export function WalletCard({ locale }: { locale: Locale }) {
   const w = getWalletMessages(locale);
@@ -34,6 +50,11 @@ export function WalletCard({ locale }: { locale: Locale }) {
   const [txs, setTxs] = useState<WalletTx[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // 充值弹窗
+  const [open, setOpen] = useState(false);
+  const [tier, setTier] = useState(20);
+  const [credit, setCredit] = useState<"idle" | "crediting" | "ok" | "already" | "error">("idle");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -68,6 +89,47 @@ export function WalletCard({ locale }: { locale: Locale }) {
     load();
   }, [load]);
 
+  /** PayPal 支付成功 → 用服务端签发的凭据入账 */
+  const handlePaid = async (order: any) => {
+    const rc = order && order.recharge;
+    if (!rc) {
+      setCredit("error");
+      return;
+    }
+    setCredit("crediting");
+    try {
+      const { error: err } = await getCloud().database.rpc("wallet_recharge", {
+        p_uid: rc.uid,
+        p_amount: rc.amount,
+        p_order: rc.orderId,
+        p_ts: rc.ts,
+        p_sig: rc.sig,
+      });
+      if (err) {
+        const msg = String(err.message || "");
+        if (msg.indexOf("ALREADY_CREDITED") !== -1) {
+          setCredit("already");
+          await load();
+          return;
+        }
+        console.error("[wallet] recharge failed:", msg);
+        setCredit("error");
+        return;
+      }
+      setCredit("ok");
+      await load();
+    } catch (e) {
+      console.error("[wallet] recharge exception:", e);
+      setCredit("error");
+    }
+  };
+
+  const openRecharge = () => {
+    setCredit("idle");
+    setTier(20);
+    setOpen(true);
+  };
+
   const formatDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleString(locale, {
@@ -83,22 +145,27 @@ export function WalletCard({ locale }: { locale: Locale }) {
   };
 
   const kindLabel = (kind: string) =>
-    kind === "grant"
-      ? w.kindGrant
-      : kind === "purchase"
-        ? w.kindPurchase
-        : w.kindAdjust;
+    kind === "grant" ? w.kindGrant : kind === "purchase" ? w.kindPurchase : w.kindAdjust;
 
   return (
     <div>
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
-          <Wallet size={18} className="text-accent" />
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
+            <Wallet size={18} className="text-accent" />
+          </div>
+          <div>
+            <h2 className="font-serif text-xl">{w.title}</h2>
+            <p className="text-xs text-muted">{w.currencyNote}</p>
+          </div>
         </div>
-        <div>
-          <h2 className="font-serif text-xl">{w.title}</h2>
-          <p className="text-xs text-muted">{w.currencyNote}</p>
-        </div>
+        <button
+          onClick={openRecharge}
+          className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-medium text-background transition hover:bg-accent-light"
+        >
+          <Plus size={13} />
+          {w.recharge}
+        </button>
       </div>
 
       {/* 余额 */}
@@ -180,6 +247,77 @@ export function WalletCard({ locale }: { locale: Locale }) {
           </div>
         )}
       </div>
+
+      {/* 充值弹窗 */}
+      {open && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0d0b09] p-6 shadow-2xl">
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-foreground"
+              aria-label={w.close}
+            >
+              <X size={16} />
+            </button>
+
+            <h3 className="font-serif text-xl">{w.rechargeTitle}</h3>
+            <p className="mt-1 mb-5 text-xs text-muted">{w.rechargeHint}</p>
+
+            <div className="mb-5 grid grid-cols-3 gap-2">
+              {TIERS.map((v) => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    setTier(v);
+                    setCredit("idle");
+                  }}
+                  className={`rounded-xl border px-3 py-3 text-sm transition ${
+                    tier === v
+                      ? "border-accent/60 bg-accent/15 text-accent"
+                      : "border-white/10 bg-white/[0.03] text-muted hover:border-accent/30"
+                  }`}
+                >
+                  ${v}
+                </button>
+              ))}
+            </div>
+
+            {credit === "ok" || credit === "already" ? (
+              <div className="rounded-xl border border-green-500/25 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+                <p className="flex items-center gap-2">
+                  <CheckCircle2 size={14} />
+                  {credit === "already" ? w.rechargeAlready : w.rechargeSuccess}
+                </p>
+              </div>
+            ) : credit === "error" ? (
+              <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <p className="flex items-center gap-2">
+                  <AlertCircle size={14} />
+                  {w.rechargeFailed}
+                </p>
+              </div>
+            ) : credit === "crediting" ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-muted">
+                <Loader2 size={14} className="animate-spin text-accent" />
+                {w.rechargeCrediting}
+              </div>
+            ) : (
+              // key 变化时重建按钮，避免复用旧的 PayPal 实例
+              <PayPalButton
+                key={tier}
+                product={`wallet:${tier}`}
+                locale={locale}
+                uid={user?.id}
+                onSuccess={handlePaid}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

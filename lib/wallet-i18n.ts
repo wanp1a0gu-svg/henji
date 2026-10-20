@@ -1,7 +1,7 @@
 import { Locale } from "./i18n";
 
 /**
- * 钱包（余额）相关文案：账户页的余额卡 + 流水列表。
+ * 钱包（余额）相关文案：账户页的余额卡 + 流水列表 + 充值弹窗。
  * 后台管理面板是中文界面，不走这里。
  */
 export interface WalletMessages {
@@ -24,6 +24,15 @@ export interface WalletMessages {
   kindPurchase: string;
   /** "余额"快照前缀 */
   balanceAfter: string;
+  /** 充值 */
+  recharge: string;
+  rechargeTitle: string;
+  rechargeHint: string;
+  rechargeCrediting: string;
+  rechargeSuccess: string;
+  rechargeFailed: string;
+  rechargeAlready: string;
+  close: string;
 }
 
 const walletMessages: Record<Locale, WalletMessages> = {
@@ -41,6 +50,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "Adjustment",
     kindPurchase: "Purchase",
     balanceAfter: "Balance",
+    recharge: "Top up",
+    rechargeTitle: "Top up balance",
+    rechargeHint: "Pick an amount — it is credited automatically once payment succeeds.",
+    rechargeCrediting: "Crediting your balance…",
+    rechargeSuccess: "Payment received — your balance has been topped up.",
+    rechargeFailed: "Payment went through, but crediting failed. Please contact us.",
+    rechargeAlready: "This payment has already been credited.",
+    close: "Close",
   },
   zh: {
     eyebrow: "钱包",
@@ -56,6 +73,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "金额调整",
     kindPurchase: "消费",
     balanceAfter: "余额",
+    recharge: "充值",
+    rechargeTitle: "充值余额",
+    rechargeHint: "选择充值金额，支付成功后自动到账。",
+    rechargeCrediting: "正在入账…",
+    rechargeSuccess: "充值成功，余额已到账。",
+    rechargeFailed: "支付已完成，但入账失败，请截图联系站长处理。",
+    rechargeAlready: "这笔款项已经入账过了。",
+    close: "关闭",
   },
   ja: {
     eyebrow: "ウォレット",
@@ -71,6 +96,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "調整",
     kindPurchase: "購入",
     balanceAfter: "残高",
+    recharge: "チャージ",
+    rechargeTitle: "残高をチャージ",
+    rechargeHint: "金額を選んでください。支払い完了後に自動で反映されます。",
+    rechargeCrediting: "残高に反映中…",
+    rechargeSuccess: "お支払いを受け付けました。残高に反映されました。",
+    rechargeFailed: "お支払いは完了しましたが、反映に失敗しました。お問い合わせください。",
+    rechargeAlready: "この支払いはすでに反映済みです。",
+    close: "閉じる",
   },
   ko: {
     eyebrow: "지갑",
@@ -86,6 +119,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "조정",
     kindPurchase: "결제",
     balanceAfter: "잔액",
+    recharge: "충전",
+    rechargeTitle: "잔액 충전",
+    rechargeHint: "금액을 선택하세요. 결제가 완료되면 자동으로 반영됩니다.",
+    rechargeCrediting: "잔액에 반영 중…",
+    rechargeSuccess: "결제가 완료되어 잔액에 반영되었습니다.",
+    rechargeFailed: "결제는 완료되었지만 반영에 실패했습니다. 문의해 주세요.",
+    rechargeAlready: "이 결제는 이미 반영되었습니다.",
+    close: "닫기",
   },
   es: {
     eyebrow: "CARTERA",
@@ -101,6 +142,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "Ajuste",
     kindPurchase: "Compra",
     balanceAfter: "Saldo",
+    recharge: "Recargar",
+    rechargeTitle: "Recargar saldo",
+    rechargeHint: "Elige un importe: se acredita automáticamente al completar el pago.",
+    rechargeCrediting: "Acreditando tu saldo…",
+    rechargeSuccess: "Pago recibido: tu saldo se ha recargado.",
+    rechargeFailed: "El pago se realizó, pero la acreditación falló. Contáctanos.",
+    rechargeAlready: "Este pago ya fue acreditado.",
+    close: "Cerrar",
   },
   fr: {
     eyebrow: "PORTEFEUILLE",
@@ -116,6 +165,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "Ajustement",
     kindPurchase: "Achat",
     balanceAfter: "Solde",
+    recharge: "Recharger",
+    rechargeTitle: "Recharger le solde",
+    rechargeHint: "Choisissez un montant : il est crédité automatiquement après le paiement.",
+    rechargeCrediting: "Crédit en cours…",
+    rechargeSuccess: "Paiement reçu — votre solde a été rechargé.",
+    rechargeFailed: "Le paiement a abouti, mais le crédit a échoué. Contactez-nous.",
+    rechargeAlready: "Ce paiement a déjà été crédité.",
+    close: "Fermer",
   },
   de: {
     eyebrow: "GUTHABEN",
@@ -131,6 +188,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "Anpassung",
     kindPurchase: "Kauf",
     balanceAfter: "Guthaben",
+    recharge: "Aufladen",
+    rechargeTitle: "Guthaben aufladen",
+    rechargeHint: "Betrag wählen — wird nach erfolgreicher Zahlung automatisch gutgeschrieben.",
+    rechargeCrediting: "Guthaben wird gutgeschrieben…",
+    rechargeSuccess: "Zahlung erhalten — dein Guthaben wurde aufgeladen.",
+    rechargeFailed: "Zahlung erfolgt, Gutschrift fehlgeschlagen. Bitte kontaktiere uns.",
+    rechargeAlready: "Diese Zahlung wurde bereits gutgeschrieben.",
+    close: "Schließen",
   },
   pt: {
     eyebrow: "CARTEIRA",
@@ -146,6 +211,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "Ajuste",
     kindPurchase: "Compra",
     balanceAfter: "Saldo",
+    recharge: "Recarregar",
+    rechargeTitle: "Recarregar saldo",
+    rechargeHint: "Escolha um valor — é creditado automaticamente após o pagamento.",
+    rechargeCrediting: "Creditando seu saldo…",
+    rechargeSuccess: "Pagamento recebido — seu saldo foi recarregado.",
+    rechargeFailed: "O pagamento foi concluído, mas o crédito falhou. Fale conosco.",
+    rechargeAlready: "Este pagamento já foi creditado.",
+    close: "Fechar",
   },
   ru: {
     eyebrow: "КОШЕЛЁК",
@@ -161,6 +234,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "Корректировка",
     kindPurchase: "Покупка",
     balanceAfter: "Баланс",
+    recharge: "Пополнить",
+    rechargeTitle: "Пополнение баланса",
+    rechargeHint: "Выберите сумму — она зачислится автоматически после оплаты.",
+    rechargeCrediting: "Зачисляем на баланс…",
+    rechargeSuccess: "Оплата получена — баланс пополнен.",
+    rechargeFailed: "Оплата прошла, но зачисление не удалось. Свяжитесь с нами.",
+    rechargeAlready: "Этот платёж уже зачислен.",
+    close: "Закрыть",
   },
   ar: {
     eyebrow: "المحفظة",
@@ -176,6 +257,14 @@ const walletMessages: Record<Locale, WalletMessages> = {
     kindAdjust: "تعديل",
     kindPurchase: "شراء",
     balanceAfter: "الرصيد",
+    recharge: "شحن الرصيد",
+    rechargeTitle: "شحن الرصيد",
+    rechargeHint: "اختر المبلغ — يُضاف تلقائيًا بعد إتمام الدفع.",
+    rechargeCrediting: "جارٍ إضافة الرصيد…",
+    rechargeSuccess: "تم استلام الدفعة — تم شحن رصيدك.",
+    rechargeFailed: "تم الدفع لكن فشلت الإضافة. يرجى التواصل معنا.",
+    rechargeAlready: "تمت إضافة هذه الدفعة مسبقًا.",
+    close: "إغلاق",
   },
 };
 

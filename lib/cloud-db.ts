@@ -257,6 +257,24 @@ export type Database = {
         };
         Returns: { balance: string; product: string };
       };
+      /**
+       * PayPal 充值入账（**只应由服务端签发的凭据调用**）。
+       * p_sig = HMAC-SHA256(`${p_uid}|${p_amount}|${p_order}|${p_ts}`, 服务端与库内共享密钥)
+       * 校验：签名、时间窗（±30min）、同一 PayPal 订单只能入账一次（ref_id 唯一索引）。
+       * 异常：INVALID_UID / INVALID_AMOUNT / INVALID_ORDER / SIGNATURE_EXPIRED /
+       *       BAD_SIGNATURE / ALREADY_CREDITED
+       */
+      wallet_recharge: {
+        Args: {
+          p_uid: string;
+          /** 金额用字符串传，签名按原样拼接（避免 10 与 10.00 不一致） */
+          p_amount: string;
+          p_order: string;
+          p_ts: number;
+          p_sig: string;
+        };
+        Returns: { balance: string; amount: string };
+      };
     };
   };
 };

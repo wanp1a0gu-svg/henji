@@ -45,10 +45,13 @@ export function PayPalButton({
   locale,
   note,
   onSuccess,
+  uid,
 }: {
   product: string;
   locale: Locale;
   note?: string;
+  /** 余额充值时必传：服务端据此签入账凭据（签名覆盖 uid，无法伪造） */
+  uid?: string;
   onSuccess?: (order: any) => void;
 }) {
   const t = getPayMessages(locale);
@@ -93,7 +96,7 @@ export function PayPalButton({
                 const r = await fetch("/api/paypal/capture-order", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ orderId: data.orderID }),
+                  body: JSON.stringify({ orderId: data.orderID, uid }),
                 });
                 const j = (await r.json()) as any;
                 if (r.ok && j.status === "COMPLETED") {
@@ -120,7 +123,7 @@ export function PayPalButton({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, locale]);
+  }, [product, locale, uid]);
 
   return (
     <div>

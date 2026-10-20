@@ -20,6 +20,7 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 // 启动诊断（发布沙箱会把 stderr 记录到 .sites-app.log，失败时可定位卡点）
 console.error(
@@ -807,8 +808,31 @@ async function generateBaguaReading(jobId, payload, draw) {
 // PayPal 支付 API（/api/paypal/*）：金额一律取服务端价格表，客户端金额不被信任
 // ---------------------------------------------------------------------------
 
+/** 余额充值可选档位（USD）。前端只能从这些档位里选，金额由服务端定价。 */
+const WALLET_TIERS = [10, 20, 50, 100, 200];
+
+/**
+ * 充值入账签名：服务端在「PayPal 捕获成功且金额核对通过」后才签发，
+ * 客户端拿它调数据库 RPC wallet_recharge 入账。密钥只存在于服务端与数据库函数体内，
+ * 用户无法伪造 → 不能凭空给自己加钱。
+ */
+function walletRechargeSignature(uid, amountText, orderId, ts) {
+  const secret =
+    loadServerConfigField("WALLET_RECHARGE_SECRET") || process.env.WALLET_RECHARGE_SECRET || "";
+  if (!secret) return null;
+  const payload = [uid, amountText, orderId, String(ts)].join("|");
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+}
+
 function resolvePayProduct(product) {
   if (product === "bazi") return PAY_PRODUCTS.bazi;
+  if (typeof product === "string" && product.indexOf("wallet:") === 0) {
+    const amt = parseFloat(product.slice(7));
+    if (Number.isFinite(amt) && WALLET_TIERS.indexOf(amt) !== -1) {
+      return { price: amt, name: `Wallet top-up $${amt} (余额充值)`, wallet: true };
+    }
+    return null;
+  }
   if (typeof product === "string" && product.indexOf("shop:") === 0) {
     const id = product.slice(5);
     const p = SHOP_PRICES[id];
@@ -894,6 +918,7 @@ function handlePayPalCapture(req, res) {
   if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
   readPayBody(req, res, async (body) => {
     const orderId = typeof body.orderId === "string" ? body.orderId : "";
+    const uid = typeof body.uid === "string" ? body.uid.trim().slice(0, 64) : "";
     if (!orderId || orderId.length > 64) return sendJson(res, 400, { error: "Missing order id" });
 
     try {
@@ -911,6 +936,26 @@ function handlePayPalCapture(req, res) {
         // 金额与服务端价格不符：记录待人工核对（正常流程不会发生）
         console.error("[paypal] amount mismatch:", orderId, info.amount, "expected", item && item.price);
       }
+      // 余额充值：捕获成功 + 金额核对通过 → 签发入账凭据（前端拿去调 wallet_recharge）
+      let recharge = null;
+      if (item && item.wallet) {
+        if (!amountOk) {
+          console.error("[paypal] wallet recharge amount mismatch:", orderId, info.amount, item.price);
+        } else if (!uid) {
+          return sendJson(res, 400, { error: "Missing uid for wallet recharge" });
+        } else {
+          const ts = Math.floor(Date.now() / 1000);
+          const amountText = item.price.toFixed(2);
+          const refId = info.paypalOrderId || orderId;
+          const sig = walletRechargeSignature(uid, amountText, refId, ts);
+          if (!sig) {
+            console.error("[paypal] wallet recharge secret missing");
+            return sendJson(res, 503, { error: "Wallet recharge is not configured" });
+          }
+          recharge = { uid, amount: amountText, orderId: refId, ts, sig };
+        }
+      }
+
       return sendJson(res, 200, {
         status: "COMPLETED",
         orderId: info.paypalOrderId,
@@ -922,6 +967,7 @@ function handlePayPalCapture(req, res) {
         payerName: info.payerName,
         shipping: info.shipping,
         amountVerified: amountOk,
+        recharge,
       });
     } catch (e) {
       console.error("[paypal] capture failed:", (e && e.message) || e);
