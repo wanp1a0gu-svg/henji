@@ -11,6 +11,40 @@
 
 export type ShopCategory = "wealth" | "relation" | "protection" | "clearing" | "custom";
 
+/** 子类别（同类合并展示）：把「同一个意思」的几款归到一组，避免看起来重复 */
+export type ShopGroup =
+  | "wealth-deity"
+  | "career"
+  | "marriage"
+  | "social"
+  | "wellbeing"
+  | "warding"
+  | "clearing"
+  | "custom";
+
+export const SHOP_GROUPS: Record<ShopGroup, { en: string; zh: string }> = {
+  "wealth-deity": { en: "Wealth Deities", zh: "财神系" },
+  career: { en: "Career & Rank", zh: "事业系" },
+  marriage: { en: "Marriage & Love", zh: "姻缘系" },
+  social: { en: "Social & Allies", zh: "人际系" },
+  wellbeing: { en: "Wellbeing", zh: "护身系" },
+  warding: { en: "Warding", zh: "辟邪系" },
+  clearing: { en: "Clearing", zh: "化煞系" },
+  custom: { en: "Made to Order", zh: "定制" },
+};
+
+/** 分组展示顺序 */
+export const SHOP_GROUP_ORDER: ShopGroup[] = [
+  "wealth-deity",
+  "career",
+  "marriage",
+  "social",
+  "wellbeing",
+  "warding",
+  "clearing",
+  "custom",
+];
+
 export interface ShopProduct {
   id: string;
   image: string;
@@ -20,6 +54,8 @@ export interface ShopProduct {
   desc: string;
   descZh: string;
   category: ShopCategory;
+  /** 子类别：同一子类别在页面上归成一组 */
+  group: ShopGroup;
   /** 使用方式（海外买家不懂怎么用，必须写清楚） */
   usage: string;
   usageZh: string;
@@ -55,6 +91,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The wealth-deity motif is one of the most common in Chinese folk paper charms.`,
     descZh: `${TALISMAN_DESC_ZH}财神符文，是民间流传最广的符样之一。`,
     category: "wealth",
+    group: "wealth-deity",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
     badge: "bestseller",
@@ -68,6 +105,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "windfall" (pian cai) motif differs from the wealth-deity charm in its seal script and layout.`,
     descZh: `${TALISMAN_DESC_ZH}偏财符文，与财神符的符箓结构与布局不同。`,
     category: "wealth",
+    group: "wealth-deity",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -80,6 +118,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A "welcoming" variant of the wealth-deity charm, traditionally used when setting up a home or shop altar.`,
     descZh: `${TALISMAN_DESC_ZH}「请财神」符样，传统上用于安宅、开张等场合。`,
     category: "wealth",
+    group: "wealth-deity",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -92,6 +131,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "rising rank" (sheng guan) motif — an old stationery-style charm once kept in scholar-officials' desks.`,
     descZh: `${TALISMAN_DESC_ZH}升官符文，旧时读书人与仕宦案头的符样。`,
     category: "wealth",
+    group: "career",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -104,6 +144,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A straightforward career-themed charm: bold central script with a seal-block base.`,
     descZh: `${TALISMAN_DESC_ZH}事业主题符样，中央大字、底部印篆，形制端正。`,
     category: "wealth",
+    group: "career",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -116,6 +157,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A "harmony at work" variant — traditionally kept by people navigating difficult colleagues.`,
     descZh: `${TALISMAN_DESC_ZH}事业和合符样，旧时多用于期望同事关系顺遂的场合。`,
     category: "wealth",
+    group: "career",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -130,6 +172,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "he he" (harmonious union) motif, one of the classic pair-charm designs in Daoist paper arts.`,
     descZh: `${TALISMAN_DESC_ZH}和合符文，道家纸符中常见的「成双」类符样。`,
     category: "relation",
+    group: "marriage",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
     badge: "bestseller",
@@ -143,6 +186,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A marriage-blessing charm with a lotus-seat motif at the base of the script.`,
     descZh: `${TALISMAN_DESC_ZH}姻缘类符样，符文底部带莲座纹。`,
     category: "relation",
+    group: "marriage",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -155,6 +199,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "cutting the peach blossom" motif — in folk practice, for closing off unwanted romantic entanglements.`,
     descZh: `${TALISMAN_DESC_ZH}斩桃花符样，民间用于了断不必要的感情牵扯。`,
     category: "relation",
+    group: "marriage",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -167,6 +212,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "gui ren" (benefactor) motif — a charm about meeting the right people at the right time.`,
     descZh: `${TALISMAN_DESC_ZH}贵人符文，取「遇人得助」之意。`,
     category: "relation",
+    group: "social",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
     badge: "bestseller",
@@ -180,6 +226,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "defend against the petty" (fang xiao ren) motif, traditionally carried in the workplace.`,
     descZh: `${TALISMAN_DESC_ZH}防小人符样，旧时多随身携带于职场场合。`,
     category: "relation",
+    group: "social",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -194,6 +241,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A wellness-themed charm; the brushwork is deliberately thin and steady.`,
     descZh: `${TALISMAN_DESC_ZH}健康类符样，笔势偏细而稳。`,
     category: "protection",
+    group: "wellbeing",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -206,6 +254,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A "qu xie" (warding) charm with a dense vertical seal script and a stamped seal at the foot.`,
     descZh: `${TALISMAN_DESC_ZH}驱邪符样，纵向符箓密集，符脚带印篆。`,
     category: "protection",
+    group: "warding",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -218,6 +267,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} A folk "ghost-warding" design, kept for its traditional motif rather than any practical claim.`,
     descZh: `${TALISMAN_DESC_ZH}民间驱鬼符样，取其传统形制与纹样。`,
     category: "protection",
+    group: "warding",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -232,6 +282,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "hundred resolutions" (bai jie) charm — traditionally used for disputes and legal matters.`,
     descZh: `${TALISMAN_DESC_ZH}百解符咒，传统上用于化解口舌官非类事。`,
     category: "clearing",
+    group: "clearing",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -244,6 +295,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     desc: `${TALISMAN_DESC_EN} The "zhuan yun" (turn of fortune) motif, with a long flowing script and a seal at the base.`,
     descZh: `${TALISMAN_DESC_ZH}转运符样，符箓线条绵长，符脚收于印篆。`,
     category: "clearing",
+    group: "clearing",
     usage: USAGE_EN,
     usageZh: USAGE_ZH,
   },
@@ -260,6 +312,7 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     descZh:
       "按需手绘：由你提供姓名与所请之事，以朱砂手书于传统黄纸之上。逐张手绘，出货需数个工作日。",
     category: "custom",
+    group: "custom",
     usage:
       "After ordering, reply to the order email with the name and the wording you want on the charm. Keep the finished piece flat and dry, away from water and fire.",
     usageZh:

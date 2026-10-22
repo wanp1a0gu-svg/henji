@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Sparkles, Gem, Truck, Info, ShieldCheck } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
-import { SHOP_PRODUCTS, SHOP_CATEGORIES, type ShopProduct, type ShopCategory } from "@/lib/shop-data";
+import {
+  SHOP_PRODUCTS,
+  SHOP_CATEGORIES,
+  SHOP_GROUPS,
+  SHOP_GROUP_ORDER,
+  type ShopProduct,
+  type ShopCategory,
+} from "@/lib/shop-data";
 import { getPayMessages } from "@/lib/pay-i18n";
 import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
@@ -81,8 +88,20 @@ export function ShopContent({ locale }: { locale: Locale }) {
 
       {/* Products */}
       <section className="px-6 pb-8">
-        <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map((p) => (
+        <div className="mx-auto max-w-6xl space-y-12">
+          {SHOP_GROUP_ORDER.filter((g) => shown.some((p) => p.group === g)).map((g) => (
+            <div key={g}>
+              <div className="mb-4 flex items-center gap-3">
+                <h2 className="font-serif text-lg tracking-wide text-foreground/90">
+                  {isZh ? SHOP_GROUPS[g].zh : SHOP_GROUPS[g].en}
+                </h2>
+                <span className="text-[11px] text-muted/50">
+                  {shown.filter((p) => p.group === g).length}
+                </span>
+                <div className="h-px flex-1 bg-white/[0.06]" />
+              </div>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {shown.filter((p) => p.group === g).map((p) => (
             <div
               key={p.id}
               className="glass glow-sm group flex flex-col overflow-hidden rounded-2xl transition hover:border-accent/30"
@@ -182,6 +201,9 @@ export function ShopContent({ locale }: { locale: Locale }) {
                     {pay.shopSuccess}
                   </p>
                 )}
+              </div>
+            </div>
+                ))}
               </div>
             </div>
           ))}
