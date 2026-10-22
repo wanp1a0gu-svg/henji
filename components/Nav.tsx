@@ -45,10 +45,10 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
 
   const navItems = [
     { label: t("nav.home"), href: link("/") },
+    { label: t("nav.bazi"), href: link("/bazi") },
     { label: t("nav.advisor"), href: link("/#advisor") },
     { label: t("nav.courses"), href: link("/courses") },
     { label: t("nav.shop"), href: link("/shop") },
-    { label: t("nav.bazi"), href: link("/bazi") },
     { label: t("nav.tarot"), href: link("/tarot") },
     { label: t("nav.bagua"), href: link("/bagua") },
     { label: t("nav.learn"), href: link("/learn") },
