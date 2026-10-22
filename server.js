@@ -69,7 +69,7 @@ try {
 
 // 服务端商品价格表（金额只信服务端，防客户端篡改）
 const PAY_PRODUCTS = {
-  bazi: { price: 68, name: "Bazi Personal Reading (八字个人测算)" },
+  bazi: { price: 6.9, name: "Bazi Personal Reading (八字个人测算)" },
 };
 
 /** 清洗客户端携带的知识库（限制数量与长度，防止超长提示词/控制字符注入）。 */
