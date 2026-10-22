@@ -34,9 +34,9 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
   ];
 
   return (
-    <main className="flex-1 pt-[72px]">
+    <main className="flex-1 snap-page">
       {/* Hero */}
-      <section className="relative flex min-h-[calc(100vh-72px)] flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <section className="snap-section relative flex flex-col items-center justify-center overflow-hidden px-6 pt-[72px] pb-16 text-center">
         <div className="absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.07] blur-[120px]" />
           <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background to-transparent" />
@@ -95,7 +95,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       </section>
 
       {/* AI Advisor — 默认加载全部 skill 的对话入口 */}
-      <section id="advisor" className="relative scroll-mt-24 overflow-hidden px-6 py-16 sm:py-24">
+      <section id="advisor" className="snap-section relative flex items-center overflow-hidden px-6 pt-[96px] pb-16 sm:pb-24">
         <div className="absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-1/4 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-accent/[0.05] blur-[120px]" />
         </div>
@@ -103,7 +103,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       </section>
 
       {/* Stats */}
-      <section className="border-y border-white/[0.06] bg-white/[0.02]">
+      <section className="snap-section flex items-center border-y border-white/[0.06] bg-white/[0.02]">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-px divide-y divide-white/[0.06] bg-white/[0.03] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           {stats.map((item) => (
             <div key={item.label} className="px-6 py-9 text-center sm:py-12">
@@ -115,7 +115,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       </section>
 
       {/* Features */}
-      <section className="py-24 px-6">
+      <section className="snap-section flex items-center px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 text-center">
             <p className="mb-4 text-xs uppercase tracking-[0.3em] text-accent">{t("features.subtitle")}</p>
@@ -138,7 +138,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       </section>
 
       {/* Courses */}
-      <section className="px-6 py-16 sm:py-24 bg-white/[0.01]">
+      <section className="snap-section flex items-center px-6 py-16 sm:py-24 bg-white/[0.01]">
         <div className="mx-auto max-w-6xl">
           <div className="mb-16 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
             <div>
@@ -182,7 +182,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       </section>
 
       {/* CTA */}
-      <section className="px-6 py-16 sm:py-24">
+      <section className="snap-section flex items-center px-6 py-16 sm:py-24">
         <div className="mx-auto max-w-4xl rounded-3xl border border-white/[0.08] bg-gradient-to-br from-accent/10 via-transparent to-transparent p-8 text-center sm:p-16">
           <h2 className="mb-4 font-serif text-3xl font-light tracking-wide sm:text-4xl">{t("cta.title")}</h2>
           <p className="mx-auto mb-8 max-w-xl text-muted">{t("cta.subtitle")}</p>

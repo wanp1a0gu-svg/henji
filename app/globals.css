@@ -230,3 +230,35 @@ body {
   animation: cat-chat-in 0.22s ease-out;
   transform-origin: 50% 100%;
 }
+
+/* ---------------------------------------------------------------------------
+ * 首页整屏翻页（只在带 .snap-page 的页面启用，其他页不受影响）
+ * 每块内容 = 一屏，滚轮/触控滑动直接吸附到下一屏。
+ * ------------------------------------------------------------------------- */
+html:has(.snap-page) {
+  scroll-snap-type: y mandatory;
+}
+
+.snap-section {
+  min-height: 100svh;
+  scroll-snap-align: start;
+}
+
+/* 页脚也作为一个吸附点，否则整页吸附时滚不到底 */
+html:has(.snap-page) body > footer {
+  scroll-snap-align: start;
+}
+
+/* 触屏上避免过强的强制吸附造成"卡住"感 */
+@media (hover: none) {
+  html:has(.snap-page) {
+    scroll-snap-type: y proximity;
+  }
+}
+
+/* 尊重"减少动态效果"偏好 */
+@media (prefers-reduced-motion: reduce) {
+  html:has(.snap-page) {
+    scroll-snap-type: none;
+  }
+}
