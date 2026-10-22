@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Sparkles, BookOpen, Compass, Star, ArrowRight } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { ChatContent } from "./ChatContent";
@@ -20,6 +21,17 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
 
   const tCourse = t("courses.items") as (i: number, k: string) => string;
   const link = (path: string) => `/${locale}${path}`;
+
+  // 整屏翻页下，浏览器"恢复滚动位置"会让人一进来就停在中间某一屏（看起来像页面空了）。
+  // 首页一律从首屏开始。
+  useEffect(() => {
+    if (typeof history !== "undefined" && "scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    if (typeof window !== "undefined" && !window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   const stats = [
     { label: t("stats.years"), value: "10+" },
