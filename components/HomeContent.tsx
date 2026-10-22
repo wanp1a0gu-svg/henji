@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Sparkles, BookOpen, Compass, Star, ArrowRight } from "lucide-react";
+import { Sparkles, BookOpen, Compass, Star, ArrowRight, Check } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { ChatContent } from "./ChatContent";
 
@@ -39,6 +39,27 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
     { label: t("stats.readings"), value: "500+" },
   ];
 
+  const pillars = locale === "zh"
+    ? [
+        { label: "年柱", god: "正印", gan: "辛", zhi: "酉", hidden: "藏 辛" },
+        { label: "月柱", god: "食神", gan: "丙", zhi: "申", hidden: "藏 庚壬戊" },
+        { label: "日柱", god: "日主", gan: "戊", zhi: "辰", hidden: "藏 戊乙癸" },
+        { label: "时柱", god: "偏财", gan: "甲", zhi: "寅", hidden: "藏 甲丙戊" },
+      ]
+    : [
+        { label: "Year", god: "Resource", gan: "辛", zhi: "酉", hidden: "Xin" },
+        { label: "Month", god: "Output", gan: "丙", zhi: "申", hidden: "Geng·Ren·Wu" },
+        { label: "Day", god: "Self", gan: "戊", zhi: "辰", hidden: "Wu·Yi·Gui" },
+        { label: "Hour", god: "Wealth", gan: "甲", zhi: "寅", hidden: "Jia·Bing·Wu" },
+      ];
+
+  const baziBullets = [
+    t("bazi.includes.report"),
+    t("bazi.includes.time"),
+    t("bazi.includes.privacy"),
+    locale === "zh" ? "真太阳时校正，时柱不再错一位" : "True solar time correction for an accurate hour pillar",
+  ];
+
   const features = [
     { icon: Compass, title: t("features.personal.title"), desc: t("features.personal.desc") },
     { icon: Star, title: t("features.wisdom.title"), desc: t("features.wisdom.desc") },
@@ -72,19 +93,21 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
 
           <div className="flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row">
             <a
-              href={link("/courses")}
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-medium text-background shadow-lg shadow-accent/20 transition hover:bg-accent-light hover:text-background sm:w-auto"
-            >
-              <BookOpen size={17} />
-              {t("hero.ctaCourses")}
-              <ArrowRight size={15} className="transition group-hover:translate-x-1" />
-            </a>
-            <a
               href={link("/bazi")}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-accent/30 bg-white/[0.03] px-8 py-4 text-sm font-medium text-accent backdrop-blur-sm transition hover:border-accent/60 hover:bg-accent/10 sm:w-auto"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-medium text-background shadow-lg shadow-accent/20 transition hover:bg-accent-light hover:text-background sm:w-auto"
             >
               <Sparkles size={17} />
               {t("hero.ctaReading")}
+              <span className="rounded-full bg-[#0d0b09]/85 px-2 py-0.5 text-[11px] font-medium text-accent">
+                {t("bazi.price")}
+              </span>
+            </a>
+            <a
+              href={link("/courses")}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-accent/30 bg-white/[0.03] px-8 py-4 text-sm font-medium text-accent backdrop-blur-sm transition hover:border-accent/60 hover:bg-accent/10 sm:w-auto"
+            >
+              <BookOpen size={17} />
+              {t("hero.ctaCourses")}
             </a>
           </div>
 
@@ -114,15 +137,75 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
         <ChatContent locale={locale} />
       </section>
 
-      {/* Stats */}
-      <section className="snap-section flex items-center border-y border-white/[0.06] bg-white/[0.02]">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-px divide-y divide-white/[0.06] bg-white/[0.03] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          {stats.map((item) => (
-            <div key={item.label} className="px-6 py-9 text-center sm:py-12">
-              <p className="font-serif text-4xl text-accent sm:text-5xl">{item.value}</p>
-              <p className="mt-2 text-sm tracking-wide text-muted">{item.label}</p>
+      {/* Bazi — 主推服务 */}
+      <section className="snap-section relative flex items-center overflow-hidden px-6 py-16 sm:py-20">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute right-1/4 top-1/3 h-[420px] w-[420px] rounded-full bg-accent/[0.06] blur-[120px]" />
+        </div>
+
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div>
+            <p className="mb-4 flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-accent">
+              <span className="h-px w-6 bg-accent/60" />
+              {locale === "zh" ? "主推服务" : "Featured"}
+            </p>
+            <h2 className="font-serif text-3xl font-light tracking-wide sm:text-4xl">{t("bazi.title")}</h2>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted sm:text-base">{t("bazi.subtitle")}</p>
+
+            <ul className="mt-7 space-y-3">
+              {baziBullets.map((x) => (
+                <li key={x} className="flex items-start gap-3 text-sm text-muted">
+                  <Check size={15} className="mt-0.5 shrink-0 text-accent" />
+                  <span>{x}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-6 text-xs tracking-wide text-muted/55">
+              {stats.map((s) => `${s.value} ${s.label}`).join("  ·  ")}
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-5">
+              <div className="flex items-baseline gap-2">
+                <span className="font-serif text-4xl text-accent">{t("bazi.price")}</span>
+                <span className="text-xs text-muted">{t("bazi.priceLabel")}</span>
+              </div>
+              <a
+                href={link("/bazi")}
+                className="group inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-medium text-background shadow-lg shadow-accent/20 transition hover:bg-accent-light"
+              >
+                <Sparkles size={16} />
+                {locale === "zh" ? "立即测算" : "Start my reading"}
+                <ArrowRight size={14} className="transition group-hover:translate-x-1" />
+              </a>
             </div>
-          ))}
+          </div>
+
+          <div className="glass rounded-2xl p-5 sm:p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-accent/70">
+                {locale === "zh" ? "示例命盘" : "Sample chart"}
+              </p>
+              <span className="text-[10px] text-muted/40">
+                {locale === "zh" ? "仅供示意" : "Illustrative"}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {pillars.map((c) => (
+                <div key={c.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-1.5 py-3 text-center">
+                  <p className="text-[10px] text-muted/55">{c.label}</p>
+                  <p className="mt-1 text-[10px] text-accent/70">{c.god}</p>
+                  <p className="mt-2 font-serif text-2xl leading-none text-accent">{c.gan}</p>
+                  <p className="mt-1 font-serif text-2xl leading-none text-foreground/90">{c.zhi}</p>
+                  <p className="mt-2 text-[9px] leading-tight text-muted/45">{c.hidden}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3 text-[10px] text-muted/45">
+              <span>{locale === "zh" ? "日主 戊土 · 生于申月" : "Day master Wu (Earth) · born in Shen month"}</span>
+              <span>{locale === "zh" ? "四柱 · 十神 · 藏干" : "Pillars · Ten Gods · Hidden stems"}</span>
+            </div>
+          </div>
         </div>
       </section>
 
