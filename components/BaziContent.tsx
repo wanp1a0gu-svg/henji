@@ -319,7 +319,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                     try {
                       await getCloud().database.from("payment_orders").insert({
                         method: "paypal",
-                        amount: order.amount || "6.90",
+                        amount: order.amount || "6.80",
                         currency: order.currency || "USD",
                         product: order.product || "bazi",
                         status: "completed",

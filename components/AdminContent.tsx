@@ -45,7 +45,7 @@ interface Reading {
 
 const productLabel = (product: string | null) => {
   if (!product) return "—";
-  if (product === "bazi") return "八字测算 $6.90";
+  if (product === "bazi") return "八字测算 $6.80";
   if (product.indexOf("shop:") === 0) {
     const p = SHOP_PRODUCTS.find((x) => x.id === product.slice(5));
     return p ? p.nameZh : product;
