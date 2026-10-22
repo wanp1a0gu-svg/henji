@@ -1,26 +1,70 @@
 {
-  "amber-bracelet": {
-    "price": 1.0,
-    "nameEn": "Red Amber Multi-Loop Bracelet"
+  "caishen": {
+    "price": 66.0,
+    "nameEn": "Wealth Deity Talisman"
   },
-  "multigem-bracelet": {
-    "price": 1.0,
-    "nameEn": "Multigem Harmony Bracelet"
+  "piancai": {
+    "price": 66.0,
+    "nameEn": "Windfall Talisman"
   },
-  "fox-pendant": {
-    "price": 1.0,
-    "nameEn": "Nine-Tailed Fox Crystal Pendant"
+  "qingcaishen": {
+    "price": 66.0,
+    "nameEn": "Invitation to the Wealth Deity"
   },
-  "jade-leaf-pendant": {
-    "price": 1.0,
-    "nameEn": "Hetian Jade Leaf Pendant"
+  "shengguan": {
+    "price": 66.0,
+    "nameEn": "Promotion Talisman"
   },
-  "amber-pendant": {
-    "price": 1.0,
-    "nameEn": "Royal Amber Statement Pendant"
+  "shiye": {
+    "price": 66.0,
+    "nameEn": "Career Talisman"
   },
-  "amethyst-bracelet": {
-    "price": 1.0,
-    "nameEn": "Amethyst & Quartz Bracelet"
+  "shiye-hehe": {
+    "price": 66.0,
+    "nameEn": "Workplace Harmony Talisman"
+  },
+  "hehe": {
+    "price": 66.0,
+    "nameEn": "Harmony Union Talisman"
+  },
+  "baoyou-yinyuan": {
+    "price": 66.0,
+    "nameEn": "Blessing of Marriage Talisman"
+  },
+  "zhan-taohua": {
+    "price": 66.0,
+    "nameEn": "Severing Unwanted Attachments"
+  },
+  "guiren": {
+    "price": 66.0,
+    "nameEn": "Benefactor Talisman"
+  },
+  "fang-xiaoren": {
+    "price": 66.0,
+    "nameEn": "Guarding Against Ill-Wishers"
+  },
+  "jiankang": {
+    "price": 66.0,
+    "nameEn": "Wellness Talisman"
+  },
+  "quxie": {
+    "price": 66.0,
+    "nameEn": "Warding-Off Charm"
+  },
+  "qugui": {
+    "price": 66.0,
+    "nameEn": "Ghost-Warding Charm"
+  },
+  "baijie": {
+    "price": 66.0,
+    "nameEn": "Hundred Resolutions Talisman"
+  },
+  "zhuanyun": {
+    "price": 66.0,
+    "nameEn": "Turning-Fortune Talisman"
+  },
+  "custom": {
+    "price": 99.0,
+    "nameEn": "Custom Talisman"
   }
 }

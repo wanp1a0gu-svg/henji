@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Sparkles, Gem, Truck, Info, ShieldCheck } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
-import { SHOP_PRODUCTS, type ShopProduct } from "@/lib/shop-data";
+import { SHOP_PRODUCTS, SHOP_CATEGORIES, type ShopProduct, type ShopCategory } from "@/lib/shop-data";
 import { getPayMessages } from "@/lib/pay-i18n";
 import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
@@ -25,6 +25,17 @@ export function ShopContent({ locale }: { locale: Locale }) {
   const { user, openAuth } = useAuth();
   const [payOpen, setPayOpen] = useState<string>(""); // 展开支付的商品 id
   const [paidId, setPaidId] = useState<string>(""); // 已支付商品 id
+  const [cat, setCat] = useState<ShopCategory | "all">("all"); // 当前分类
+  const isZh = locale === "zh";
+
+  const catLabel = (c: ShopCategory) =>
+    c === "wealth" ? s.catWealth
+      : c === "relation" ? s.catRelation
+        : c === "protection" ? s.catProtection
+          : c === "clearing" ? s.catClearing
+            : s.catCustom;
+
+  const shown = cat === "all" ? SHOP_PRODUCTS : SHOP_PRODUCTS.filter((p) => p.category === cat);
 
   const badgeLabel = (p: ShopProduct) =>
     p.badge === "bestseller" ? s.badgeBest : p.badge === "premium" ? s.badgePremium : p.badge === "new" ? s.badgeNew : "";
@@ -45,16 +56,39 @@ export function ShopContent({ locale }: { locale: Locale }) {
         </p>
       </section>
 
+      {/* Category filter */}
+      <section className="px-6 pb-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2">
+          {(["all", ...SHOP_CATEGORIES] as (ShopCategory | "all")[]).map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => {
+                setCat(c);
+                setPayOpen("");
+              }}
+              className={`rounded-full px-4 py-1.5 text-xs transition ${
+                cat === c
+                  ? "bg-accent text-background"
+                  : "border border-white/10 bg-white/[0.03] text-muted hover:border-accent/30"
+              }`}
+            >
+              {c === "all" ? s.all : catLabel(c as ShopCategory)}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Products */}
       <section className="px-6 pb-8">
         <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {SHOP_PRODUCTS.map((p) => (
+          {shown.map((p) => (
             <div
               key={p.id}
               className="glass glow-sm group flex flex-col overflow-hidden rounded-2xl transition hover:border-accent/30"
             >
               {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden bg-[#15130f]">
+              <div className="relative aspect-square overflow-hidden bg-[#15130f]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={p.image}
@@ -73,9 +107,17 @@ export function ShopContent({ locale }: { locale: Locale }) {
 
               {/* Info */}
               <div className="flex flex-1 flex-col p-5">
-                <h3 className="text-sm font-medium leading-snug text-foreground">{p.name}</h3>
-                <p className="mt-1 text-xs text-muted/80">{p.nameZh}</p>
-                <p className="mt-3 flex-1 text-xs leading-relaxed text-muted">{p.desc}</p>
+                <h3 className="text-sm font-medium leading-snug text-foreground">
+                  {isZh ? p.nameZh : p.name}
+                </h3>
+                <p className="mt-1 text-xs text-muted/80">{isZh ? p.name : p.nameZh}</p>
+                <p className="mt-3 text-xs leading-relaxed text-muted">{isZh ? p.descZh : p.desc}</p>
+                <div className="mt-3 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-accent/70">{s.usageLabel}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted/75">
+                    {isZh ? p.usageZh : p.usage}
+                  </p>
+                </div>
 
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <span className="font-serif text-xl text-accent">${p.price}</span>

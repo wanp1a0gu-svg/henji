@@ -28,7 +28,7 @@ for b in blocks:
             "nameEn": m_name.group(1) if m_name else m_id.group(1),
         }
 
-assert len(out) == 6, "应为 6 个商品，实际 %d" % len(out)
+assert len(out) >= 1, "未解析到任何商品"
 
 path = os.path.join(ROOT, "lib", "shop-prices.json")
 io.open(path, "w", encoding="utf-8").write(json.dumps(out, ensure_ascii=False, indent=2) + "\n")
