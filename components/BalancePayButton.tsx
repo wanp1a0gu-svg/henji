@@ -103,8 +103,33 @@ export function BalancePayButton({
 
       const row: any = Array.isArray(data) ? data[0] : data;
       if (row && row.balance != null) setBalance(String(row.balance));
+
+      // 取数据库签发的付款收据：服务端用同一密钥验签，确认这笔扣款真实存在
+      let receipt: any = null;
+      const txnId = row && row.txn_id != null ? row.txn_id : null;
+      if (txnId != null) {
+        try {
+          const { data: rc } = await getCloud().database.rpc("wallet_receipt_sign", {
+            p_txn: txnId,
+          });
+          const r: any = Array.isArray(rc) ? rc[0] : rc;
+          if (r && r.sig) {
+            receipt = {
+              channel: "wallet",
+              txn: String(r.txn),
+              amount: String(r.amount),
+              ts: r.ts,
+              sig: r.sig,
+            };
+          }
+        } catch {
+          /* 拿不到收据 → 上层无法生成报告，会提示用户 */
+        }
+      }
+
       onSuccess?.({
         method: "balance",
+        receipt,
         status: "COMPLETED",
         orderId: null,
         product: quote.product,

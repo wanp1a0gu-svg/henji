@@ -264,8 +264,17 @@ function newJobId() {
   return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 }
 
-const _rateBuckets = new Map(); // ip -> { bucket, count }
-let _globalBucket = { bucket: -1, count: 0 };
+/**
+ * 限流按「用途」分桶：生成报告与下单/报价互不挤占，
+ * 避免有人刷生成接口把全站额度耗光、导致付费用户 429。
+ */
+const RATE_LIMITS = {
+  default: { perIp: RATE_LIMIT_PER_HOUR, global: GLOBAL_LIMIT_PER_HOUR },
+  bazi: { perIp: 6, global: 200 },
+};
+
+const _rateBuckets = new Map(); // "kind:ip" -> { bucket, count }
+const _globalBuckets = new Map(); // kind -> { bucket, count }
 
 function clientIp(req) {
   const fwd = req.headers["x-forwarded-for"];
@@ -273,22 +282,29 @@ function clientIp(req) {
   return (req.socket && req.socket.remoteAddress) || "unknown";
 }
 
-function checkRateLimit(req) {
+function checkRateLimit(req, kind) {
+  const k = RATE_LIMITS[kind] ? kind : "default";
+  const limit = RATE_LIMITS[k];
   const bucket = Math.floor(Date.now() / 3600000);
-  if (_globalBucket.bucket !== bucket) _globalBucket = { bucket, count: 0 };
-  if (_globalBucket.count >= GLOBAL_LIMIT_PER_HOUR) return false;
+
+  const g = _globalBuckets.get(k);
+  if (!g || g.bucket !== bucket) _globalBuckets.set(k, { bucket, count: 1 });
+  else {
+    if (g.count >= limit.global) return false;
+    g.count += 1;
+  }
 
   const ip = clientIp(req);
-  const entry = _rateBuckets.get(ip);
+  const key = k + ":" + ip;
+  const entry = _rateBuckets.get(key);
   const next = entry && entry.bucket === bucket ? entry.count + 1 : 1;
-  _rateBuckets.set(ip, { bucket, count: next });
+  _rateBuckets.set(key, { bucket, count: next });
   if (_rateBuckets.size > 5000) {
-    for (const [k, v] of _rateBuckets) {
-      if (v.bucket !== bucket) _rateBuckets.delete(k);
+    for (const [kk, v] of _rateBuckets) {
+      if (v.bucket !== bucket) _rateBuckets.delete(kk);
     }
   }
-  _globalBucket.count += 1;
-  return next <= RATE_LIMIT_PER_HOUR;
+  return next <= limit.perIp;
 }
 
 function validateBody(body) {
@@ -422,6 +438,97 @@ function sendJson(res, status, data) {
   res.end(body);
 }
 
+/* ---------------------------------------------------------------------------
+ * 报告付费墙（2026-10-26）
+ *
+ * 背景：/api/bazi 之前没有任何付款校验，直接 POST 就能拿到完整报告。
+ *
+ * 两类凭据：
+ *   paypal — 服务端调 PayPal 查单，要求 COMPLETED 且金额达标（强校验）
+ *   wallet — 客户端余额扣款后，由数据库函数 wallet_receipt_sign 用共享密钥
+ *            签一张收据（wallet|txn|amount|ts），服务端用同一密钥验签（强校验）
+ * 每张凭据只能换一份报告（内存集合 + data/report-receipts.jsonl 落盘去重）。
+ * ------------------------------------------------------------------------- */
+
+const RECEIPT_LEDGER_FILE = path.join(__dirname, "data", "report-receipts.jsonl");
+const _usedReceipts = new Set();
+
+function receiptAlreadyUsed(ref) {
+  if (_usedReceipts.has(ref)) return true;
+  try {
+    return fs.readFileSync(RECEIPT_LEDGER_FILE, "utf8").includes('"' + ref + '"');
+  } catch {
+    return false;
+  }
+}
+
+function markReceiptUsed(ref) {
+  _usedReceipts.add(ref);
+  try {
+    fs.mkdirSync(path.dirname(RECEIPT_LEDGER_FILE), { recursive: true });
+    fs.appendFileSync(
+      RECEIPT_LEDGER_FILE,
+      JSON.stringify({ ref: ref, at: new Date().toISOString() }) + "\n"
+    );
+  } catch (e) {
+    console.error("[receipt] ledger write failed:", (e && e.message) || e);
+  }
+}
+
+function receiptSecret() {
+  return (
+    loadServerConfigField("WALLET_RECHARGE_SECRET") || process.env.WALLET_RECHARGE_SECRET || ""
+  );
+}
+
+async function verifyReportReceipt(receipt) {
+  const price = PAY_PRODUCTS.bazi.price;
+  if (!receipt || typeof receipt !== "object") return { ok: false, error: "PAYMENT_REQUIRED" };
+
+  if (receipt.channel === "paypal") {
+    const orderId = String(receipt.id || "");
+    if (!/^[A-Za-z0-9-]{6,40}$/.test(orderId)) return { ok: false, error: "INVALID_RECEIPT" };
+    const ref = "paypal:" + orderId;
+    if (receiptAlreadyUsed(ref)) return { ok: false, error: "RECEIPT_USED" };
+    let order;
+    try {
+      order = await PayPal.getOrder(orderId);
+    } catch (e) {
+      return { ok: false, error: "PAYMENT_LOOKUP_FAILED" };
+    }
+    if (!order || order.status !== "COMPLETED") return { ok: false, error: "PAYMENT_NOT_COMPLETED" };
+    const unit = (order.purchase_units && order.purchase_units[0]) || {};
+    const paid = parseFloat((unit.amount && unit.amount.value) || "0");
+    if (!(paid >= price - 1e-9)) return { ok: false, error: "AMOUNT_MISMATCH" };
+    markReceiptUsed(ref);
+    return { ok: true, ref: ref };
+  }
+
+  if (receipt.channel === "wallet") {
+    const txn = String(receipt.txn || "");
+    const amount = String(receipt.amount || "");
+    const ts = Number(receipt.ts || 0);
+    const sig = String(receipt.sig || "").toLowerCase();
+    if (!/^\d+$/.test(txn) || !sig) return { ok: false, error: "INVALID_RECEIPT" };
+    const now = Math.floor(Date.now() / 1000);
+    if (!ts || Math.abs(now - ts) > 86400) return { ok: false, error: "RECEIPT_EXPIRED" };
+    const secret = receiptSecret();
+    if (!secret) return { ok: false, error: "SERVER_NOT_CONFIGURED" };
+    const expect = crypto
+      .createHmac("sha256", secret)
+      .update(["wallet", txn, amount, String(ts)].join("|"))
+      .digest("hex");
+    if (expect !== sig) return { ok: false, error: "BAD_RECEIPT" };
+    if (!(parseFloat(amount) >= price - 1e-9)) return { ok: false, error: "AMOUNT_MISMATCH" };
+    const ref = "wallet:" + txn;
+    if (receiptAlreadyUsed(ref)) return { ok: false, error: "RECEIPT_USED" };
+    markReceiptUsed(ref);
+    return { ok: true, ref: ref };
+  }
+
+  return { ok: false, error: "INVALID_RECEIPT" };
+}
+
 function handleBaziApi(req, res) {
   if (req.method === "GET") {
     return handleBaziStatus(req, res);
@@ -450,7 +557,17 @@ function handleBaziApi(req, res) {
       return sendJson(res, 400, { error: "Invalid fields: " + errors.join(", ") });
     }
 
-    if (!checkRateLimit(req)) {
+    // 付费墙：必须先有可验证的付款凭据，否则不生成（每次生成都是真金白银的 LLM 调用）
+    const receiptCheck = await verifyReportReceipt(body.receipt);
+    if (!receiptCheck.ok) {
+      return sendJson(res, 402, {
+        error: "PAYMENT_REQUIRED",
+        reason: receiptCheck.error,
+        message: "A completed payment is required to generate a reading. 需要先完成付款。",
+      });
+    }
+
+    if (!checkRateLimit(req, "bazi")) {
       return sendJson(res, 429, {
         error: "Too many requests. Please try again later. 请求过于频繁，请稍后再试。",
       });

@@ -21,6 +21,13 @@ export const ADMIN_EMAILS = ["wanp1a0gu@gmail.com", "501183563@qq.com"];
  *
  * Leave empty ("") to hide the floating WhatsApp button.
  */
+/**
+ * 课程是否已上架可售。
+ * false 时：课程页与首页不显示报名按钮，避免"标价但买不了"造成的信任损失。
+ * 真正上架需：课程 SKU 进 server.js 价格表 + 交付流程（内容/有效期/退款）。
+ */
+export const COURSES_OPEN = false;
+
 export const WHATSAPP_NUMBER = "";
 
 /**

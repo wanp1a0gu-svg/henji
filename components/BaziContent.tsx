@@ -14,7 +14,8 @@ import { BaziChart, type BaziChartData } from "./BaziChart";
 import { SignInGate } from "./SignInGate";
 
 /** 同源 API 优先（workbuddy 域名下的 server.js），失败时回退 Cloudflare Worker。 */
-const API_ENDPOINTS = ["/api/bazi", "https://mingli-bazi-api.wanp1a0gu.workers.dev"];
+// 只走同源服务端：付费校验在这里，不能再保留任何绕过端点
+const API_ENDPOINTS = ["/api/bazi"];
 
 /**
  * 轮询异步生成任务（同源 API 模式：POST 返回 jobId → GET ?id= 查状态）。
@@ -66,6 +67,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
   const [error, setError] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [paid, setPaid] = useState(false); // 本会话已完成支付
+  const [receipt, setReceipt] = useState<any>(null); // 付款凭据（服务端据此放行）
   const [payHint, setPayHint] = useState("");
 
   const saveReading = async (reportText: string) => {
@@ -89,7 +91,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (rc: any = receipt) => {
     if (!form.birthDate || !form.gender) {
       setError(t("bazi.required"));
       return;
@@ -107,13 +109,18 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           const res = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...form, locale }),
+            body: JSON.stringify({ ...form, locale, receipt: rc }),
           });
           const ct = res.headers.get("content-type") || "";
           // 非 JSON 响应（静态主机的 404 页等）→ 尝试下一个端点
           if (!ct.includes("application/json")) continue;
           const data = (await res.json()) as any;
-          // 同步模式（Worker）：直接返回报告
+          // 付费墙：未付款/凭据无效，不再尝试其他端点
+          if (res.status === 402) {
+            apiError = pay.baziNeedPay;
+            break;
+          }
+          // 同步模式：直接返回报告
           if (res.ok && data.report) {
             success = data;
             break;
@@ -313,6 +320,8 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                   locale={locale}
                   note={pay.baziNote}
                   onSuccess={async (order: any) => {
+                    const rc = { channel: "paypal", id: order.orderId };
+                    setReceipt(rc);
                     setPaid(true);
                     setPayHint("");
                     // 订单入库（失败不阻塞生成）
@@ -331,17 +340,19 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                     } catch {
                       /* 入库失败不影响用户使用 */
                     }
-                    handleSubmit();
+                    handleSubmit(rc);
                   }}
                 />
                 {user && (
                   <BalancePayButton
                     product="bazi"
                     locale={locale}
-                    onSuccess={() => {
+                    onSuccess={(order: any) => {
+                      const rc = order && order.receipt ? order.receipt : null;
+                      setReceipt(rc);
                       setPaid(true);
                       setPayHint("");
-                      handleSubmit();
+                      handleSubmit(rc);
                     }}
                   />
                 )}

@@ -5,7 +5,7 @@ import { Moon, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getTarotMessages, positionLabel, cardName, TAROT_ELEMENT_COLORS } from "@/lib/tarot-i18n";
 import { Select } from "./Select";
-import { SignInGate } from "./SignInGate";
+import { useAuth } from "./AuthProvider";
 
 /** 同源 API 优先（server.js），失败回退 Cloudflare Worker。 */
 const API_ENDPOINTS = ["/api/tarot", "https://mingli-bazi-api.wanp1a0gu.workers.dev/api/tarot"];
@@ -55,6 +55,7 @@ async function pollReading(
 
 export function TarotContent({ locale }: { locale: Locale }) {
   const t = getTarotMessages(locale);
+  const { user, openAuth } = useAuth();
   const [form, setForm] = useState({ spread: "three", question: "" });
   const [loading, setLoading] = useState(false);
   const [draw, setDraw] = useState<DrawData | null>(null);
@@ -71,6 +72,11 @@ export function TarotContent({ locale }: { locale: Locale }) {
   ];
 
   const handleDraw = async () => {
+    // 页面本身对所有人可见（利于索引与转化），但抽牌要登录 —— 解读是 LLM 调用，匿名刷会烧成本
+    if (!user) {
+      openAuth();
+      return;
+    }
     setLoading(true);
     setError("");
     setReading("");
@@ -146,7 +152,6 @@ export function TarotContent({ locale }: { locale: Locale }) {
 
       {/* Form */}
       <section className="px-6 pb-24">
-        <SignInGate locale={locale}>
         <div className="mx-auto max-w-2xl">
           <div className="glass glow rounded-2xl p-6 sm:p-10">
             <div className="mb-8 flex items-center gap-3">
@@ -288,7 +293,6 @@ export function TarotContent({ locale }: { locale: Locale }) {
             </div>
           </div>
         )}
-        </SignInGate>
       </section>
 
       <div className="px-6 pb-12">

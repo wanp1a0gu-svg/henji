@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Sparkles, BookOpen, Compass, Star, ArrowRight, Check } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { ChatContent } from "./ChatContent";
+import { COURSES_OPEN } from "@/lib/site-config";
 
 export function HomeContent({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -262,7 +263,9 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
                 <h3 className="mb-3 font-serif text-xl">{tCourse(i, "title")}</h3>
                 <p className="mb-8 text-sm leading-relaxed text-muted">{tCourse(i, "desc")}</p>
                 <div className="flex items-center justify-between border-t border-white/[0.06] pt-6">
-                  <p className="font-serif text-2xl text-accent">{tCourse(i, "price")}</p>
+                  <p className="font-serif text-2xl text-accent">
+                    {COURSES_OPEN ? tCourse(i, "price") : locale === "zh" ? "即将开放" : "Coming soon"}
+                  </p>
                   <a
                     href={link("/courses")}
                     className="inline-flex items-center gap-1 text-xs uppercase tracking-wider text-muted transition hover:text-accent"

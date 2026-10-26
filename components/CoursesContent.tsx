@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
+import { COURSES_OPEN } from "@/lib/site-config";
 import { Locale, Messages } from "@/lib/i18n";
 
 export function CoursesContent({ messages, locale }: { messages: Messages; locale: Locale }) {
@@ -72,13 +73,29 @@ export function CoursesContent({ messages, locale }: { messages: Messages; local
                   <span className="inline-flex items-center gap-1"><CheckCircle2 size={12} /> {t("courses.certificate")}</span>
                 </div>
                 <div className="flex items-center justify-between border-t border-white/[0.06] pt-6">
-                  <p className="font-serif text-3xl text-accent">{tCourse(i, "price")}</p>
-                  <a
-                    href={link("/bazi")}
-                    className="inline-flex items-center gap-1 rounded-full bg-accent px-5 py-2 text-sm font-medium text-background transition hover:bg-accent-light"
-                  >
-                    {t("courses.enroll")} <ArrowRight size={14} />
-                  </a>
+                  <p className="font-serif text-3xl text-accent">
+                    {COURSES_OPEN ? tCourse(i, "price") : locale === "zh" ? "—" : "—"}
+                  </p>
+                  {COURSES_OPEN ? (
+                    <a
+                      href={link("/courses")}
+                      className="inline-flex items-center gap-1 rounded-full bg-accent px-5 py-2 text-sm font-medium text-background transition hover:bg-accent-light"
+                    >
+                      {t("courses.enroll")} <ArrowRight size={14} />
+                    </a>
+                  ) : (
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="rounded-full border border-white/10 px-4 py-2 text-xs text-muted/70">
+                        {locale === "zh" ? "即将开放" : "Coming soon"}
+                      </span>
+                      <a
+                        href={link("/bazi")}
+                        className="inline-flex items-center gap-1 text-xs text-accent transition hover:underline"
+                      >
+                        {locale === "zh" ? "先做一次八字解读" : "Try a reading first"} <ArrowRight size={12} />
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
