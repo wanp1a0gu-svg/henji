@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Gem, Truck, Info, ShieldCheck } from "lucide-react";
+import { Sparkles, Gem, Truck, Info, ShieldCheck, RotateCcw, Landmark } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
 import {
@@ -131,6 +131,9 @@ export function ShopContent({ locale }: { locale: Locale }) {
                 </h3>
                 <p className="mt-1 text-xs text-muted/80">{isZh ? p.name : p.nameZh}</p>
                 <p className="mt-3 text-xs leading-relaxed text-muted">{isZh ? p.descZh : p.desc}</p>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted/60">
+                  {isZh ? p.specZh : p.spec}
+                </p>
                 <div className="mt-3 flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
                   <p className="text-[10px] uppercase tracking-[0.18em] text-accent/70">{s.usageLabel}</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted/75">
@@ -213,15 +216,25 @@ export function ShopContent({ locale }: { locale: Locale }) {
       {/* Shipping / notes */}
       <section className="px-6 pb-10">
         <div className="mx-auto max-w-6xl">
-          <div className="glass flex flex-col gap-3 rounded-2xl p-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-center sm:gap-8">
-            <span className="flex items-center gap-2">
-              <Truck size={14} className="shrink-0 text-accent" />
-              {s.shipping}
-            </span>
-            <span className="flex items-center gap-2">
-              <Info size={14} className="shrink-0 text-accent" />
+          <div className="glass rounded-2xl p-6">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="flex items-start gap-3">
+                <Truck size={15} className="mt-0.5 shrink-0 text-accent" />
+                <p className="text-[11px] leading-relaxed text-muted">{s.shipping}</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <RotateCcw size={15} className="mt-0.5 shrink-0 text-accent" />
+                <p className="text-[11px] leading-relaxed text-muted">{s.returns}</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Landmark size={15} className="mt-0.5 shrink-0 text-accent" />
+                <p className="text-[11px] leading-relaxed text-muted">{s.customs}</p>
+              </div>
+            </div>
+            <p className="mt-5 flex items-start gap-2 border-t border-white/[0.06] pt-4 text-[10px] leading-relaxed text-muted/60">
+              <Info size={12} className="mt-0.5 shrink-0 text-accent/70" />
               {s.natural}
-            </span>
+            </p>
           </div>
         </div>
       </section>

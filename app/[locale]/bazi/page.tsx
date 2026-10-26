@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo";
 import { Locale, getMessages } from "@/lib/i18n";
 import { BaziContent } from "@/components/BaziContent";
 
@@ -12,6 +13,7 @@ export async function generateMetadata({
   return {
     title: (t.title || "Traces") + " — " + (locale === "zh" ? "痕迹" : "Traces"),
     description: t.subtitle || undefined,
+    alternates: pageAlternates(locale, "/bazi"),
   };
 }
 

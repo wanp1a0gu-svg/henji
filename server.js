@@ -183,6 +183,19 @@ const RELEASE_ROOT = path.join(__dirname, "release");
 const DIST_ROOT = path.join(__dirname, "dist");
 const ROOT = fs.existsSync(RELEASE_ROOT) ? RELEASE_ROOT : DIST_ROOT;
 
+/**
+ * 静态导出的 <html lang> 只能是 en（根 layout 拿不到 locale）。
+ * 用响应头补上语言标记：爬虫、读屏、翻译插件都认这个。
+ */
+const CONTENT_LANGUAGE_BY_LOCALE = {
+  zh: "zh-CN", en: "en", ja: "ja", ko: "ko", es: "es",
+  fr: "fr", de: "de", pt: "pt", ru: "ru", ar: "ar",
+};
+function contentLanguageFor(cleanPath) {
+  const seg = String(cleanPath || "").split("/").filter(Boolean)[0] || "";
+  return CONTENT_LANGUAGE_BY_LOCALE[seg] || null;
+}
+
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".htm": "text/html; charset=utf-8",
@@ -1602,8 +1615,10 @@ const server = http.createServer((req, res) => {
     return fs.createReadStream(file).pipe(res);
   }
 
+  const langTag = type.startsWith("text/html") ? contentLanguageFor(clean) : null;
   res.writeHead(200, {
     "Content-Type": type,
+    ...(langTag ? { "Content-Language": langTag } : {}),
     "Cache-Control": immutable
       ? "public, max-age=31536000, immutable"
       : "no-cache",

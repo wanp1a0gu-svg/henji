@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
 import { ShopContent } from "@/components/ShopContent";
@@ -13,6 +14,7 @@ export async function generateMetadata({
   return {
     title: (t.title || "Traces") + " — " + (locale === "zh" ? "痕迹" : "Traces"),
     description: t.subtitle || undefined,
+    alternates: pageAlternates(locale, "/shop"),
   };
 }
 

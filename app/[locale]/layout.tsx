@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { locales, Locale, getMessages } from "@/lib/i18n";
+import { pageAlternates } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site-config";
 import "../globals.css";
 import { Nav } from "@/components/Nav";
@@ -35,15 +36,12 @@ export async function generateMetadata({
   const description =
     hero.subtitle || "Courses and personal readings in Chinese metaphysics.";
 
-  const languages: Record<string, string> = {};
-  for (const l of locales) languages[l] = "/" + l;
-  languages["x-default"] = "/en";
-
   return {
     metadataBase: new URL(SITE_URL),
     title,
     description,
-    alternates: { canonical: "/" + locale, languages },
+    // 首页 canonical 仍为 /{locale}；子页面各自覆盖（见 lib/seo.ts）
+    alternates: pageAlternates(locale, "/"),
     openGraph: {
       type: "website",
       siteName: "Traces",
