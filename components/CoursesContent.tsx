@@ -73,9 +73,13 @@ export function CoursesContent({ messages, locale }: { messages: Messages; local
                   <span className="inline-flex items-center gap-1"><CheckCircle2 size={12} /> {t("courses.certificate")}</span>
                 </div>
                 <div className="flex items-center justify-between border-t border-white/[0.06] pt-6">
-                  <p className="font-serif text-3xl text-accent">
-                    {COURSES_OPEN ? tCourse(i, "price") : locale === "zh" ? "—" : "—"}
-                  </p>
+                  {COURSES_OPEN ? (
+                    <p className="font-serif text-3xl text-accent">{tCourse(i, "price")}</p>
+                  ) : (
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted/50">
+                      {locale === "zh" ? "即将开放" : "Coming soon"}
+                    </p>
+                  )}
                   {COURSES_OPEN ? (
                     <a
                       href={link("/courses")}
@@ -84,17 +88,12 @@ export function CoursesContent({ messages, locale }: { messages: Messages; local
                       {t("courses.enroll")} <ArrowRight size={14} />
                     </a>
                   ) : (
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="rounded-full border border-white/10 px-4 py-2 text-xs text-muted/70">
-                        {locale === "zh" ? "即将开放" : "Coming soon"}
-                      </span>
-                      <a
-                        href={link("/bazi")}
-                        className="inline-flex items-center gap-1 text-xs text-accent transition hover:underline"
-                      >
-                        {locale === "zh" ? "先做一次八字解读" : "Try a reading first"} <ArrowRight size={12} />
-                      </a>
-                    </div>
+                    <a
+                      href={link("/bazi")}
+                      className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/[0.08] px-4 py-2 text-xs text-accent transition hover:bg-accent/15"
+                    >
+                      {locale === "zh" ? "先做一次八字解读" : "Try a reading first"} <ArrowRight size={12} />
+                    </a>
                   )}
                 </div>
               </div>
