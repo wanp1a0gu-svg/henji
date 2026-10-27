@@ -9,7 +9,8 @@
     "PAYPAL_SANDBOX_CLIENT_ID": "沙盒 Client ID，PAYPAL_ENV=sandbox 时使用",
     "PAYPAL_SANDBOX_SECRET": "沙盒 Secret",
     "PAYPAL_WEBHOOK_ID": "PayPal Webhook ID（live）",
-    "PAYPAL_EVENTS_TOKEN": "对账接口 GET /api/paypal/events?token= 的令牌"
+    "PAYPAL_EVENTS_TOKEN": "对账接口 GET /api/paypal/events?token= 的令牌",
+    "ADMIN_REFUND_TOKEN": "后台退款按钮用的令牌（★ 仅服务端持有，后台首次退款时输入一次）"
   },
 
   "DOUBAO_API_KEY": "在此填真实豆包 API Key",
@@ -21,5 +22,6 @@
   "PAYPAL_SANDBOX_CLIENT_ID": "在此填沙盒 Client ID",
   "PAYPAL_SANDBOX_SECRET": "在此填沙盒 Secret",
   "PAYPAL_WEBHOOK_ID": "在此填 Webhook ID",
-  "PAYPAL_EVENTS_TOKEN": "在此填对账令牌"
+  "PAYPAL_EVENTS_TOKEN": "在此填对账令牌",
+  "ADMIN_REFUND_TOKEN": "在此填一串随机字符（32 位以上）"
 }

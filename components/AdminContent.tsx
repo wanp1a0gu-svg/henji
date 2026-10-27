@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins, Globe } from "lucide-react";
+import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins, Globe, RotateCcw } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { ADMIN_EMAILS } from "@/lib/site-config";
 import { getCloud } from "@/lib/cloud";
@@ -22,6 +22,7 @@ interface Order {
   fulfillment: string | null;
   shipping_address: any;
   paypal_order_id: string | null;
+  capture_raw?: any;
 }
 
 interface PageView {
@@ -90,6 +91,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const [views, setViews] = useState<PageView[] | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [refunding, setRefunding] = useState<number | null>(null);
   const [openReading, setOpenReading] = useState<Reading | null>(null);
 
   // 身份判断走服务端（is_admin RPC，读登录凭证；与数据库 RLS 同一逻辑）
@@ -244,6 +246,60 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const allReadings = readings || [];
   const completed = allOrders.filter((o) => o.status === "completed");
   const revenue = completed.reduce((s, o) => s + (parseFloat(o.amount || "0") || 0), 0);
+  /** PayPal 退款：服务端用 ADMIN_REFUND_TOKEN 校验后调 PayPal refundCapture */
+  const refundOrder = async (o: Order) => {
+    if (!o.paypal_order_id) {
+      alert("这笔是余额支付，没有 PayPal 订单号。请到「钱包」标签手动返还余额。");
+      return;
+    }
+    let tk = "";
+    try {
+      tk = sessionStorage.getItem("traces_refund_token") || "";
+    } catch {
+      tk = "";
+    }
+    if (!tk) {
+      const input = window.prompt(
+        "首次退款需要令牌：server-config.json 里的 ADMIN_REFUND_TOKEN"
+      );
+      if (!input || !input.trim()) return;
+      tk = input.trim();
+      try {
+        sessionStorage.setItem("traces_refund_token", tk);
+      } catch {
+        /* 忽略 */
+      }
+    }
+    if (!window.confirm("确认全额退款 $" + (o.amount || "?") + " 给 " + (o.payer_email || "该客户") + "？\n此操作不可撤销。")) {
+      return;
+    }
+    setRefunding(o.id);
+    try {
+      const r = await fetch("/api/paypal/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: o.paypal_order_id, token: tk }),
+      });
+      const j = (await r.json()) as { ok?: boolean; refundId?: string; amount?: string; currency?: string; message?: string; error?: string };
+      if (!r.ok) throw new Error(j.message || j.error || "退款失败");
+
+      try {
+        await getCloud()
+          .database.from("payment_orders")
+          .update({ status: "refunded", capture_raw: { ...(o.capture_raw || {}), refund: j } })
+          .eq("id", o.id);
+      } catch {
+        /* 状态回写失败不影响已退款事实 */
+      }
+      setOrders((prev) => (prev || []).map((x) => (x.id === o.id ? { ...x, status: "refunded" } : x)));
+      alert("退款成功：" + (j.refundId || "") + "（" + (j.amount || "") + " " + (j.currency || "") + "）");
+    } catch (e: any) {
+      alert("退款失败：" + ((e && e.message) || "未知错误"));
+    } finally {
+      setRefunding(null);
+    }
+  };
+
   const pendingShip = completed.filter((o) => (o.product || "").indexOf("shop:") === 0 && o.fulfillment !== "shipped");
 
   // ---- 流量统计（近 7 天，时区 Asia/Shanghai）----
@@ -366,12 +422,13 @@ export function AdminContent({ locale }: { locale: Locale }) {
                     <th className="px-4 py-3">交易号</th>
                     <th className="px-4 py-3">收货地址</th>
                     <th className="px-4 py-3">发货</th>
+                    <th className="px-4 py-3">退款</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allOrders.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-10 text-center text-muted/50">
+                      <td colSpan={8} className="px-4 py-10 text-center text-muted/50">
                         {busy ? "加载中…" : "暂无订单"}
                       </td>
                     </tr>
@@ -404,6 +461,24 @@ export function AdminContent({ locale }: { locale: Locale }) {
                           <span className="inline-flex items-center gap-1 text-[10px] text-muted/50">
                             <Package size={11} /> 数字服务
                           </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {o.status === "refunded" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-muted/50">
+                            已退款
+                          </span>
+                        ) : o.paypal_order_id ? (
+                          <button
+                            onClick={() => refundOrder(o)}
+                            disabled={refunding === o.id}
+                            className="inline-flex items-center gap-1 rounded-full border border-red-400/30 bg-red-400/10 px-2.5 py-1 text-[10px] text-red-300 transition hover:bg-red-400/20 disabled:opacity-50"
+                          >
+                            <RotateCcw size={11} />
+                            {refunding === o.id ? "退款中…" : "退款"}
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-muted/40">余额支付</span>
                         )}
                       </td>
                     </tr>

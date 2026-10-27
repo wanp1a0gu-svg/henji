@@ -529,6 +529,82 @@ async function verifyReportReceipt(receipt) {
   return { ok: false, error: "INVALID_RECEIPT" };
 }
 
+/**
+ * POST /api/paypal/refund
+ * body: { orderId, amount?, note?, token }
+ *
+ * 后台「退款」按钮用。管理员身份用一把只存在服务端的令牌校验
+ * （ADMIN_REFUND_TOKEN，写在 server-config.json，不入库不外泄）——
+ * 因为服务端拿不到用户 JWT 去查 is_admin()。
+ *
+ * 不传 amount 即全额退款；部分退款传 amount（字符串，如 "6.80"）。
+ */
+function handlePayPalRefund(req, res) {
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+
+  readBody(req, async (err, raw) => {
+    if (err) return sendJson(res, err.message === "too large" ? 413 : 400, { error: "Invalid request body" });
+
+    let body;
+    try {
+      body = JSON.parse(raw || "{}");
+    } catch {
+      return sendJson(res, 400, { error: "Invalid JSON body" });
+    }
+
+    const expected = loadServerConfigField("ADMIN_REFUND_TOKEN") || process.env.ADMIN_REFUND_TOKEN || "";
+    if (!expected) {
+      return sendJson(res, 503, { error: "Refund is not configured (ADMIN_REFUND_TOKEN missing)" });
+    }
+    const given = String(body.token || "");
+    let okTok = false;
+    try {
+      const a = Buffer.from(given);
+      const b = Buffer.from(expected);
+      okTok = a.length === b.length && crypto.timingSafeEqual(a, b);
+    } catch {
+      okTok = false;
+    }
+    if (!okTok) return sendJson(res, 403, { error: "FORBIDDEN" });
+
+    const orderId = String(body.orderId || "");
+    if (!/^[A-Za-z0-9-]{6,40}$/.test(orderId)) return sendJson(res, 400, { error: "Invalid orderId" });
+
+    if (!checkRateLimit(req, "default")) {
+      return sendJson(res, 429, { error: "Too many requests" });
+    }
+
+    try {
+      const order = await PayPal.getOrder(orderId);
+      const cap = PayPal.extractCapture(order, "");
+      if (!cap.captureId) return sendJson(res, 400, { error: "NO_CAPTURE", message: "该订单没有已完成的捕获记录" });
+      if (cap.status !== "COMPLETED") {
+        return sendJson(res, 400, { error: "NOT_REFUNDABLE", message: "捕获状态为 " + cap.status });
+      }
+
+      const want = body.amount ? String(body.amount) : "";
+      const opts = want ? { amount: want, currency: body.currency || cap.currency } : null;
+      const refund = await PayPal.refundCapture(cap.captureId, opts);
+
+      console.error("[paypal] refund ok:", orderId, refund && refund.id, refund && refund.status);
+      return sendJson(res, 200, {
+        ok: true,
+        orderId: orderId,
+        captureId: cap.captureId,
+        refundId: (refund && refund.id) || "",
+        status: (refund && refund.status) || "",
+        amount: (refund && refund.amount && refund.amount.value) || cap.amount,
+        currency: (refund && refund.amount && refund.amount.currency_code) || cap.currency,
+        full: !want,
+      });
+    } catch (e) {
+      const msg = (e && e.message) || "refund failed";
+      console.error("[paypal] refund failed:", orderId, msg);
+      return sendJson(res, 502, { error: "REFUND_FAILED", message: msg });
+    }
+  });
+}
+
 function handleBaziApi(req, res) {
   if (req.method === "GET") {
     return handleBaziStatus(req, res);
@@ -1645,6 +1721,9 @@ const server = http.createServer((req, res) => {
   }
   if (clean === "/api/paypal/events") {
     return handlePayPalEvents(req, res);
+  }
+  if (clean === "/api/paypal/refund") {
+    return handlePayPalRefund(req, res);
   }
 
   if (clean === "/api/chat") {
