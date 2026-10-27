@@ -150,8 +150,10 @@ export type Database = {
           id: number;
           path: string;
           locale: string | null;
-          /** 随机访客 ID，不含 IP / 设备信息 */
+          /** 随机访客 ID（浏览器本地生成） */
           visitor_id: string | null;
+          /** 访客公网 IP（由服务端 /api/ip 读取 X-Forwarded-For） */
+          ip: string | null;
           created_at: string;
         };
         Insert: {
@@ -159,6 +161,7 @@ export type Database = {
           path: string;
           locale?: string | null;
           visitor_id?: string | null;
+          ip?: string | null;
           created_at?: string;
         };
         Update: {

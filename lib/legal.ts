@@ -66,6 +66,7 @@ export const legalDocs: Record<LegalDocKey, Record<"en" | "zh", LegalDoc>> = {
           heading: "6. Cookies and Local Storage",
           paragraphs: [
             "We use essential cookie/local storage technology to keep you signed in. We do not use advertising or cross-site tracking cookies.",
+            "For traffic statistics and abuse prevention we record the pages you visit, the interface language, a randomly generated visitor ID stored in your browser, and your IP address as seen by our server. This data is used only in aggregate for site operation and is not sold or shared with advertisers.",
           ],
         },
         {
@@ -133,6 +134,7 @@ export const legalDocs: Record<LegalDocKey, Record<"en" | "zh", LegalDoc>> = {
           heading: "六、Cookie 与本地存储",
           paragraphs: [
             "我们使用维持登录所必需的 Cookie/本地存储技术，不使用广告或跨站追踪 Cookie。",
+            "为统计访问量与防范滥用，我们会记录你访问的页面、界面语言、浏览器本地生成的随机访客标识，以及服务端看到的 IP 地址。这些数据仅用于站点运营分析，不会出售或提供给广告商。",
           ],
         },
         {

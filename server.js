@@ -1651,6 +1651,12 @@ const server = http.createServer((req, res) => {
     return handleChatApi(req, res);
   }
 
+  // 访客 IP：埋点由浏览器写库，客户端拿不到自己的公网 IP，
+  // 由服务端读 X-Forwarded-For 回给前端（不经过任何第三方接口）
+  if (clean === "/api/ip") {
+    return sendJson(res, 200, { ip: clientIp(req) });
+  }
+
   // 默认语言（英文）：HTTP 级重定向到 /en。
   // 静态导出的 index.html 只含前端 JS 跳转（无 JS 环境/爬虫不可靠），此处直接 302。
   if (clean === "/" || clean === "/index.html") {

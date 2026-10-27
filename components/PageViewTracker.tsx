@@ -39,7 +39,7 @@ export function PageViewTracker({ locale }: { locale: string }) {
     if (pathname.indexOf("/admin") !== -1) return;
     if (pathname.indexOf("/account") !== -1) return;
 
-    const insert = () => {
+    const insert = async () => {
     try {
       let vid = "";
       try {
@@ -53,9 +53,29 @@ export function PageViewTracker({ locale }: { locale: string }) {
       } catch {
         vid = "anon";
       }
+
+      // 公网 IP：浏览器拿不到自己的出口 IP，由服务端读 X-Forwarded-For 返回
+      // （不经过第三方接口）。同一次会话缓存，避免每次翻页都请求。
+      let ip: string | null = null;
+      try {
+        const cached = sessionStorage.getItem("traces_ip");
+        if (cached) {
+          ip = cached;
+        } else {
+          const r = await fetch("/api/ip", { cache: "no-store" });
+          const j = (await r.json()) as { ip?: string };
+          if (j && j.ip) {
+            ip = String(j.ip);
+            sessionStorage.setItem("traces_ip", ip);
+          }
+        }
+      } catch {
+        /* 拿不到 IP 就留空，不影响埋点 */
+      }
+
       const p = getCloud()
         .database.from("page_views")
-        .insert({ path: pathname, locale, visitor_id: vid });
+        .insert({ path: pathname, locale, visitor_id: vid, ip });
       // 必须消费 promise 才会真正发出请求
       Promise.resolve(p).then(
         () => {},

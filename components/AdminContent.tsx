@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins } from "lucide-react";
+import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins, Globe } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { ADMIN_EMAILS } from "@/lib/site-config";
 import { getCloud } from "@/lib/cloud";
@@ -26,6 +26,8 @@ interface Order {
 
 interface PageView {
   path: string;
+  locale: string | null;
+  ip: string | null;
   visitor_id: string | null;
   created_at: string;
 }
@@ -144,7 +146,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         const since = new Date(Date.now() - 7 * 86400000).toISOString();
         const v = await db
           .from("page_views")
-          .select("path,visitor_id,created_at")
+          .select("path,locale,ip,visitor_id,created_at")
           .gte("created_at", since)
           .order("created_at", { ascending: false })
           .limit(5000);
@@ -502,7 +504,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
                 })}
               </div>
               <p className="mt-4 text-[10px] leading-relaxed text-muted/50">
-                统计为匿名访问（无 IP/设备信息）；不含后台、账户页与站主本人的访问。UV = 去重访客数（浏览器维度）。
+                记录页面路径、语言、随机访客 ID 与服务端读取的公网 IP；不含设备指纹。不含后台、账户页与站主本人的访问。UV = 去重访客数（浏览器维度）。
               </p>
             </div>
 
@@ -526,6 +528,49 @@ export function AdminContent({ locale }: { locale: Locale }) {
                   </div>
                 );
               })}
+            </div>
+
+            {/* 最近访问记录（含 IP） */}
+            <div className="glass overflow-hidden rounded-2xl">
+              <div className="flex items-center justify-between px-5 py-4">
+                <p className="flex items-center gap-1.5 text-xs text-muted/70">
+                  <Globe size={12} /> 最近访问记录（最多 50 条）
+                </p>
+                <span className="text-[10px] text-muted/40">按时间倒序</span>
+              </div>
+              <div className="max-h-[420px] overflow-y-auto border-t border-white/[0.06]">
+                <table className="w-full text-left text-[11px]">
+                  <thead className="sticky top-0 bg-background/95 backdrop-blur">
+                    <tr className="border-b border-white/[0.08] text-[10px] uppercase tracking-wider text-muted/60">
+                      <th className="px-5 py-2 font-normal">时间</th>
+                      <th className="px-3 py-2 font-normal">页面</th>
+                      <th className="px-3 py-2 font-normal">语言</th>
+                      <th className="px-3 py-2 font-normal">IP</th>
+                      <th className="px-3 py-2 font-normal">访客</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allViews.slice(0, 50).map((v, i) => (
+                      <tr key={i} className="border-b border-white/[0.04]">
+                        <td className="whitespace-nowrap px-5 py-2 text-muted">{fmtTime(v.created_at)}</td>
+                        <td className="px-3 py-2 font-mono text-foreground/80">{v.path}</td>
+                        <td className="px-3 py-2 text-muted/70">{v.locale || "—"}</td>
+                        <td className="whitespace-nowrap px-3 py-2 font-mono text-accent/80">{v.ip || "—"}</td>
+                        <td className="px-3 py-2 font-mono text-muted/50">
+                          {(v.visitor_id || "").slice(0, 8) || "—"}
+                        </td>
+                      </tr>
+                    ))}
+                    {allViews.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-5 py-6 text-center text-[11px] text-muted/50">
+                          暂无数据
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
