@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Shield, FileText, Loader2, RefreshCw, CheckCircle2, CloudUpload, Lock } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
@@ -92,6 +92,14 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
       setSaveState("error");
     }
   };
+
+  // 游客付费时报告只存在浏览器里：登录后自动补存，避免"关掉页面就没了"
+  useEffect(() => {
+    if (user && report && saveState === "idle") {
+      saveReading(report);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, report, saveState]);
 
   const handleSubmit = async (rc: any = receipt) => {
     if (!form.birthDate || !form.gender) {
@@ -324,6 +332,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                     // 订单入库（失败不阻塞生成）
                     try {
                       await getCloud().database.from("payment_orders").insert({
+                        owner_id: user ? user.id : null,
                         method: "paypal",
                         amount: order.amount || "6.80",
                         currency: order.currency || "USD",
@@ -334,8 +343,15 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                         contact: order.payerEmail || null,
                         capture_raw: order,
                       });
-                    } catch {
-                      /* 入库失败不影响用户使用 */
+                    } catch (e) {
+                      // 入库失败不阻塞用户，但必须留痕：订单可能在后台丢失
+                      console.error("[order] bazi insert failed", e);
+                      try {
+                        localStorage.setItem(
+                          "traces_pending_order",
+                          JSON.stringify({ order, form, at: new Date().toISOString() })
+                        );
+                      } catch {}
                     }
                     handleSubmit(rc);
                   }}
@@ -405,6 +421,21 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                   </button>
                 </div>
               </div>
+              {!user && report && (
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.07] px-4 py-3">
+                  <p className="text-xs leading-relaxed text-amber-200/90">
+                    {locale === "zh"
+                      ? "这份报告还没保存。登录即可存入账户，随时回看——免费。"
+                      : "This report isn't saved yet. Sign in to keep it in your account for later — free."}
+                  </p>
+                  <button
+                    onClick={openAuth}
+                    className="rounded-full border border-amber-300/40 bg-amber-300/10 px-3.5 py-1.5 text-[11px] text-amber-100 transition hover:bg-amber-300/20"
+                  >
+                    {locale === "zh" ? "登录保存" : "Sign in to save"}
+                  </button>
+                </div>
+              )}
               {chart && <BaziChart chart={chart} locale={locale} />}
               <div className="prose prose-invert max-w-none text-sm leading-relaxed text-muted">
                 {report.split("\n").map((line, i) => (

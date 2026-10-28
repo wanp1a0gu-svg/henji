@@ -26,6 +26,9 @@ export interface UiMessages {
   lock3: string;
   lock4: string;
   lock5: string;
+  customNameLabel: string;
+  customTextLabel: string;
+  customFillHint: string;
 }
 
 const MESSAGES: Record<Locale, UiMessages> = {
@@ -48,6 +51,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "Auxiliary Stars — each star interpreted with its pillar",
     lock4: "Luck Pillars — current cycle and the next three years",
     lock5: "Key Advice — concrete steps for the area you care about",
+    customNameLabel: "Your name on the charm",
+    customTextLabel: "Wording to be written",
+    customFillHint: "Please fill in both fields before paying.",
   },
   zh: {
     featured: "主推服务",
@@ -68,6 +74,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "神煞详解 —— 逐条神煞结合柱位说明",
     lock4: "大运与近况 —— 当前大运主题与近三年流年",
     lock5: "重点建议 —— 围绕你的关注方向给具体建议",
+    customNameLabel: "需要书写的姓名",
+    customTextLabel: "需要书写的内容",
+    customFillHint: "请先填写姓名与内容，再付款。",
   },
   ja: {
     featured: "注目のサービス",
@@ -88,6 +97,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "神煞の詳細 — 各神煞を柱位と合わせて解説",
     lock4: "大運と近況 — 現在の大運と今後3年の流年",
     lock5: "重点アドバイス — 気になる分野への具体的な提案",
+    customNameLabel: "お名前（護符に記入）",
+    customTextLabel: "記入する文言",
+    customFillHint: "お支払いの前に両方の項目をご入力ください。",
   },
   ko: {
     featured: "추천 서비스",
@@ -108,6 +120,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "신살 상세 — 각 신살을 주 위치와 함께 해석",
     lock4: "대운과 근황 — 현재 대운과 향후 3년",
     lock5: "핵심 조언 — 관심 분야에 대한 구체적 제안",
+    customNameLabel: "부적에 새길 이름",
+    customTextLabel: "새길 문구",
+    customFillHint: "결제 전에 두 항목을 모두 입력해 주세요.",
   },
   es: {
     featured: "Servicio destacado",
@@ -128,6 +143,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "Estrellas auxiliares — cada estrella interpretada con su pilar",
     lock4: "Pilares de suerte — ciclo actual y los próximos tres años",
     lock5: "Consejo clave — pasos concretos para el área que te interesa",
+    customNameLabel: "Nombre para el amuleto",
+    customTextLabel: "Texto que se escribirá",
+    customFillHint: "Completa ambos campos antes de pagar.",
   },
   fr: {
     featured: "Service phare",
@@ -148,6 +166,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "Étoiles auxiliaires — chaque étoile interprétée avec son pilier",
     lock4: "Piliers de chance — cycle actuel et les trois prochaines années",
     lock5: "Conseil clé — des étapes concrètes pour le domaine qui vous intéresse",
+    customNameLabel: "Nom à inscrire sur le talisman",
+    customTextLabel: "Texte à inscrire",
+    customFillHint: "Veuillez remplir les deux champs avant de payer.",
   },
   de: {
     featured: "Empfohlen",
@@ -168,6 +189,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "Hilfssterne — jeder Stern mit seiner Säule erklärt",
     lock4: "Glückssäulen — aktueller Zyklus und die nächsten drei Jahre",
     lock5: "Kernempfehlung — konkrete Schritte für dein Thema",
+    customNameLabel: "Name auf dem Talisman",
+    customTextLabel: "Einzuschreibender Text",
+    customFillHint: "Bitte beide Felder vor der Zahlung ausfüllen.",
   },
   pt: {
     featured: "Destaque",
@@ -188,6 +212,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "Estrelas auxiliares — cada estrela interpretada com seu pilar",
     lock4: "Pilares da sorte — ciclo atual e os próximos três anos",
     lock5: "Conselho-chave — passos concretos para a área que te interessa",
+    customNameLabel: "Nome no talismã",
+    customTextLabel: "Texto a ser escrito",
+    customFillHint: "Preencha os dois campos antes de pagar.",
   },
   ru: {
     featured: "Рекомендуем",
@@ -208,6 +235,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "Вспомогательные звёзды — каждая звезда с привязкой к столпу",
     lock4: "Столпы удачи — текущий цикл и ближайшие три года",
     lock5: "Ключевой совет — конкретные шаги по вашей теме",
+    customNameLabel: "Имя на талисмане",
+    customTextLabel: "Текст для нанесения",
+    customFillHint: "Заполните оба поля перед оплатой.",
   },
   ar: {
     featured: "خدمة مميزة",
@@ -228,6 +258,9 @@ const MESSAGES: Record<Locale, UiMessages> = {
     lock3: "النجوم المساعدة — كل نجم مفسَّر مع عموده",
     lock4: "أعمدة الحظ — الدورة الحالية والسنوات الثلاث القادمة",
     lock5: "النصيحة الأساسية — خطوات عملية للمجال الذي يهمك",
+    customNameLabel: "الاسم على التعويذة",
+    customTextLabel: "النص المطلوب كتابته",
+    customFillHint: "يرجى تعبئة الحقلين قبل الدفع.",
   },
 };
 

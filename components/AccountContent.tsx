@@ -165,6 +165,7 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
       const { data, error: err } = await getCloud()
         .database.from("payment_orders")
         .select("id, method, amount, payer_note, status, created_at")
+        .eq("owner_id", user.id)
         .order("created_at", { ascending: false });
       if (!err) setOrders((data as PaymentOrder[]) || []);
     } catch {

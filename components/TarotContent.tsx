@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Moon, Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getTarotMessages, positionLabel, cardName, TAROT_ELEMENT_COLORS } from "@/lib/tarot-i18n";
@@ -61,6 +61,8 @@ export function TarotContent({ locale }: { locale: Locale }) {
   const [draw, setDraw] = useState<DrawData | null>(null);
   const [reading, setReading] = useState("");
   const [error, setError] = useState("");
+  // 点了按钮才弹登录：登录成功后自动接着跑，不用再点一次
+  const pendingRef = useRef(false);
 
   const spreadOptions = [
     { value: "single", label: t.spreads.single },
@@ -71,9 +73,18 @@ export function TarotContent({ locale }: { locale: Locale }) {
     { value: "celtic", label: t.spreads.celtic },
   ];
 
+  useEffect(() => {
+    if (user && pendingRef.current) {
+      pendingRef.current = false;
+      handleDraw();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const handleDraw = async () => {
     // 页面本身对所有人可见（利于索引与转化），但抽牌要登录 —— 解读是 LLM 调用，匿名刷会烧成本
     if (!user) {
+      pendingRef.current = true;
       openAuth();
       return;
     }

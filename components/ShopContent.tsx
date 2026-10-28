@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles, Gem, Truck, Info, ShieldCheck, RotateCcw, Landmark } from "lucide-react";
+import { getUiMessages } from "@/lib/ui-i18n";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
 import {
@@ -30,6 +31,9 @@ export function ShopContent({ locale }: { locale: Locale }) {
   const pay = getPayMessages(locale);
   const a = getAuthMessages(locale);
   const { user, openAuth } = useAuth();
+  const [customInfo, setCustomInfo] = useState({ name: "", text: "" });
+  const ui = getUiMessages(locale);
+  const customReady = (p: any) => p.id !== "custom" || (customInfo.name.trim() !== "" && customInfo.text.trim() !== "");
   const [payOpen, setPayOpen] = useState<string>(""); // 展开支付的商品 id
   const [paidId, setPaidId] = useState<string>(""); // 已支付商品 id
   const [cat, setCat] = useState<ShopCategory | "all">("all"); // 当前分类
@@ -156,6 +160,29 @@ export function ShopContent({ locale }: { locale: Locale }) {
                   <div className="mt-4">
                     {user ? (
                       <>
+                      {p.id === "custom" && (
+                        <div className="mb-3 space-y-2 rounded-xl border border-accent/20 bg-accent/[0.04] p-3">
+                          <input
+                            value={customInfo.name}
+                            onChange={(e) => setCustomInfo({ ...customInfo, name: e.target.value })}
+                            placeholder={ui.customNameLabel}
+                            className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-foreground placeholder:text-muted/50 focus:border-accent/40 focus:outline-none"
+                          />
+                          <textarea
+                            value={customInfo.text}
+                            onChange={(e) => setCustomInfo({ ...customInfo, text: e.target.value })}
+                            placeholder={ui.customTextLabel}
+                            rows={2}
+                            className="w-full resize-none rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-foreground placeholder:text-muted/50 focus:border-accent/40 focus:outline-none"
+                          />
+                        </div>
+                      )}
+                      {!customReady(p) ? (
+                        <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3 py-3 text-center text-[11px] text-amber-200/90">
+                          {ui.customFillHint}
+                        </p>
+                      ) : (
+                      <>
                       <PayPalButton
                         product={"shop:" + p.id}
                         locale={locale}
@@ -163,6 +190,7 @@ export function ShopContent({ locale }: { locale: Locale }) {
                           setPaidId(p.id);
                           try {
                             await getCloud().database.from("payment_orders").insert({
+                              owner_id: user ? user.id : null,
                               method: "paypal",
                               amount: order.amount || String(p.price),
                               currency: order.currency || "USD",
@@ -172,10 +200,20 @@ export function ShopContent({ locale }: { locale: Locale }) {
                               payer_email: order.payerEmail || null,
                               contact: order.payerEmail || null,
                               shipping_address: order.shipping || null,
+                              payer_note:
+                                p.id === "custom"
+                                  ? JSON.stringify({ name: customInfo.name.trim(), text: customInfo.text.trim() })
+                                  : null,
                               capture_raw: order,
                             });
-                          } catch {
-                            /* 入库失败不影响用户 */
+                          } catch (e) {
+                            console.error("[order] shop insert failed", e);
+                            try {
+                              localStorage.setItem(
+                                "traces_pending_order",
+                                JSON.stringify({ order, product: p.id, at: new Date().toISOString() })
+                              );
+                            } catch {}
                           }
                         }}
                       />
@@ -184,6 +222,8 @@ export function ShopContent({ locale }: { locale: Locale }) {
                         locale={locale}
                         onSuccess={() => setPaidId(p.id)}
                       />
+                      </>
+                      )}
                       </>
                     ) : (
                       <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-center">

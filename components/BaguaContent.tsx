@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, Loader2, RefreshCw, Compass } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getBaguaMessages } from "@/lib/bagua-i18n";
 import { BaguaChart, BaguaDrawData } from "./BaguaChart";
 import { Select } from "./Select";
-import { SignInGate } from "./SignInGate";
+import { useAuth } from "./AuthProvider";
 
 /** 同源 API（server.js 异步任务模式）。 */
 const API_ENDPOINTS = ["/api/bagua"];
@@ -37,19 +37,36 @@ async function pollReading(
 
 export function BaguaContent({ locale }: { locale: Locale }) {
   const t = getBaguaMessages(locale);
+  const { user, openAuth } = useAuth();
   const [method, setMethod] = useState("coin");
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [draw, setDraw] = useState<BaguaDrawData | null>(null);
   const [reading, setReading] = useState("");
   const [error, setError] = useState("");
+  // 点了按钮才弹登录：登录成功后自动接着跑，不用再点一次
+  const pendingRef = useRef(false);
 
   const methodOptions = [
     { value: "coin", label: t.methodCoin },
     { value: "yarrow", label: t.methodYarrow },
   ];
 
+  useEffect(() => {
+    if (user && pendingRef.current) {
+      pendingRef.current = false;
+      handleCast();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const handleCast = async () => {
+    // 页面本身对所有人可见（利于索引），但起卦要登录 —— 解读是 LLM 调用，匿名刷会烧成本
+    if (!user) {
+      pendingRef.current = true;
+      openAuth();
+      return;
+    }
     setLoading(true);
     setError("");
     setReading("");
@@ -119,7 +136,6 @@ export function BaguaContent({ locale }: { locale: Locale }) {
 
       {/* Form */}
       <section className="px-6 pb-24">
-        <SignInGate locale={locale}>
         <div className="mx-auto max-w-2xl">
           <div className="glass glow rounded-2xl p-6 sm:p-10">
             <div className="mb-8 flex items-center gap-3">
@@ -212,7 +228,6 @@ export function BaguaContent({ locale }: { locale: Locale }) {
             </div>
           </div>
         )}
-        </SignInGate>
       </section>
 
       <div className="px-6 pb-12">
