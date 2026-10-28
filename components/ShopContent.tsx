@@ -117,7 +117,7 @@ export function ShopContent({ locale }: { locale: Locale }) {
                 />
                 {p.badge && (
                   <span
-                    className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-[10px] tracking-wide backdrop-blur-sm ${BADGE_STYLE[p.badge]}`}
+                    className={`absolute start-3 top-3 rounded-full border px-2.5 py-1 text-[10px] tracking-wide backdrop-blur-sm ${BADGE_STYLE[p.badge]}`}
                   >
                     {badgeLabel(p)}
                   </span>

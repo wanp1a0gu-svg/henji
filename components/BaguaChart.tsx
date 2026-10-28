@@ -139,13 +139,13 @@ export function BaguaChart({ draw, locale }: { draw: BaguaDrawData; locale: Loca
             </div>
             {draw.movingYao.map((y) => (
               <div key={y.pos} className="text-sm leading-relaxed">
-                <span className="mr-2 text-[11px] text-amber-200/80">{y.title || y.posName}</span>
+                <span className="me-2 text-[11px] text-amber-200/80">{y.title || y.posName}</span>
                 <span className="text-foreground/85">{y.text}</span>
               </div>
             ))}
             {draw.oddUse && (
               <div className="text-sm leading-relaxed">
-                <span className="mr-2 rounded-md border border-amber-400/20 px-1.5 py-0.5 text-[10px] text-amber-200/80">
+                <span className="me-2 rounded-md border border-amber-400/20 px-1.5 py-0.5 text-[10px] text-amber-200/80">
                   {m.oddUse}
                 </span>
                 <span className="text-foreground/85">

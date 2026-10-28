@@ -47,7 +47,7 @@ export function WhatsAppButton({ locale }: { locale: Locale }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={labels[locale] || labels.en}
-      className="group fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-[#25D366] py-3 pl-3.5 pr-3.5 sm:pr-5 text-white shadow-lg shadow-[#25D366]/30 transition hover:bg-[#1ebe5b] hover:shadow-[#25D366]/50 sm:bottom-6 sm:right-6"
+      className="group fixed bottom-5 end-5 z-40 flex items-center gap-2 rounded-full bg-[#25D366] py-3 ps-3.5 pe-3.5 sm:pe-5 text-white shadow-lg shadow-[#25D366]/30 transition hover:bg-[#1ebe5b] hover:shadow-[#25D366]/50 sm:bottom-6 sm:end-6"
     >
       <svg
         viewBox="0 0 24 24"

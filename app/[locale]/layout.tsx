@@ -85,7 +85,12 @@ export default async function LocaleLayout({
       */}
       <script
         dangerouslySetInnerHTML={{
-          __html: "document.documentElement.lang=" + JSON.stringify(locale) + ";",
+          __html:
+            "document.documentElement.lang=" +
+            JSON.stringify(locale) +
+            ";document.documentElement.dir=" +
+            JSON.stringify(locale === "ar" ? "rtl" : "ltr") +
+            ";",
         }}
       />
       <PageViewTracker locale={locale} />

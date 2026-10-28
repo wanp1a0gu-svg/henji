@@ -1,0 +1,236 @@
+import { Locale } from "./i18n";
+
+/**
+ * 界面零散文案（10 语言）。
+ *
+ * 背景：首页/八字页/课程页原来用 `locale === "zh" ? "中文" : "English"` 硬编码，
+ * 结果日、韩、法、德、葡、俄、阿 8 种语言看到的都是英文。
+ * 这些文案放进统一模块，便于以后核对与替换。
+ */
+export interface UiMessages {
+  featured: string;
+  startReading: string;
+  sampleChart: string;
+  illustrative: string;
+  sampleDayMaster: string;
+  pillarsNote: string;
+  chatCta: string;
+  trueSolar: string;
+  comingSoon: string;
+  tryReading: string;
+  baziLockedTitle: string;
+  baziLockedHint: string;
+  baziUnlockCta: string;
+  lock1: string;
+  lock2: string;
+  lock3: string;
+  lock4: string;
+  lock5: string;
+}
+
+const MESSAGES: Record<Locale, UiMessages> = {
+  en: {
+    featured: "Featured",
+    startReading: "Start my reading",
+    sampleChart: "Sample chart",
+    illustrative: "Illustrative",
+    sampleDayMaster: "Day master Wu (Earth) · born in Shen month",
+    pillarsNote: "Pillars · Ten Gods · Hidden stems",
+    chatCta: "Chat with the advisor first",
+    trueSolar: "True solar time correction for an accurate hour pillar",
+    comingSoon: "Coming soon",
+    tryReading: "Try a reading first",
+    baziLockedTitle: "Full reading locked",
+    baziLockedHint: "The overview above is free. The full report adds these five sections:",
+    baziUnlockCta: "Unlock full reading",
+    lock1: "Five Elements — balance, favourable elements, what to strengthen",
+    lock2: "Ten Gods — natural strengths and blind spots",
+    lock3: "Auxiliary Stars — each star interpreted with its pillar",
+    lock4: "Luck Pillars — current cycle and the next three years",
+    lock5: "Key Advice — concrete steps for the area you care about",
+  },
+  zh: {
+    featured: "主推服务",
+    startReading: "立即测算",
+    sampleChart: "示例命盘",
+    illustrative: "仅供示意",
+    sampleDayMaster: "日主 戊土 · 生于申月",
+    pillarsNote: "四柱 · 十神 · 藏干",
+    chatCta: "先和助手聊两句",
+    trueSolar: "真太阳时校正，时柱不再错一位",
+    comingSoon: "即将开放",
+    tryReading: "先做一次八字解读",
+    baziLockedTitle: "完整解读已锁定",
+    baziLockedHint: "上面是免费的综合运势。完整报告还包含以下五个章节：",
+    baziUnlockCta: "解锁完整解读",
+    lock1: "五行与平衡 —— 五行强弱、喜用神与补益方向",
+    lock2: "十神与性格 —— 天赋优势与潜在盲点",
+    lock3: "神煞详解 —— 逐条神煞结合柱位说明",
+    lock4: "大运与近况 —— 当前大运主题与近三年流年",
+    lock5: "重点建议 —— 围绕你的关注方向给具体建议",
+  },
+  ja: {
+    featured: "注目のサービス",
+    startReading: "今すぐ鑑定する",
+    sampleChart: "命式サンプル",
+    illustrative: "イメージ図",
+    sampleDayMaster: "日主 戊（土）・申月生まれ",
+    pillarsNote: "四柱・十神・蔵干",
+    chatCta: "まずはアドバイザーと話す",
+    trueSolar: "真太陽時補正で時柱のズレを防ぐ",
+    comingSoon: "近日公開",
+    tryReading: "まずは八字鑑定を試す",
+    baziLockedTitle: "完全版はロック中",
+    baziLockedHint: "上記は無料の総合運です。完全版には以下の5章が含まれます：",
+    baziUnlockCta: "完全版を解放",
+    lock1: "五行とバランス — 五行の強弱・喜用神・補い方",
+    lock2: "十神と性格 — 才能の強みと盲点",
+    lock3: "神煞の詳細 — 各神煞を柱位と合わせて解説",
+    lock4: "大運と近況 — 現在の大運と今後3年の流年",
+    lock5: "重点アドバイス — 気になる分野への具体的な提案",
+  },
+  ko: {
+    featured: "추천 서비스",
+    startReading: "지금 분석하기",
+    sampleChart: "명식 예시",
+    illustrative: "이미지 예시",
+    sampleDayMaster: "일주 무(토) · 신월 출생",
+    pillarsNote: "사주 · 십신 · 지장간",
+    chatCta: "먼저 상담사와 대화하기",
+    trueSolar: "진태양시 보정으로 시주 오차 방지",
+    comingSoon: "곧 공개",
+    tryReading: "먼저 사주 분석 해보기",
+    baziLockedTitle: "전체 해석 잠김",
+    baziLockedHint: "위 내용은 무료 종합 운세입니다. 전체 리포트에는 다음 5개 장이 포함됩니다:",
+    baziUnlockCta: "전체 해석 열기",
+    lock1: "오행과 균형 — 오행 강약, 용신, 보완 방향",
+    lock2: "십신과 성격 — 타고난 강점과 사각지대",
+    lock3: "신살 상세 — 각 신살을 주 위치와 함께 해석",
+    lock4: "대운과 근황 — 현재 대운과 향후 3년",
+    lock5: "핵심 조언 — 관심 분야에 대한 구체적 제안",
+  },
+  es: {
+    featured: "Servicio destacado",
+    startReading: "Hacer mi lectura",
+    sampleChart: "Carta de ejemplo",
+    illustrative: "Ilustrativo",
+    sampleDayMaster: "Amo del día Wu (Tierra) · nacido en el mes de Shen",
+    pillarsNote: "Pilares · Diez Dioses · Raíces ocultas",
+    chatCta: "Habla primero con el asesor",
+    trueSolar: "Corrección por tiempo solar verdadero para un pilar horario preciso",
+    comingSoon: "Próximamente",
+    tryReading: "Probar una lectura primero",
+    baziLockedTitle: "Lectura completa bloqueada",
+    baziLockedHint: "El resumen de arriba es gratuito. El informe completo añade estas cinco secciones:",
+    baziUnlockCta: "Desbloquear lectura completa",
+    lock1: "Cinco Elementos — equilibrio, elementos favorables y qué reforzar",
+    lock2: "Diez Dioses — fortalezas naturales y puntos ciegos",
+    lock3: "Estrellas auxiliares — cada estrella interpretada con su pilar",
+    lock4: "Pilares de suerte — ciclo actual y los próximos tres años",
+    lock5: "Consejo clave — pasos concretos para el área que te interesa",
+  },
+  fr: {
+    featured: "Service phare",
+    startReading: "Faire ma lecture",
+    sampleChart: "Carte d'exemple",
+    illustrative: "Illustratif",
+    sampleDayMaster: "Maître du jour Wu (Terre) · né au mois de Shen",
+    pillarsNote: "Piliers · Dix Dieux · Racines cachées",
+    chatCta: "Parler d'abord au conseiller",
+    trueSolar: "Correction du temps solaire vrai pour un pilier horaire exact",
+    comingSoon: "Bientôt disponible",
+    tryReading: "Essayer une lecture d'abord",
+    baziLockedTitle: "Lecture complète verrouillée",
+    baziLockedHint: "L'aperçu ci-dessus est gratuit. Le rapport complet ajoute ces cinq sections :",
+    baziUnlockCta: "Débloquer la lecture complète",
+    lock1: "Cinq Éléments — équilibre, éléments favorables et à renforcer",
+    lock2: "Dix Dieux — forces naturelles et angles morts",
+    lock3: "Étoiles auxiliaires — chaque étoile interprétée avec son pilier",
+    lock4: "Piliers de chance — cycle actuel et les trois prochaines années",
+    lock5: "Conseil clé — des étapes concrètes pour le domaine qui vous intéresse",
+  },
+  de: {
+    featured: "Empfohlen",
+    startReading: "Jetzt Lesung starten",
+    sampleChart: "Beispiel-Diagramm",
+    illustrative: "Nur zur Veranschaulichung",
+    sampleDayMaster: "Tagesmeister Wu (Erde) · im Shen-Monat geboren",
+    pillarsNote: "Säulen · Zehn Götter · Verborgene Stämme",
+    chatCta: "Zuerst mit dem Berater sprechen",
+    trueSolar: "Korrektur der wahren Sonnenzeit für eine genaue Stundensäule",
+    comingSoon: "Demnächst",
+    tryReading: "Erst eine Lesung ausprobieren",
+    baziLockedTitle: "Vollständige Lesung gesperrt",
+    baziLockedHint: "Die Übersicht oben ist kostenlos. Der vollständige Bericht enthält diese fünf Abschnitte:",
+    baziUnlockCta: "Vollständige Lesung freischalten",
+    lock1: "Fünf Elemente — Gleichgewicht, günstige Elemente, was zu stärken ist",
+    lock2: "Zehn Götter — natürliche Stärken und blinde Flecken",
+    lock3: "Hilfssterne — jeder Stern mit seiner Säule erklärt",
+    lock4: "Glückssäulen — aktueller Zyklus und die nächsten drei Jahre",
+    lock5: "Kernempfehlung — konkrete Schritte für dein Thema",
+  },
+  pt: {
+    featured: "Destaque",
+    startReading: "Fazer minha leitura",
+    sampleChart: "Mapa de exemplo",
+    illustrative: "Ilustrativo",
+    sampleDayMaster: "Mestre do dia Wu (Terra) · nascido no mês de Shen",
+    pillarsNote: "Pilares · Dez Deuses · Raízes ocultas",
+    chatCta: "Fale primeiro com o consultor",
+    trueSolar: "Correção do tempo solar verdadeiro para um pilar horário preciso",
+    comingSoon: "Em breve",
+    tryReading: "Experimentar uma leitura primeiro",
+    baziLockedTitle: "Leitura completa bloqueada",
+    baziLockedHint: "O resumo acima é gratuito. O relatório completo acrescenta estas cinco seções:",
+    baziUnlockCta: "Desbloquear leitura completa",
+    lock1: "Cinco Elementos — equilíbrio, elementos favoráveis e o que reforçar",
+    lock2: "Dez Deuses — forças naturais e pontos cegos",
+    lock3: "Estrelas auxiliares — cada estrela interpretada com seu pilar",
+    lock4: "Pilares da sorte — ciclo atual e os próximos três anos",
+    lock5: "Conselho-chave — passos concretos para a área que te interessa",
+  },
+  ru: {
+    featured: "Рекомендуем",
+    startReading: "Начать чтение",
+    sampleChart: "Пример карты",
+    illustrative: "Для иллюстрации",
+    sampleDayMaster: "Хозяин дня У (Земля) · рождён в месяц Шэнь",
+    pillarsNote: "Столпы · Десять богов · Скрытые стволы",
+    chatCta: "Сначала поговорить с консультантом",
+    trueSolar: "Поправка на истинное солнечное время для точного часа",
+    comingSoon: "Скоро",
+    tryReading: "Сначала попробовать чтение",
+    baziLockedTitle: "Полное чтение заблокировано",
+    baziLockedHint: "Обзор выше бесплатный. В полном отчёте есть ещё пять разделов:",
+    baziUnlockCta: "Открыть полное чтение",
+    lock1: "Пять элементов — баланс, благоприятные элементы, что усилить",
+    lock2: "Десять богов — сильные стороны и слепые зоны",
+    lock3: "Вспомогательные звёзды — каждая звезда с привязкой к столпу",
+    lock4: "Столпы удачи — текущий цикл и ближайшие три года",
+    lock5: "Ключевой совет — конкретные шаги по вашей теме",
+  },
+  ar: {
+    featured: "خدمة مميزة",
+    startReading: "ابدأ قراءتي",
+    sampleChart: "خريطة توضيحية",
+    illustrative: "للعرض فقط",
+    sampleDayMaster: "سيد اليوم وو (تراب) · مولود في شهر شِن",
+    pillarsNote: "الأعمدة · الآلهة العشرة · الجذور الخفية",
+    chatCta: "تحدّث مع المستشار أولاً",
+    trueSolar: "تصحيح التوقيت الشمسي الحقيقي لدقة عمود الساعة",
+    comingSoon: "قريباً",
+    tryReading: "جرّب قراءة أولاً",
+    baziLockedTitle: "القراءة الكاملة مقفلة",
+    baziLockedHint: "الملخص أعلاه مجاني. يتضمن التقرير الكامل هذه الأقسام الخمسة:",
+    baziUnlockCta: "فتح القراءة الكاملة",
+    lock1: "العناصر الخمسة — التوازن والعناصر المواتية وما ينبغي تعزيزه",
+    lock2: "الآلهة العشرة — نقاط القوة ونقاط العمى",
+    lock3: "النجوم المساعدة — كل نجم مفسَّر مع عموده",
+    lock4: "أعمدة الحظ — الدورة الحالية والسنوات الثلاث القادمة",
+    lock5: "النصيحة الأساسية — خطوات عملية للمجال الذي يهمك",
+  },
+};
+
+export function getUiMessages(locale: Locale | string): UiMessages {
+  return MESSAGES[locale as Locale] || MESSAGES.en;
+}

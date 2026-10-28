@@ -34,7 +34,7 @@ export interface ChatMessages {
 const zh: ChatMessages = {
   eyebrow: "玄学对话",
   title: "与命理助手对话",
-  subtitle: "AI Advisor",
+  subtitle: "AI 顾问",
   intro:
     "直接说人话就行。助手已加载八字与塔罗两套能力，会自己判断该排盘、该抽牌，还是先陪你把话聊清楚。",
   skillsTitle: "已加载的能力",
@@ -100,7 +100,7 @@ const en: ChatMessages = {
 const ja: ChatMessages = {
   eyebrow: "占いチャット",
   title: "運命アドバイザーと話す",
-  subtitle: "AI Advisor",
+  subtitle: "占いアドバイザー",
   intro:
     "自然な言葉でどうぞ。八字とタロットの二つの能力がすでに読み込まれており、助手が自分で判断して命盤を出したりカードを引いたりします。",
   skillsTitle: "読み込み済みの能力",
@@ -133,7 +133,7 @@ const ja: ChatMessages = {
 const ko: ChatMessages = {
   eyebrow: "운세 대화",
   title: "운명 어드바이저와 대화하기",
-  subtitle: "AI Advisor",
+  subtitle: "운세 상담사",
   intro:
     "편하게 말씀하세요. 사주와 타로 두 가지 능력이 이미 로드되어 있으며, 어드바이저가 스스로 판단해 명반을 세우거나 카드를 뽑습니다.",
   skillsTitle: "로드된 능력",
@@ -166,7 +166,7 @@ const ko: ChatMessages = {
 const es: ChatMessages = {
   eyebrow: "Chat del oráculo",
   title: "Habla con el asesor del destino",
-  subtitle: "AI Advisor",
+  subtitle: "Asesor del oráculo",
   intro:
     "Habla con naturalidad. Las habilidades de Bazi y Tarot ya están cargadas: el asesor decide por sí mismo si traza una carta, extrae tarot o simplemente conversa contigo.",
   skillsTitle: "Habilidades cargadas",
@@ -199,7 +199,7 @@ const es: ChatMessages = {
 const fr: ChatMessages = {
   eyebrow: "Chat de l'oracle",
   title: "Parlez au conseiller du destin",
-  subtitle: "AI Advisor",
+  subtitle: "Conseiller de l'oracle",
   intro:
     "Parlez naturellement. Les compétences Bazi et Tarot sont déjà chargées : le conseiller décide seul s'il dresse une carte, tire des tarots ou échange d'abord avec vous.",
   skillsTitle: "Compétences chargées",
@@ -232,7 +232,7 @@ const fr: ChatMessages = {
 const de: ChatMessages = {
   eyebrow: "Orakel-Chat",
   title: "Sprich mit dem Schicksalsberater",
-  subtitle: "AI Advisor",
+  subtitle: "Orakel-Berater",
   intro:
     "Sprich einfach natürlich. Die Fähigkeiten Bazi und Tarot sind bereits geladen — der Berater entscheidet selbst, ob er ein Chart erstellt, Karten zieht oder zunächst mit dir spricht.",
   skillsTitle: "Geladene Fähigkeiten",
@@ -265,7 +265,7 @@ const de: ChatMessages = {
 const pt: ChatMessages = {
   eyebrow: "Chat do oráculo",
   title: "Fale com o conselheiro do destino",
-  subtitle: "AI Advisor",
+  subtitle: "Consultor do oráculo",
   intro:
     "Fale naturalmente. As habilidades de Bazi e Tarô já estão carregadas — o conselheiro decide sozinho se traça um mapa, tira cartas ou apenas conversa com você.",
   skillsTitle: "Habilidades carregadas",
@@ -298,7 +298,7 @@ const pt: ChatMessages = {
 const ru: ChatMessages = {
   eyebrow: "Чат с оракулом",
   title: "Поговорите с советником судьбы",
-  subtitle: "AI Advisor",
+  subtitle: "Консультант-оракул",
   intro:
     "Говорите свободно. Навыки Бацзы и Таро уже загружены — советник сам решит, составить карту, вытянуть карты или сначала просто поговорить с вами.",
   skillsTitle: "Загруженные навыки",
@@ -331,7 +331,7 @@ const ru: ChatMessages = {
 const ar: ChatMessages = {
   eyebrow: "محادثة العرّاف",
   title: "تحدّث مع مستشار المصير",
-  subtitle: "AI Advisor",
+  subtitle: "مستشار العرافة",
   intro:
     "تحدّث بعفوية. مهارتا البازي والتاروت محمّلتان مسبقًا — يقرّر المستشار بنفسه إن كان سيرسم مخططًا أو يسحب بطاقات أو يتحاور معك أولًا.",
   skillsTitle: "المهارات المحمّلة",

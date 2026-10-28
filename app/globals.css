@@ -262,3 +262,13 @@ html:has(.snap-page) body > footer {
     scroll-snap-type: none;
   }
 }
+
+/* 阿拉伯语：整体从右到左。逻辑属性（ms/me/ps/pe/start/end）已替换方向性样式，
+   这里再兜一层，确保 dir 生效后文本与表单也跟着翻转。 */
+html[dir="rtl"] {
+  direction: rtl;
+}
+html[dir="rtl"] input,
+html[dir="rtl"] textarea {
+  text-align: start;
+}

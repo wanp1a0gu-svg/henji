@@ -190,14 +190,14 @@ export function BaziChart({ chart, locale }: { chart: BaziChartData; locale: Loc
           {c.dayMaster}:{" "}
           <span className="text-foreground">{chart.dayMaster.gan}</span>
           {chart.dayMaster.element && (
-            <span className="ml-1" style={{ color: ELEMENT_COLORS[chart.dayMaster.element] }}>
+            <span className="ms-1" style={{ color: ELEMENT_COLORS[chart.dayMaster.element] }}>
               {c.el[chart.dayMaster.element]}
             </span>
           )}
         </span>
         <span>
           {c.qiyun}: <span className="text-foreground">{chart.qiyunText}</span>
-          <span className="ml-1 text-muted/70">({chart.forward ? c.forward : c.reverse})</span>
+          <span className="ms-1 text-muted/70">({chart.forward ? c.forward : c.reverse})</span>
         </span>
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {c.elements}:
@@ -227,7 +227,7 @@ export function BaziChart({ chart, locale }: { chart: BaziChartData; locale: Loc
                 className="rounded-lg border border-white/[0.07] bg-white/[0.02] px-2.5 py-1 text-[11px] text-muted"
               >
                 <span className="font-serif text-foreground/90">{d.gz}</span>
-                <span className="ml-1.5 text-muted/70">{d.ages}</span>
+                <span className="ms-1.5 text-muted/70">{d.ages}</span>
               </span>
             ))}
           </div>

@@ -236,7 +236,7 @@ export function WalletCard({ locale }: { locale: Locale }) {
 
       {/* 余额 */}
       <div className="glass relative overflow-hidden rounded-2xl p-6">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-[60px]" />
+        <div className="pointer-events-none absolute -end-16 -top-16 h-40 w-40 rounded-full bg-accent/10 blur-[60px]" />
         <p className="text-xs uppercase tracking-[0.25em] text-accent">{w.balanceLabel}</p>
         <p className="mt-2 font-serif text-4xl font-light tracking-wide text-gradient">
           {loading ? "—" : `$${money(balance)}`}
@@ -253,7 +253,7 @@ export function WalletCard({ locale }: { locale: Locale }) {
         {loading ? (
           <div className="glass flex items-center justify-center rounded-2xl py-10">
             <Loader2 size={18} className="animate-spin text-accent/70" />
-            <span className="ml-2 text-xs text-muted">{w.loading}</span>
+            <span className="ms-2 text-xs text-muted">{w.loading}</span>
           </div>
         ) : txs.length === 0 ? (
           <div className="glass rounded-2xl px-6 py-10 text-center">
@@ -284,7 +284,7 @@ export function WalletCard({ locale }: { locale: Locale }) {
                       <p className="truncate text-sm">
                         {kindLabel(tx.kind)}
                         {tx.product ? (
-                          <span className="ml-2 text-xs text-muted/70">{tx.product}</span>
+                          <span className="ms-2 text-xs text-muted/70">{tx.product}</span>
                         ) : null}
                       </p>
                       <p className="mt-0.5 truncate text-[11px] text-muted/60">
@@ -293,7 +293,7 @@ export function WalletCard({ locale }: { locale: Locale }) {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <p
                       className={`font-serif text-lg tabular-nums ${
                         positive ? "text-accent" : "text-foreground/80"
@@ -324,7 +324,7 @@ export function WalletCard({ locale }: { locale: Locale }) {
           <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0d0b09] p-6 shadow-2xl">
             <button
               onClick={() => setOpen(false)}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-foreground"
+              className="absolute end-4 top-4 rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-foreground"
               aria-label={w.close}
             >
               <X size={16} />
@@ -392,7 +392,7 @@ export function WalletCard({ locale }: { locale: Locale }) {
           <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#0d0b09] p-6 shadow-2xl">
             <button
               onClick={() => setWOpen(false)}
-              className="absolute right-4 top-4 rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-foreground"
+              className="absolute end-4 top-4 rounded-full p-1.5 text-muted transition hover:bg-white/5 hover:text-foreground"
               aria-label={w.close}
             >
               <X size={16} />

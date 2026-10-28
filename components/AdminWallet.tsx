@@ -274,29 +274,29 @@ export function AdminWallet() {
           <p className="py-8 text-center text-xs text-muted">还没有提现申请</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-start text-xs">
               <thead className="text-muted/60">
                 <tr className="border-b border-white/[0.06]">
-                  <th className="py-2 pr-4 font-normal">时间</th>
-                  <th className="py-2 pr-4 font-normal">用户</th>
-                  <th className="py-2 pr-4 font-normal">金额</th>
-                  <th className="py-2 pr-4 font-normal">收款账号</th>
-                  <th className="py-2 pr-4 font-normal">状态</th>
+                  <th className="py-2 pe-4 font-normal">时间</th>
+                  <th className="py-2 pe-4 font-normal">用户</th>
+                  <th className="py-2 pe-4 font-normal">金额</th>
+                  <th className="py-2 pe-4 font-normal">收款账号</th>
+                  <th className="py-2 pe-4 font-normal">状态</th>
                   <th className="py-2 font-normal">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {withdrawals.map((x) => (
                   <tr key={x.id} className="border-b border-white/[0.03]">
-                    <td className="py-2.5 pr-4 text-muted/70">
+                    <td className="py-2.5 pe-4 text-muted/70">
                       {new Date(x.created_at).toLocaleString("zh-CN")}
                     </td>
-                    <td className="py-2.5 pr-4 text-foreground/80">{emailOf(x.owner_id)}</td>
-                    <td className="py-2.5 pr-4 font-medium text-accent tabular-nums">
+                    <td className="py-2.5 pe-4 text-foreground/80">{emailOf(x.owner_id)}</td>
+                    <td className="py-2.5 pe-4 font-medium text-accent tabular-nums">
                       ${money(x.amount)}
                     </td>
-                    <td className="py-2.5 pr-4 text-muted">{x.account}</td>
-                    <td className="py-2.5 pr-4">
+                    <td className="py-2.5 pe-4 text-muted">{x.account}</td>
+                    <td className="py-2.5 pe-4">
                       <span
                         className={`rounded-full border px-2 py-0.5 text-[10px] ${
                           x.status === "pending"
@@ -356,23 +356,23 @@ export function AdminWallet() {
           <p className="py-8 text-center text-xs text-muted">还没有钱包账户</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-start text-xs">
               <thead className="text-muted/60">
                 <tr className="border-b border-white/[0.06]">
-                  <th className="py-2 pr-4 font-normal">邮箱</th>
-                  <th className="py-2 pr-4 font-normal">余额</th>
-                  <th className="py-2 pr-4 font-normal">更新时间</th>
+                  <th className="py-2 pe-4 font-normal">邮箱</th>
+                  <th className="py-2 pe-4 font-normal">余额</th>
+                  <th className="py-2 pe-4 font-normal">更新时间</th>
                   <th className="py-2 font-normal">owner_id</th>
                 </tr>
               </thead>
               <tbody>
                 {accounts.map((a) => (
                   <tr key={a.owner_id} className="border-b border-white/[0.03]">
-                    <td className="py-2.5 pr-4 text-foreground/90">{a.owner_email || "—"}</td>
-                    <td className="py-2.5 pr-4 font-medium text-accent tabular-nums">
+                    <td className="py-2.5 pe-4 text-foreground/90">{a.owner_email || "—"}</td>
+                    <td className="py-2.5 pe-4 font-medium text-accent tabular-nums">
                       ${money(a.balance)}
                     </td>
-                    <td className="py-2.5 pr-4 text-muted/70">
+                    <td className="py-2.5 pe-4 text-muted/70">
                       {a.updated_at ? new Date(a.updated_at).toLocaleString("zh-CN") : "—"}
                     </td>
                     <td className="py-2.5 font-mono text-[10px] text-muted/40">{a.owner_id}</td>
@@ -395,14 +395,14 @@ export function AdminWallet() {
           <p className="py-8 text-center text-xs text-muted">还没有流水记录</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-start text-xs">
               <thead className="text-muted/60">
                 <tr className="border-b border-white/[0.06]">
-                  <th className="py-2 pr-4 font-normal">时间</th>
-                  <th className="py-2 pr-4 font-normal">用户</th>
-                  <th className="py-2 pr-4 font-normal">类型</th>
-                  <th className="py-2 pr-4 font-normal">金额</th>
-                  <th className="py-2 pr-4 font-normal">变动后</th>
+                  <th className="py-2 pe-4 font-normal">时间</th>
+                  <th className="py-2 pe-4 font-normal">用户</th>
+                  <th className="py-2 pe-4 font-normal">类型</th>
+                  <th className="py-2 pe-4 font-normal">金额</th>
+                  <th className="py-2 pe-4 font-normal">变动后</th>
                   <th className="py-2 font-normal">备注</th>
                 </tr>
               </thead>
@@ -412,22 +412,22 @@ export function AdminWallet() {
                   const positive = amt > 0;
                   return (
                     <tr key={t.id} className="border-b border-white/[0.03]">
-                      <td className="py-2.5 pr-4 text-muted/70">
+                      <td className="py-2.5 pe-4 text-muted/70">
                         {new Date(t.created_at).toLocaleString("zh-CN")}
                       </td>
-                      <td className="py-2.5 pr-4 text-foreground/80">{emailOf(t.owner_id)}</td>
-                      <td className="py-2.5 pr-4 text-muted">
+                      <td className="py-2.5 pe-4 text-foreground/80">{emailOf(t.owner_id)}</td>
+                      <td className="py-2.5 pe-4 text-muted">
                         {KIND_LABEL[t.kind] || t.kind}
                         {t.product ? <span className="text-muted/50"> · {t.product}</span> : null}
                       </td>
                       <td
-                        className={`py-2.5 pr-4 font-medium tabular-nums ${
+                        className={`py-2.5 pe-4 font-medium tabular-nums ${
                           positive ? "text-green-300" : "text-foreground/80"
                         }`}
                       >
                         {positive ? "+" : "−"}${money(Math.abs(amt))}
                       </td>
-                      <td className="py-2.5 pr-4 text-muted/70 tabular-nums">
+                      <td className="py-2.5 pe-4 text-muted/70 tabular-nums">
                         ${money(t.balance_after)}
                       </td>
                       <td className="py-2.5 text-muted/60">{t.note || "—"}</td>

@@ -187,7 +187,7 @@ export function AdminSkills() {
                 取消编辑
               </button>
             )}
-            <span className="ml-auto text-[10px] text-muted/50">当前 {content.length} 字符（上限 8000）</span>
+            <span className="ms-auto text-[10px] text-muted/50">当前 {content.length} 字符（上限 8000）</span>
           </div>
           <input
             ref={fileRef}

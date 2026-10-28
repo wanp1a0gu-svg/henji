@@ -438,7 +438,7 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
                 <div key={r.id} className="glass rounded-2xl transition hover:border-accent/25">
                   <button
                     onClick={() => setExpanded(isOpen ? null : r.id)}
-                    className="flex w-full items-center justify-between gap-4 p-6 text-left"
+                    className="flex w-full items-center justify-between gap-4 p-6 text-start"
                   >
                     <div className="min-w-0">
                       <p className="mb-1 truncate font-serif text-lg">
@@ -461,7 +461,7 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
 
                   {isOpen && (
                     <div className="border-t border-white/[0.06] px-6 pb-6 pt-5">
-                      <div className="mb-4 max-h-[420px] overflow-y-auto pr-2 text-sm leading-relaxed text-muted">
+                      <div className="mb-4 max-h-[420px] overflow-y-auto pe-2 text-sm leading-relaxed text-muted">
                         {r.report.split("\n").map((line, i) => (
                           <p key={i} className="mb-2">
                             {line}
@@ -524,7 +524,7 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
                     <div>
                       <p className="text-sm">
                         {o.amount ? `$${o.amount}` : "—"}
-                        <span className="ml-2 text-xs text-muted">{formatDate(o.created_at)}</span>
+                        <span className="ms-2 text-xs text-muted">{formatDate(o.created_at)}</span>
                       </p>
                       {o.payer_note && (
                         <p className="mt-0.5 text-xs text-muted/80">{o.payer_note}</p>

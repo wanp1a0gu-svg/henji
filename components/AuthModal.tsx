@@ -212,7 +212,7 @@ export function AuthModal({
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-white/5 hover:text-foreground"
+          className="absolute end-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-white/5 hover:text-foreground"
           aria-label="Close"
         >
           <X size={16} />
@@ -339,7 +339,7 @@ export function AuthModal({
                   <div>
                     <label className="mb-2 block text-sm text-muted">
                       {m.newPassword}
-                      <span className="ml-2 text-xs text-accent/70">{m.newPasswordNote}</span>
+                      <span className="ms-2 text-xs text-accent/70">{m.newPasswordNote}</span>
                     </label>
                     <input
                       type="password"

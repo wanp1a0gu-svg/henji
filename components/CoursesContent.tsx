@@ -2,9 +2,11 @@
 
 import { BookOpen, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
 import { COURSES_OPEN } from "@/lib/site-config";
+import { getUiMessages } from "@/lib/ui-i18n";
 import { Locale, Messages } from "@/lib/i18n";
 
 export function CoursesContent({ messages, locale }: { messages: Messages; locale: Locale }) {
+  const ui = getUiMessages(locale);
   const t = (key: string) => {
     const parts = key.split(".");
     let value: any = messages;
@@ -58,7 +60,7 @@ export function CoursesContent({ messages, locale }: { messages: Messages; local
               className="group glass glow-sm relative flex flex-col overflow-hidden rounded-2xl transition hover:border-accent/30 hover:bg-white/[0.05]"
             >
               <div className="relative h-44 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent p-8">
-                <div className="absolute right-6 top-6 font-serif text-5xl text-accent/20">
+                <div className="absolute end-6 top-6 font-serif text-5xl text-accent/20">
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
@@ -77,7 +79,7 @@ export function CoursesContent({ messages, locale }: { messages: Messages; local
                     <p className="font-serif text-3xl text-accent">{tCourse(i, "price")}</p>
                   ) : (
                     <p className="text-xs uppercase tracking-[0.2em] text-muted/50">
-                      {locale === "zh" ? "即将开放" : "Coming soon"}
+                      {ui.comingSoon}
                     </p>
                   )}
                   {COURSES_OPEN ? (
@@ -92,7 +94,7 @@ export function CoursesContent({ messages, locale }: { messages: Messages; local
                       href={link("/bazi")}
                       className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/[0.08] px-4 py-2 text-xs text-accent transition hover:bg-accent/15"
                     >
-                      {locale === "zh" ? "先做一次八字解读" : "Try a reading first"} <ArrowRight size={12} />
+                      {ui.tryReading} <ArrowRight size={12} />
                     </a>
                   )}
                 </div>

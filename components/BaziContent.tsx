@@ -5,6 +5,7 @@ import { Sparkles, Shield, FileText, Loader2, RefreshCw, CheckCircle2, CloudUplo
 import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getPayMessages } from "@/lib/pay-i18n";
+import { getUiMessages } from "@/lib/ui-i18n";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
 import { PayPalButton } from "./PayPalButton";
@@ -42,6 +43,7 @@ async function pollReading(
 }
 
 export function BaziContent({ messages, locale }: { messages: Messages; locale: Locale }) {
+  const ui = getUiMessages(locale);
   const t = (key: string) => {
     const parts = key.split(".");
     let value: any = messages;
@@ -413,30 +415,13 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                 <div className="mt-8 rounded-2xl border border-accent/25 bg-accent/[0.04] p-5">
                   <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-accent">
                     <Lock size={14} />
-                    {locale === "zh" ? "完整解读已锁定" : "Full reading locked"}
+                    {ui.baziLockedTitle}
                   </p>
                   <p className="mb-4 text-xs leading-relaxed text-muted">
-                    {locale === "zh"
-                      ? "上面是免费的综合运势。完整报告还包含以下五个章节："
-                      : "The overview above is free. The full report adds these five sections:"}
+                    {ui.baziLockedHint}
                   </p>
                   <ul className="mb-5 space-y-2">
-                    {(locale === "zh"
-                      ? [
-                          "② 五行与平衡 —— 五行强弱、喜用神与补益方向",
-                          "③ 十神与性格 —— 天赋优势与潜在盲点",
-                          "④ 神煞详解 —— 逐条神煞结合柱位说明",
-                          "⑤ 大运与近况 —— 当前大运主题与近三年流年",
-                          "⑥ 重点建议 —— 围绕你的关注方向给具体建议",
-                        ]
-                      : [
-                          "② Five Elements — balance, favourable elements, what to strengthen",
-                          "③ Ten Gods — natural strengths and blind spots",
-                          "④ Auxiliary Stars — each star interpreted with its pillar",
-                          "⑤ Luck Pillars — current cycle and the next three years",
-                          "⑥ Key Advice — concrete steps for the area you care about",
-                        ]
-                    ).map((x) => (
+                    {[ui.lock1, ui.lock2, ui.lock3, ui.lock4, ui.lock5].map((x) => (
                       <li key={x} className="flex items-start gap-2 text-xs leading-relaxed text-muted/85">
                         <Lock size={11} className="mt-0.5 shrink-0 text-accent/60" />
                         <span>{x}</span>
@@ -454,7 +439,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                       className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-xs font-medium text-background transition hover:bg-accent-light"
                     >
                       <Sparkles size={13} />
-                      {locale === "zh" ? "解锁完整解读" : "Unlock full reading"}
+                      {ui.baziUnlockCta}
                     </button>
                   </div>
                 </div>

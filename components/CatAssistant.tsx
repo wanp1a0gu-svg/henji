@@ -429,7 +429,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
   return (
     <>
       {/* ── 小桌宠 ── */}
-      <div className="pointer-events-none fixed bottom-5 right-5 z-50 h-[76px] w-[76px] sm:bottom-6 sm:right-6 sm:h-[84px] sm:w-[84px]">
+      <div className="pointer-events-none fixed bottom-5 end-5 z-50 h-[76px] w-[76px] sm:bottom-6 sm:end-6 sm:h-[84px] sm:w-[84px]">
         {/* 地面光晕（贴着屏幕底部，猫被拎起来时会变小变淡） */}
         <div
           className="absolute bottom-0 left-1/2"
@@ -488,7 +488,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
 
           {/* 打盹的 Zzz */}
           {asleep && (
-            <div className="pointer-events-none absolute -right-1 -top-4 h-9 w-9">
+            <div className="pointer-events-none absolute -end-1 -top-4 h-9 w-9">
               <span className="cat-zzz" style={{ animationDelay: "0s" }}>
                 z
               </span>
@@ -511,15 +511,15 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                 handleCatClick();
               }}
               className={
-                "cat-bubble pointer-events-auto absolute bottom-5 w-max max-w-[210px] border border-accent/25 bg-[#141109]/95 px-3.5 py-2.5 text-left text-xs leading-relaxed text-foreground/90 shadow-lg shadow-black/40 backdrop-blur-sm " +
-                (onLeft ? "left-full ml-3 rounded-2xl rounded-bl-md" : "right-full mr-3 rounded-2xl rounded-br-md")
+                "cat-bubble pointer-events-auto absolute bottom-5 w-max max-w-[210px] border border-accent/25 bg-[#141109]/95 px-3.5 py-2.5 text-start text-xs leading-relaxed text-foreground/90 shadow-lg shadow-black/40 backdrop-blur-sm " +
+                (onLeft ? "left-full ms-3 rounded-2xl rounded-bl-md" : "right-full me-3 rounded-2xl rounded-br-md")
               }
             >
               {t.catBubble}
               <span
                 className={
                   "absolute -bottom-0 h-2.5 w-2.5 rotate-45 bg-[#141109]/95 " +
-                  (onLeft ? "left-2 border-b border-l border-accent/25" : "right-2 border-b border-r border-accent/25")
+                  (onLeft ? "start-2 border-b border-l border-accent/25" : "end-2 border-b border-r border-accent/25")
                 }
               />
             </button>
@@ -532,7 +532,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
         <div
           className={
             "cat-chat fixed bottom-24 z-50 flex h-[560px] max-h-[calc(100vh-7.5rem)] w-[380px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d0b09]/[0.97] shadow-2xl shadow-black/60 backdrop-blur-xl " +
-            (onLeft ? "left-4 sm:left-6" : "right-4 sm:right-6")
+            (onLeft ? "start-4 sm:start-6" : "end-4 sm:end-6")
           }
         >
           {/* 头部 */}
@@ -569,7 +569,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                 {turns.map((turn, i) => (
                   <div key={i}>
                     {turn.role === "user" ? (
-                      <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-accent/15 px-3.5 py-2 text-sm text-foreground/90">
+                      <div className="ms-auto max-w-[85%] rounded-2xl rounded-br-md bg-accent/15 px-3.5 py-2 text-sm text-foreground/90">
                         {turn.content}
                       </div>
                     ) : (

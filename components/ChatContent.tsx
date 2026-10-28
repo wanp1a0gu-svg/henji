@@ -110,7 +110,7 @@ export function RichText({ text }: { text: string }) {
         if (li) {
           const mark = /^\d/.test(line) ? line.match(/^\d+/)?.[0] + "." : "·";
           return (
-            <div key={i} className="flex gap-2 pl-1">
+            <div key={i} className="flex gap-2 ps-1">
               <span className="shrink-0 text-accent/60">{mark}</span>
               <span className="flex-1">{inline(li[1])}</span>
             </div>
@@ -278,7 +278,7 @@ export function ChatContent({ locale }: { locale: Locale }) {
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-2.5 text-left text-[13px] text-muted transition hover:border-accent/30 hover:bg-accent/[0.06] hover:text-foreground"
+                    className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-2.5 text-start text-[13px] text-muted transition hover:border-accent/30 hover:bg-accent/[0.06] hover:text-foreground"
                   >
                     {s}
                   </button>

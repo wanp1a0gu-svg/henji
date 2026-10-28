@@ -5,6 +5,7 @@ import { Sparkles, BookOpen, Compass, Star, ArrowRight, Check } from "lucide-rea
 import { Locale, Messages } from "@/lib/i18n";
 import { ChatContent } from "./ChatContent";
 import { COURSES_OPEN } from "@/lib/site-config";
+import { getUiMessages } from "@/lib/ui-i18n";
 
 export function HomeContent({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -20,6 +21,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
     return value || key;
   };
 
+  const ui = getUiMessages(locale);
   const tCourse = t("courses.items") as (i: number, k: string) => string;
   const link = (path: string) => `/${locale}${path}`;
 
@@ -58,7 +60,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
     t("bazi.includes.report"),
     t("bazi.includes.time"),
     t("bazi.includes.privacy"),
-    locale === "zh" ? "真太阳时校正，时柱不再错一位" : "True solar time correction for an accurate hour pillar",
+    ui.trueSolar,
   ];
 
   const features = [
@@ -73,7 +75,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       <section className="snap-section relative flex flex-col items-center justify-center overflow-hidden px-6 pt-[72px] pb-16 text-center">
         <div className="absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.07] blur-[120px]" />
-          <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute bottom-0 start-0 end-0 h-48 bg-gradient-to-t from-background to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_75%)]" />
         </div>
 
@@ -118,7 +120,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
             className="mt-8 inline-flex items-center gap-2 text-xs text-muted transition hover:text-accent"
           >
             <Sparkles size={13} />
-            {locale === "zh" ? "先和助手聊两句" : "Chat with the advisor first"}
+            {ui.chatCta}
             <ArrowRight size={12} className="rotate-90" />
           </a>
         </div>
@@ -141,14 +143,14 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       {/* Bazi — 主推服务 */}
       <section className="snap-section relative flex items-center overflow-hidden px-6 py-16 sm:py-20">
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute right-1/4 top-1/3 h-[420px] w-[420px] rounded-full bg-accent/[0.06] blur-[120px]" />
+          <div className="absolute end-1/4 top-1/3 h-[420px] w-[420px] rounded-full bg-accent/[0.06] blur-[120px]" />
         </div>
 
         <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div>
             <p className="mb-4 flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-accent">
               <span className="h-px w-6 bg-accent/60" />
-              {locale === "zh" ? "主推服务" : "Featured"}
+              {ui.featured}
             </p>
             <h2 className="font-serif text-3xl font-light tracking-wide sm:text-4xl">{t("bazi.title")}</h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted sm:text-base">{t("bazi.subtitle")}</p>
@@ -176,7 +178,7 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
                 className="group inline-flex items-center gap-2 rounded-full bg-accent px-7 py-3.5 text-sm font-medium text-background shadow-lg shadow-accent/20 transition hover:bg-accent-light"
               >
                 <Sparkles size={16} />
-                {locale === "zh" ? "立即测算" : "Start my reading"}
+                {ui.startReading}
                 <ArrowRight size={14} className="transition group-hover:translate-x-1" />
               </a>
             </div>
@@ -185,10 +187,10 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
           <div className="glass rounded-2xl p-5 sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <p className="text-[10px] uppercase tracking-[0.25em] text-accent/70">
-                {locale === "zh" ? "示例命盘" : "Sample chart"}
+                {ui.sampleChart}
               </p>
               <span className="text-[10px] text-muted/40">
-                {locale === "zh" ? "仅供示意" : "Illustrative"}
+                {ui.illustrative}
               </span>
             </div>
             <div className="grid grid-cols-4 gap-2">
@@ -203,8 +205,8 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
               ))}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3 text-[10px] text-muted/45">
-              <span>{locale === "zh" ? "日主 戊土 · 生于申月" : "Day master Wu (Earth) · born in Shen month"}</span>
-              <span>{locale === "zh" ? "四柱 · 十神 · 藏干" : "Pillars · Ten Gods · Hidden stems"}</span>
+              <span>{ui.sampleDayMaster}</span>
+              <span>{ui.pillarsNote}</span>
             </div>
           </div>
         </div>
@@ -257,14 +259,14 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
                 key={i}
                 className="group glass glow-sm relative overflow-hidden rounded-2xl p-6 transition hover:border-accent/30 hover:bg-white/[0.05] sm:p-8"
               >
-                <div className="absolute right-6 top-6 font-serif text-2xl text-accent/20 transition group-hover:text-accent/40">
+                <div className="absolute end-6 top-6 font-serif text-2xl text-accent/20 transition group-hover:text-accent/40">
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <h3 className="mb-3 font-serif text-xl">{tCourse(i, "title")}</h3>
                 <p className="mb-8 text-sm leading-relaxed text-muted">{tCourse(i, "desc")}</p>
                 <div className="flex items-center justify-between border-t border-white/[0.06] pt-6">
                   <p className="font-serif text-2xl text-accent">
-                    {COURSES_OPEN ? tCourse(i, "price") : locale === "zh" ? "即将开放" : "Coming soon"}
+                    {COURSES_OPEN ? tCourse(i, "price") : ui.comingSoon}
                   </p>
                   <a
                     href={link("/courses")}

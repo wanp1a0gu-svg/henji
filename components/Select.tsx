@@ -66,7 +66,7 @@ export function Select({
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-accent/15 bg-[#12100d]/95 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl"
+          className="absolute start-0 end-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-accent/15 bg-[#12100d]/95 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl"
         >
           {options.map((opt) => {
             const isSel = opt.value === value;
@@ -80,7 +80,7 @@ export function Select({
                   onChange(opt.value);
                   setOpen(false);
                 }}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-start text-sm transition ${
                   isSel
                     ? "bg-accent/10 text-accent"
                     : "text-muted hover:bg-white/[0.05] hover:text-foreground"

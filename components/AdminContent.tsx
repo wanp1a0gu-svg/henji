@@ -229,7 +229,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
           <div className="glass rounded-2xl px-8 py-12">
             <ShieldAlert size={22} className="mx-auto mb-4 text-red-300/80" />
             <p className="text-sm text-muted">无权访问 · 此页面仅限管理员</p>
-            <div className="mt-5 space-y-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left text-[10px] leading-relaxed text-muted/60">
+            <div className="mt-5 space-y-1 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-start text-[10px] leading-relaxed text-muted/60">
               <p>会话邮箱：{user.email || "（空）"}</p>
               <p>服务端识别 uid：{diag && diag.uid ? diag.uid : "（空）"}</p>
               <p>服务端识别 email：{diag && diag.email ? diag.email : "（空）"}</p>
@@ -412,7 +412,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         {tab === "orders" && (
           <div className="glass overflow-hidden rounded-2xl">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-xs">
+              <table className="w-full min-w-[760px] text-start text-xs">
                 <thead>
                   <tr className="border-b border-white/[0.08] text-[10px] uppercase tracking-wider text-muted/60">
                     <th className="px-4 py-3">时间</th>
@@ -493,7 +493,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         {tab === "readings" && (
           <div className="glass overflow-hidden rounded-2xl">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-xs">
+              <table className="w-full min-w-[720px] text-start text-xs">
                 <thead>
                   <tr className="border-b border-white/[0.08] text-[10px] uppercase tracking-wider text-muted/60">
                     <th className="px-4 py-3">时间</th>
@@ -599,7 +599,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
                     <div className="h-1.5 flex-1 overflow-hidden rounded bg-white/[0.04]">
                       <div className="h-full rounded bg-accent/60" style={{ width: Math.round((n / max) * 100) + "%" }} />
                     </div>
-                    <span className="w-10 text-right text-[11px] text-accent">{n}</span>
+                    <span className="w-10 text-end text-[11px] text-accent">{n}</span>
                   </div>
                 );
               })}
@@ -614,7 +614,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
                 <span className="text-[10px] text-muted/40">按时间倒序</span>
               </div>
               <div className="max-h-[420px] overflow-y-auto border-t border-white/[0.06]">
-                <table className="w-full text-left text-[11px]">
+                <table className="w-full text-start text-[11px]">
                   <thead className="sticky top-0 bg-background/95 backdrop-blur">
                     <tr className="border-b border-white/[0.08] text-[10px] uppercase tracking-wider text-muted/60">
                       <th className="px-5 py-2 font-normal">时间</th>

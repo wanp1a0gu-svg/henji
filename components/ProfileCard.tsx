@@ -155,7 +155,7 @@ export function ProfileCard({ locale }: { locale: Locale }) {
         <div className="flex-1 space-y-3">
           <div>
             <label className="mb-2 block text-sm text-muted">
-              <User size={12} className="mr-1 inline" />
+              <User size={12} className="me-1 inline" />
               {a.displayName}
             </label>
             <input

@@ -66,7 +66,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-background/70 backdrop-blur-xl">
+    <header className="fixed top-0 start-0 end-0 z-50 border-b border-white/[0.06] bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <a href={link("/")} className="group flex items-center gap-3">
           <BrandMark className="h-9 w-9" />
@@ -118,7 +118,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
             {langOpen && (
               <div
                 role="listbox"
-                className="absolute right-0 top-full z-50 mt-2 max-h-[320px] w-44 overflow-y-auto rounded-xl border border-accent/15 bg-[#12100d]/95 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl"
+                className="absolute end-0 top-full z-50 mt-2 max-h-[320px] w-44 overflow-y-auto rounded-xl border border-accent/15 bg-[#12100d]/95 p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl"
               >
                 {locales.map((loc) => {
                   const selected = loc === locale;
@@ -128,7 +128,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
                       role="option"
                       aria-selected={selected}
                       onClick={() => switchLocale(loc)}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs tracking-wide transition ${
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-start text-xs tracking-wide transition ${
                         selected
                           ? "bg-accent/10 text-accent"
                           : "text-muted hover:bg-white/[0.05] hover:text-foreground"

@@ -130,7 +130,7 @@ export function BaguaContent({ locale }: { locale: Locale }) {
                 <h2 className="font-serif text-xl">{t.formTitle}</h2>
                 <p className="text-xs text-muted">{method === "yarrow" ? t.engineNoteYarrow : t.engineNote}</p>
               </div>
-              <span className="ml-auto rounded-full border border-accent/25 bg-accent/[0.06] px-2.5 py-1 text-[10px] text-accent">
+              <span className="ms-auto rounded-full border border-accent/25 bg-accent/[0.06] px-2.5 py-1 text-[10px] text-accent">
                 {t.free}
               </span>
             </div>
