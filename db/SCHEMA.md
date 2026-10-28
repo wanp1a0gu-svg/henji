@@ -29,7 +29,10 @@ where n.nspname = 'public' and p.proname = 'wallet_spend_signed';
 ### `payment_orders` — 支付订单（PayPal + 余额）
 `id` bigint、`owner_id` text、`method` text、`amount` text、`currency` text、`product` text、
 `status` text、`paypal_order_id` text、`payer_email` text、`contact` text、
-`shipping_address` jsonb、`capture_raw` jsonb、`fulfillment` text、`payer_note` text、`created_at` timestamptz
+`shipping_address` jsonb、`capture_raw` jsonb、`fulfillment` text、`payer_note` text、
+`tracking_number` text（运单号，10-28 新增）、`carrier` text（承运商，10-28 新增）、`created_at` timestamptz
+
+> `owner_id` 是 `NOT NULL DEFAULT auth.uid()` —— 游客下单会插入失败，所以付款前必须登录。
 
 ### `wallet_accounts` — 钱包余额
 `owner_id` text（主键）、`owner_email` text、`balance` numeric、`updated_at` timestamptz
