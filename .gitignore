@@ -84,3 +84,6 @@ Thumbs.db
 
 # vercel
 .vercel
+
+# 导出的工作日志（含本地路径与凭证，禁止入库）
+/工作日志.txt
