@@ -25,6 +25,9 @@ export interface PaymentMessages {
   ordersEmpty: string;
   statusPending: string;
   statusConfirmed: string;
+  statusCompleted: string;
+  statusRefunded: string;
+  trackingLabel: string;
 }
 
 const paymentMessages: Record<Locale, PaymentMessages> = {
@@ -49,6 +52,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "No payment records yet",
     statusPending: "Under review",
     statusConfirmed: "Confirmed",
+    statusCompleted: "Completed",
+    statusRefunded: "Refunded",
+    trackingLabel: "Tracking",
   },
   zh: {
     methodTitle: "支付方式",
@@ -71,6 +77,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "暂无支付记录",
     statusPending: "待核实",
     statusConfirmed: "已确认",
+    statusCompleted: "已完成",
+    statusRefunded: "已退款",
+    trackingLabel: "运单号",
   },
   ja: {
     methodTitle: "お支払い方法",
@@ -93,6 +102,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "支払い記録はまだありません",
     statusPending: "確認中",
     statusConfirmed: "確認済み",
+    statusCompleted: "完了",
+    statusRefunded: "返金済み",
+    trackingLabel: "追跡番号",
   },
   ko: {
     methodTitle: "결제 방법",
@@ -115,6 +127,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "결제 기록이 없습니다",
     statusPending: "확인 중",
     statusConfirmed: "확인됨",
+    statusCompleted: "완료",
+    statusRefunded: "환불 완료",
+    trackingLabel: "운송장 번호",
   },
   es: {
     methodTitle: "MÉTODO DE PAGO",
@@ -137,6 +152,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "Aún no hay registros de pago",
     statusPending: "En revisión",
     statusConfirmed: "Confirmado",
+    statusCompleted: "Completado",
+    statusRefunded: "Reembolsado",
+    trackingLabel: "Seguimiento",
   },
   fr: {
     methodTitle: "MODE DE PAIEMENT",
@@ -159,6 +177,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "Aucun paiement pour le moment",
     statusPending: "En vérification",
     statusConfirmed: "Confirmé",
+    statusCompleted: "Terminé",
+    statusRefunded: "Remboursé",
+    trackingLabel: "Suivi",
   },
   de: {
     methodTitle: "ZAHLUNGSMETHODE",
@@ -181,6 +202,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "Noch keine Zahlungen",
     statusPending: "In Prüfung",
     statusConfirmed: "Bestätigt",
+    statusCompleted: "Abgeschlossen",
+    statusRefunded: "Erstattet",
+    trackingLabel: "Sendungsnummer",
   },
   pt: {
     methodTitle: "MÉTODO DE PAGAMENTO",
@@ -203,6 +227,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "Ainda não há pagamentos",
     statusPending: "Em análise",
     statusConfirmed: "Confirmado",
+    statusCompleted: "Concluído",
+    statusRefunded: "Reembolsado",
+    trackingLabel: "Rastreio",
   },
   ru: {
     methodTitle: "СПОСОБ ОПЛАТЫ",
@@ -225,6 +252,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "Платежей пока нет",
     statusPending: "На проверке",
     statusConfirmed: "Подтверждено",
+    statusCompleted: "Выполнено",
+    statusRefunded: "Возвращено",
+    trackingLabel: "Трек-номер",
   },
   ar: {
     methodTitle: "طريقة الدفع",
@@ -247,6 +277,9 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     ordersEmpty: "لا توجد مدفوعات بعد",
     statusPending: "قيد المراجعة",
     statusConfirmed: "مؤكد",
+    statusCompleted: "مكتمل",
+    statusRefunded: "تم الاسترجاع",
+    trackingLabel: "رقم التتبع",
   },
 };
 

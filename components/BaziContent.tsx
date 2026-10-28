@@ -320,6 +320,20 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
               </ul>
 
               <div id="pay-card" className="mt-8 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+                {!user ? (
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-4 text-center">
+                    <p className="mb-3 text-[11px] leading-relaxed text-muted">
+                      {ui.payLoginHint}
+                    </p>
+                    <button
+                      onClick={openAuth}
+                      className="rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs text-accent transition hover:bg-accent/20"
+                    >
+                      {a.gateCta}
+                    </button>
+                  </div>
+                ) : (
+                <>
                 <PayPalButton
                   product="bazi"
                   locale={locale}
@@ -372,6 +386,8 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                 <p className="mt-4 text-center text-[10px] leading-relaxed text-muted/60">
                   {t("bazi.disclaimer")}
                 </p>
+                </>
+                )}
               </div>
             </div>
           </div>

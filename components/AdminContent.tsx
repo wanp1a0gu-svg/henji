@@ -22,6 +22,8 @@ interface Order {
   fulfillment: string | null;
   shipping_address: any;
   paypal_order_id: string | null;
+  tracking_number?: string | null;
+  carrier?: string | null;
   capture_raw?: any;
 }
 
@@ -130,7 +132,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
       const [o, r] = await Promise.all([
         db
           .from("payment_orders")
-          .select("id,created_at,product,amount,currency,payer_email,status,fulfillment,shipping_address,paypal_order_id")
+          .select("id,created_at,product,amount,currency,payer_email,status,fulfillment,shipping_address,paypal_order_id,tracking_number,carrier")
           .order("created_at", { ascending: false })
           .limit(300),
         db
@@ -246,6 +248,24 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const allReadings = readings || [];
   const completed = allOrders.filter((o) => o.status === "completed");
   const revenue = completed.reduce((s, o) => s + (parseFloat(o.amount || "0") || 0), 0);
+  /** 填写/修改运单号（实体商品） */
+  const editTracking = async (o: Order) => {
+    const carrier = window.prompt("承运商（如 China Post / 4PX / DHL / YunExpress）", o.carrier || "");
+    if (carrier === null) return;
+    const num = window.prompt("运单号（留空表示清除）", o.tracking_number || "");
+    if (num === null) return;
+    const patch = {
+      carrier: carrier.trim() || null,
+      tracking_number: num.trim() || null,
+    };
+    try {
+      await getCloud().database.from("payment_orders").update(patch).eq("id", o.id);
+      setOrders((prev) => (prev || []).map((x) => (x.id === o.id ? { ...x, ...patch } : x)));
+    } catch (e: any) {
+      alert("运单号保存失败：" + ((e && e.message) || ""));
+    }
+  };
+
   /** PayPal 退款：服务端用 ADMIN_REFUND_TOKEN 校验后调 PayPal refundCapture */
   const refundOrder = async (o: Order) => {
     if (!o.paypal_order_id) {
@@ -422,13 +442,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
                     <th className="px-4 py-3">交易号</th>
                     <th className="px-4 py-3">收货地址</th>
                     <th className="px-4 py-3">发货</th>
+                    <th className="px-4 py-3">运单号</th>
                     <th className="px-4 py-3">退款</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allOrders.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-10 text-center text-muted/50">
+                      <td colSpan={9} className="px-4 py-10 text-center text-muted/50">
                         {busy ? "加载中…" : "暂无订单"}
                       </td>
                     </tr>
@@ -461,6 +482,22 @@ export function AdminContent({ locale }: { locale: Locale }) {
                           <span className="inline-flex items-center gap-1 text-[10px] text-muted/50">
                             <Package size={11} /> 数字服务
                           </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {(o.product || "").indexOf("shop:") === 0 ? (
+                          <button onClick={() => editTracking(o)} className="text-left">
+                            {o.tracking_number ? (
+                              <>
+                                <span className="block font-mono text-[10px] text-accent">{o.tracking_number}</span>
+                                <span className="block text-[9px] text-muted/60">{o.carrier || "—"}</span>
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-muted/50 transition hover:text-accent">填写运单号</span>
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-muted/30">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3">

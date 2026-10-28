@@ -68,6 +68,10 @@ export type Database = {
           capture_raw: Record<string, unknown> | null;
           /** 商城订单履约状态：null（未处理）/ shipped */
           fulfillment: string | null;
+          /** 运单号（实体商品发货用） */
+          tracking_number: string | null;
+          /** 承运商（如 China Post / 4PX / DHL） */
+          carrier: string | null;
         };
         Insert: {
           id?: number;
@@ -85,6 +89,8 @@ export type Database = {
           shipping_address?: Record<string, unknown> | null;
           capture_raw?: Record<string, unknown> | null;
           fulfillment?: string | null;
+          tracking_number?: string | null;
+          carrier?: string | null;
         };
         Update: {
           status?: string;
@@ -94,6 +100,8 @@ export type Database = {
           shipping_address?: Record<string, unknown> | null;
           capture_raw?: Record<string, unknown> | null;
           fulfillment?: string | null;
+          tracking_number?: string | null;
+          carrier?: string | null;
           paypal_order_id?: string | null;
         };
       };

@@ -29,6 +29,7 @@ export interface UiMessages {
   customNameLabel: string;
   customTextLabel: string;
   customFillHint: string;
+  payLoginHint: string;
 }
 
 const MESSAGES: Record<Locale, UiMessages> = {
@@ -54,6 +55,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "Your name on the charm",
     customTextLabel: "Wording to be written",
     customFillHint: "Please fill in both fields before paying.",
+    payLoginHint: "Sign in to pay — your order and report will be saved to your account.",
   },
   zh: {
     featured: "主推服务",
@@ -77,6 +79,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "需要书写的姓名",
     customTextLabel: "需要书写的内容",
     customFillHint: "请先填写姓名与内容，再付款。",
+    payLoginHint: "付款需要先登录：订单和报告都会存到你的账户，随时回看。",
   },
   ja: {
     featured: "注目のサービス",
@@ -100,6 +103,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "お名前（護符に記入）",
     customTextLabel: "記入する文言",
     customFillHint: "お支払いの前に両方の項目をご入力ください。",
+    payLoginHint: "お支払いにはログインが必要です。ご注文と鑑定結果はアカウントに保存されます。",
   },
   ko: {
     featured: "추천 서비스",
@@ -123,6 +127,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "부적에 새길 이름",
     customTextLabel: "새길 문구",
     customFillHint: "결제 전에 두 항목을 모두 입력해 주세요.",
+    payLoginHint: "결제하려면 로그인이 필요합니다. 주문과 분석 결과가 계정에 저장됩니다.",
   },
   es: {
     featured: "Servicio destacado",
@@ -146,6 +151,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "Nombre para el amuleto",
     customTextLabel: "Texto que se escribirá",
     customFillHint: "Completa ambos campos antes de pagar.",
+    payLoginHint: "Inicia sesión para pagar: el pedido y el informe se guardarán en tu cuenta.",
   },
   fr: {
     featured: "Service phare",
@@ -169,6 +175,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "Nom à inscrire sur le talisman",
     customTextLabel: "Texte à inscrire",
     customFillHint: "Veuillez remplir les deux champs avant de payer.",
+    payLoginHint: "Connectez-vous pour payer : la commande et le rapport seront enregistrés dans votre compte.",
   },
   de: {
     featured: "Empfohlen",
@@ -192,6 +199,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "Name auf dem Talisman",
     customTextLabel: "Einzuschreibender Text",
     customFillHint: "Bitte beide Felder vor der Zahlung ausfüllen.",
+    payLoginHint: "Bitte anmelden zum Bezahlen — Bestellung und Bericht werden in deinem Konto gespeichert.",
   },
   pt: {
     featured: "Destaque",
@@ -215,6 +223,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "Nome no talismã",
     customTextLabel: "Texto a ser escrito",
     customFillHint: "Preencha os dois campos antes de pagar.",
+    payLoginHint: "Entre para pagar: o pedido e o relatório ficarão salvos na sua conta.",
   },
   ru: {
     featured: "Рекомендуем",
@@ -238,6 +247,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "Имя на талисмане",
     customTextLabel: "Текст для нанесения",
     customFillHint: "Заполните оба поля перед оплатой.",
+    payLoginHint: "Войдите, чтобы оплатить: заказ и отчёт сохранятся в вашем аккаунте.",
   },
   ar: {
     featured: "خدمة مميزة",
@@ -261,6 +271,7 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customNameLabel: "الاسم على التعويذة",
     customTextLabel: "النص المطلوب كتابته",
     customFillHint: "يرجى تعبئة الحقلين قبل الدفع.",
+    payLoginHint: "سجّل الدخول للدفع: سيُحفظ الطلب والتقرير في حسابك.",
   },
 };
 

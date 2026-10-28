@@ -43,6 +43,9 @@ interface PaymentOrder {
   payer_note: string | null;
   status: string;
   created_at: string;
+  product?: string | null;
+  tracking_number?: string | null;
+  carrier?: string | null;
 }
 
 export function AccountContent({ messages, locale }: { messages: Messages; locale: Locale }) {
@@ -164,7 +167,7 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
     try {
       const { data, error: err } = await getCloud()
         .database.from("payment_orders")
-        .select("id, method, amount, payer_note, status, created_at")
+        .select("id, method, amount, payer_note, status, created_at, product, tracking_number, carrier")
         .eq("owner_id", user.id)
         .order("created_at", { ascending: false });
       if (!err) setOrders((data as PaymentOrder[]) || []);
@@ -532,15 +535,30 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
                       )}
                     </div>
                   </div>
-                  <span
-                    className={`rounded-full border px-3 py-1 text-[11px] ${
-                      o.status === "confirmed"
-                        ? "border-green-500/30 bg-green-500/10 text-green-300"
-                        : "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                    }`}
-                  >
-                    {o.status === "confirmed" ? pm.statusConfirmed : pm.statusPending}
-                  </span>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <span
+                      className={`rounded-full border px-3 py-1 text-[11px] ${
+                        o.status === "refunded"
+                          ? "border-red-500/30 bg-red-500/10 text-red-300"
+                          : o.status === "completed" || o.status === "confirmed"
+                            ? "border-green-500/30 bg-green-500/10 text-green-300"
+                            : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                      }`}
+                    >
+                      {o.status === "refunded"
+                        ? pm.statusRefunded
+                        : o.status === "completed" || o.status === "confirmed"
+                          ? pm.statusCompleted
+                          : pm.statusPending}
+                    </span>
+                    {o.tracking_number && (
+                      <span className="text-[10px] text-muted/70">
+                        {pm.trackingLabel}:{" "}
+                        <span className="font-mono text-accent/80">{o.tracking_number}</span>
+                        {o.carrier ? " · " + o.carrier : ""}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
