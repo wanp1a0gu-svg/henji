@@ -11,7 +11,6 @@ import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
 import { BaziChart, type BaziChartData } from "./BaziChart";
-import { SignInGate } from "./SignInGate";
 
 /** 同源 API 优先（workbuddy 域名下的 server.js），失败时回退 Cloudflare Worker。 */
 // 只走同源服务端：付费校验在这里，不能再保留任何绕过端点
@@ -181,7 +180,6 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
       </section>
 
       <section className="pb-24 px-6">
-        <SignInGate locale={locale}>
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-5">
           {/* Form */}
           <div className="lg:col-span-3">
@@ -475,7 +473,6 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
             </div>
           </div>
         )}
-        </SignInGate>
       </section>
     </main>
   );
