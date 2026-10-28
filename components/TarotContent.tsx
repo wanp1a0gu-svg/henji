@@ -8,7 +8,8 @@ import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 
 /** 同源 API 优先（server.js），失败回退 Cloudflare Worker。 */
-const API_ENDPOINTS = ["/api/tarot", "https://mingli-bazi-api.wanp1a0gu.workers.dev/api/tarot"];
+// 只走同源服务端；旧的 Cloudflare Worker 兜底端点已下线（无登录态、无成本保护）
+const API_ENDPOINTS = ["/api/tarot"];
 
 interface DrawnCard {
   position: string;
