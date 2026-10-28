@@ -633,15 +633,10 @@ function handleBaziApi(req, res) {
       return sendJson(res, 400, { error: "Invalid fields: " + errors.join(", ") });
     }
 
-    // 付费墙：必须先有可验证的付款凭据，否则不生成（每次生成都是真金白银的 LLM 调用）
+    // 分级：有有效付款凭据 → 完整报告；没有（或凭据无效/已用过）→ 只给第①段综合运势
+    // 免费档不会生成付费章节，成本可控；付费章节仍严格凭据放行。
     const receiptCheck = await verifyReportReceipt(body.receipt);
-    if (!receiptCheck.ok) {
-      return sendJson(res, 402, {
-        error: "PAYMENT_REQUIRED",
-        reason: receiptCheck.error,
-        message: "A completed payment is required to generate a reading. 需要先完成付款。",
-      });
-    }
+    const tier = receiptCheck.ok ? "full" : "free";
 
     if (!checkRateLimit(req, "bazi")) {
       return sendJson(res, 429, {
@@ -660,9 +655,9 @@ function handleBaziApi(req, res) {
     // 异步任务：网关约 60s 超时，而生成需 60-90s —— 立即返回 jobId，后台生成，前端轮询
     pruneJobs();
     const jobId = newJobId();
-    _jobs.set(jobId, { kind: "bazi", status: "pending", createdAt: Date.now() });
-    generateReading(jobId, body);
-    return sendJson(res, 200, { jobId });
+    _jobs.set(jobId, { kind: "bazi", status: "pending", tier, createdAt: Date.now() });
+    generateReading(jobId, body, tier === "free");
+    return sendJson(res, 200, { jobId, tier });
   });
 }
 
@@ -683,6 +678,7 @@ function handleBaziStatus(req, res) {
   if (job.status === "error") return sendJson(res, 200, { status: "error", error: job.error });
   return sendJson(res, 200, {
     status: "done",
+    tier: job.tier || "full",
     report: job.report,
     chart: job.chart,
     engine: job.engine,
@@ -772,15 +768,16 @@ function chartWithTrueSolar(payload) {
 }
 
 /** 后台生成八字解读，结果写入任务表供前端轮询。 */
-async function generateReading(jobId, body) {
+async function generateReading(jobId, body, overviewOnly) {
   try {
     const { chart, chartBlock } = chartWithTrueSolar(body);
-    const prompts = BaziEngine.buildPrompt(body, chartBlock);
+    const prompts = BaziEngine.buildPrompt(body, chartBlock, { overviewOnly: !!overviewOnly });
     const content = await callDoubao(prompts.system, prompts.user);
 
     _jobs.set(jobId, {
       kind: "bazi",
       status: "done",
+      tier: overviewOnly ? "free" : "full",
       report: content,
       chart,
       engine: BaziEngine.ENGINE_INFO,

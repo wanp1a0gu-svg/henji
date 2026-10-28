@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Shield, FileText, Loader2, RefreshCw, CheckCircle2, CloudUpload } from "lucide-react";
+import { Sparkles, Shield, FileText, Loader2, RefreshCw, CheckCircle2, CloudUpload, Lock } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getPayMessages } from "@/lib/pay-i18n";
@@ -24,7 +24,7 @@ const API_ENDPOINTS = ["/api/bazi"];
 async function pollReading(
   baseUrl: string,
   jobId: string
-): Promise<{ report?: string; chart?: any; error?: string } | null> {
+): Promise<{ report?: string; chart?: any; tier?: string; error?: string } | null> {
   const deadline = Date.now() + 240000;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 3000));
@@ -33,7 +33,7 @@ async function pollReading(
       if (res.status === 404) return null;
       if (!res.ok) continue;
       const j = (await res.json()) as any;
-      if (j.status === "done") return { report: j.report, chart: j.chart };
+      if (j.status === "done") return { report: j.report, chart: j.chart, tier: j.tier };
       if (j.status === "error") return { error: j.error || "" };
     } catch {
       /* 网络抖动 → 继续轮询 */
@@ -68,6 +68,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [paid, setPaid] = useState(false); // 本会话已完成支付
   const [receipt, setReceipt] = useState<any>(null); // 付款凭据（服务端据此放行）
+  const [tier, setTier] = useState<"free" | "full">("free"); // 当前报告档位
   const [payHint, setPayHint] = useState("");
 
   const saveReading = async (reportText: string) => {
@@ -129,7 +130,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           if (res.ok && data.jobId) {
             const polled = await pollReading(url, data.jobId);
             if (polled && polled.report) {
-              success = { report: polled.report, chart: polled.chart };
+              success = { report: polled.report, chart: polled.chart, tier: polled.tier };
               break;
             }
             if (polled && polled.error) apiError = polled.error;
@@ -143,6 +144,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
       if (success) {
         setReport(success.report);
         setChart(success.chart || null);
+        setTier(success.tier === "full" ? "full" : "free");
         saveReading(success.report);
       } else {
         setError(apiError || t("bazi.error"));
@@ -275,11 +277,6 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
 
                 <button
                   onClick={() => {
-                    if (!paid) {
-                      setPayHint(pay.baziNeedPay);
-                      document.getElementById("pay-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
-                      return;
-                    }
                     setPayHint("");
                     handleSubmit();
                   }}
@@ -414,6 +411,56 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                   <p key={i} className="mb-3">{line}</p>
                 ))}
               </div>
+              {tier === "free" && (
+                <div className="mt-8 rounded-2xl border border-accent/25 bg-accent/[0.04] p-5">
+                  <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-accent">
+                    <Lock size={14} />
+                    {locale === "zh" ? "完整解读已锁定" : "Full reading locked"}
+                  </p>
+                  <p className="mb-4 text-xs leading-relaxed text-muted">
+                    {locale === "zh"
+                      ? "上面是免费的综合运势。完整报告还包含以下五个章节："
+                      : "The overview above is free. The full report adds these five sections:"}
+                  </p>
+                  <ul className="mb-5 space-y-2">
+                    {(locale === "zh"
+                      ? [
+                          "② 五行与平衡 —— 五行强弱、喜用神与补益方向",
+                          "③ 十神与性格 —— 天赋优势与潜在盲点",
+                          "④ 神煞详解 —— 逐条神煞结合柱位说明",
+                          "⑤ 大运与近况 —— 当前大运主题与近三年流年",
+                          "⑥ 重点建议 —— 围绕你的关注方向给具体建议",
+                        ]
+                      : [
+                          "② Five Elements — balance, favourable elements, what to strengthen",
+                          "③ Ten Gods — natural strengths and blind spots",
+                          "④ Auxiliary Stars — each star interpreted with its pillar",
+                          "⑤ Luck Pillars — current cycle and the next three years",
+                          "⑥ Key Advice — concrete steps for the area you care about",
+                        ]
+                    ).map((x) => (
+                      <li key={x} className="flex items-start gap-2 text-xs leading-relaxed text-muted/85">
+                        <Lock size={11} className="mt-0.5 shrink-0 text-accent/60" />
+                        <span>{x}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex flex-wrap items-center gap-4 border-t border-accent/15 pt-4">
+                    <span className="font-serif text-2xl text-accent">{t("bazi.price")}</span>
+                    <button
+                      onClick={() =>
+                        document
+                          .getElementById("pay-card")
+                          ?.scrollIntoView({ behavior: "smooth", block: "center" })
+                      }
+                      className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-xs font-medium text-background transition hover:bg-accent-light"
+                    >
+                      <Sparkles size={13} />
+                      {locale === "zh" ? "解锁完整解读" : "Unlock full reading"}
+                    </button>
+                  </div>
+                </div>
+              )}
               {!user && (
                 <p className="mt-6 rounded-xl border border-accent/15 bg-accent/[0.05] px-4 py-3 text-center text-xs text-muted">
                   <button
