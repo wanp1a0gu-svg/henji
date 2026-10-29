@@ -6,6 +6,7 @@ import { Locale, Messages } from "@/lib/i18n";
 import { ChatContent } from "./ChatContent";
 import { COURSES_OPEN } from "@/lib/site-config";
 import { getUiMessages } from "@/lib/ui-i18n";
+import { HeroScene } from "./HeroScene";
 
 export function HomeContent({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -72,10 +73,15 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
   return (
     <main className="flex-1 snap-page">
       {/* Hero */}
+      {/* 3D 点云背景：整页固定，滚动驱动形态变化 */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <HeroScene glyph={locale === "zh" ? "痕" : "T"} />
+      </div>
+
       <section className="snap-section relative flex flex-col items-center justify-center overflow-hidden px-6 pt-[72px] pb-16 text-center">
         <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.07] blur-[120px]" />
-          <div className="absolute bottom-0 start-0 end-0 h-48 bg-gradient-to-t from-background to-transparent" />
+          <div className="pointer-events-none absolute left-1/2 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.05] blur-[120px]" />
+          <div className="absolute bottom-0 start-0 end-0 h-40 bg-gradient-to-t from-background/70 to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_75%)]" />
         </div>
 
