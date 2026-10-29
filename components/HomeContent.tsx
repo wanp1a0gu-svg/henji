@@ -81,8 +81,8 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
       <section className="snap-section relative flex flex-col items-center justify-center overflow-hidden px-6 pt-[72px] pb-16 text-center">
         <div className="absolute inset-0 -z-10">
           <div className="pointer-events-none absolute left-1/2 top-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.05] blur-[120px]" />
-          <div className="absolute bottom-0 start-0 end-0 h-40 bg-gradient-to-t from-background/70 to-transparent" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_75%)]" />
+          
+          
         </div>
 
         <div className="mx-auto max-w-4xl">
