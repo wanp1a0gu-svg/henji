@@ -61,6 +61,14 @@ const productLabel = (product: string | null) => {
 const addrText = (s: any) => {
   if (!s) return "";
   try {
+    // 站内下单表单收集的格式 { name, phone, country, province, city, address, zip }
+    if (s.name || s.phone || s.address) {
+      const place = [s.country, s.province, s.city].filter(Boolean).join(" ");
+      return [s.name ? "收件人 " + s.name : "", s.phone, place, s.address, s.zip]
+        .filter(Boolean)
+        .join(" · ");
+    }
+    // PayPal 返回的格式（address_line_1 / admin_area_2 ...）
     return [
       s.address_line_1, s.address_line_2, s.admin_area_2, s.admin_area_1, s.postal_code, s.country_code,
     ].filter(Boolean).join(", ");

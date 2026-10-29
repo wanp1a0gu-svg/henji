@@ -25,10 +25,13 @@ export function BalancePayButton({
   product,
   locale,
   onSuccess,
+  shipping,
 }: {
   product: string;
   locale: Locale;
   onSuccess?: (order: any) => void;
+  /** 实体商品的收货信息（写入 payment_orders.shipping_address） */
+  shipping?: any;
 }) {
   const w = getWalletMessages(locale);
   const { user } = useAuth();
@@ -94,7 +97,8 @@ export function BalancePayButton({
           product: quote.product,
           status: "completed",
           payer_email: user.email || null,
-          contact: user.email || null,
+          contact: (shipping && shipping.phone) || user.email || null,
+          shipping_address: shipping || null,
           capture_raw: { quote, result: data },
         });
       } catch {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sparkles, Gem, Truck, Info, ShieldCheck, RotateCcw, Landmark } from "lucide-react";
 import { getUiMessages } from "@/lib/ui-i18n";
+import { ShippingForm, EMPTY_SHIP, shipReady, type ShipInfo } from "./ShippingForm";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
 import {
@@ -32,6 +33,7 @@ export function ShopContent({ locale }: { locale: Locale }) {
   const a = getAuthMessages(locale);
   const { user, openAuth } = useAuth();
   const [customInfo, setCustomInfo] = useState({ name: "", text: "" });
+  const [ship, setShip] = useState<ShipInfo>(EMPTY_SHIP);
   const ui = getUiMessages(locale);
   const customReady = (p: any) => p.id !== "custom" || (customInfo.name.trim() !== "" && customInfo.text.trim() !== "");
   const [payOpen, setPayOpen] = useState<string>(""); // 展开支付的商品 id
@@ -160,6 +162,7 @@ export function ShopContent({ locale }: { locale: Locale }) {
                   <div className="mt-4">
                     {user ? (
                       <>
+                      <ShippingForm ui={ui} value={ship} onChange={setShip} />
                       {p.id === "custom" && (
                         <div className="mb-3 space-y-2 rounded-xl border border-accent/20 bg-accent/[0.04] p-3">
                           <input
@@ -181,6 +184,10 @@ export function ShopContent({ locale }: { locale: Locale }) {
                         <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3 py-3 text-center text-[11px] text-amber-200/90">
                           {ui.customFillHint}
                         </p>
+                      ) : !shipReady(ship) ? (
+                        <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3 py-3 text-center text-[11px] text-amber-200/90">
+                          {ui.shipHint}
+                        </p>
                       ) : (
                       <>
                       <PayPalButton
@@ -198,8 +205,8 @@ export function ShopContent({ locale }: { locale: Locale }) {
                               status: "completed",
                               paypal_order_id: order.orderId || null,
                               payer_email: order.payerEmail || null,
-                              contact: order.payerEmail || null,
-                              shipping_address: order.shipping || null,
+                              contact: ship.phone.trim() || order.payerEmail || null,
+                              shipping_address: shipReady(ship) ? { ...ship } : order.shipping || null,
                               payer_note:
                                 p.id === "custom"
                                   ? JSON.stringify({ name: customInfo.name.trim(), text: customInfo.text.trim() })
@@ -220,6 +227,7 @@ export function ShopContent({ locale }: { locale: Locale }) {
                       <BalancePayButton
                         product={"shop:" + p.id}
                         locale={locale}
+                        shipping={shipReady(ship) ? { ...ship } : null}
                         onSuccess={() => setPaidId(p.id)}
                       />
                       </>

@@ -30,6 +30,15 @@ export interface UiMessages {
   customTextLabel: string;
   customFillHint: string;
   payLoginHint: string;
+  shipTitle: string;
+  shipName: string;
+  shipPhone: string;
+  shipCountry: string;
+  shipProvince: string;
+  shipCity: string;
+  shipAddress: string;
+  shipZip: string;
+  shipHint: string;
 }
 
 const MESSAGES: Record<Locale, UiMessages> = {
@@ -56,6 +65,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "Wording to be written",
     customFillHint: "Please fill in both fields before paying.",
     payLoginHint: "Sign in to pay — your order and report will be saved to your account.",
+    shipTitle: "Shipping details",
+    shipName: "Recipient name",
+    shipPhone: "Phone number",
+    shipCountry: "Country / Region",
+    shipProvince: "State / Province",
+    shipCity: "City",
+    shipAddress: "Street address",
+    shipZip: "Postal code",
+    shipHint: "We can only ship after these are filled in.",
   },
   zh: {
     featured: "主推服务",
@@ -80,6 +98,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "需要书写的内容",
     customFillHint: "请先填写姓名与内容，再付款。",
     payLoginHint: "付款需要先登录：订单和报告都会存到你的账户，随时回看。",
+    shipTitle: "收货信息",
+    shipName: "收件人姓名",
+    shipPhone: "联系电话",
+    shipCountry: "国家/地区",
+    shipProvince: "省/州",
+    shipCity: "城市",
+    shipAddress: "详细地址",
+    shipZip: "邮政编码",
+    shipHint: "填好收货信息才能发货，请务必填写真实有效。",
   },
   ja: {
     featured: "注目のサービス",
@@ -104,6 +131,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "記入する文言",
     customFillHint: "お支払いの前に両方の項目をご入力ください。",
     payLoginHint: "お支払いにはログインが必要です。ご注文と鑑定結果はアカウントに保存されます。",
+    shipTitle: "お届け先情報",
+    shipName: "受取人氏名",
+    shipPhone: "電話番号",
+    shipCountry: "国・地域",
+    shipProvince: "都道府県/州",
+    shipCity: "市区町村",
+    shipAddress: "番地・建物名",
+    shipZip: "郵便番号",
+    shipHint: "正しく入力いただかないと発送できません。",
   },
   ko: {
     featured: "추천 서비스",
@@ -128,6 +164,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "새길 문구",
     customFillHint: "결제 전에 두 항목을 모두 입력해 주세요.",
     payLoginHint: "결제하려면 로그인이 필요합니다. 주문과 분석 결과가 계정에 저장됩니다.",
+    shipTitle: "배송 정보",
+    shipName: "받는 사람",
+    shipPhone: "연락처",
+    shipCountry: "국가/지역",
+    shipProvince: "시/도",
+    shipCity: "도시",
+    shipAddress: "상세 주소",
+    shipZip: "우편번호",
+    shipHint: "정확히 입력해 주셔야 발송할 수 있습니다.",
   },
   es: {
     featured: "Servicio destacado",
@@ -152,6 +197,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "Texto que se escribirá",
     customFillHint: "Completa ambos campos antes de pagar.",
     payLoginHint: "Inicia sesión para pagar: el pedido y el informe se guardarán en tu cuenta.",
+    shipTitle: "Datos de envío",
+    shipName: "Nombre del destinatario",
+    shipPhone: "Teléfono",
+    shipCountry: "País / Región",
+    shipProvince: "Estado / Provincia",
+    shipCity: "Ciudad",
+    shipAddress: "Dirección",
+    shipZip: "Código postal",
+    shipHint: "Sin estos datos no podemos enviar el pedido.",
   },
   fr: {
     featured: "Service phare",
@@ -176,6 +230,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "Texte à inscrire",
     customFillHint: "Veuillez remplir les deux champs avant de payer.",
     payLoginHint: "Connectez-vous pour payer : la commande et le rapport seront enregistrés dans votre compte.",
+    shipTitle: "Informations de livraison",
+    shipName: "Nom du destinataire",
+    shipPhone: "Téléphone",
+    shipCountry: "Pays / Région",
+    shipProvince: "État / Province",
+    shipCity: "Ville",
+    shipAddress: "Adresse",
+    shipZip: "Code postal",
+    shipHint: "Sans ces informations, nous ne pouvons pas expédier.",
   },
   de: {
     featured: "Empfohlen",
@@ -200,6 +263,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "Einzuschreibender Text",
     customFillHint: "Bitte beide Felder vor der Zahlung ausfüllen.",
     payLoginHint: "Bitte anmelden zum Bezahlen — Bestellung und Bericht werden in deinem Konto gespeichert.",
+    shipTitle: "Versanddaten",
+    shipName: "Name des Empfängers",
+    shipPhone: "Telefonnummer",
+    shipCountry: "Land / Region",
+    shipProvince: "Bundesland / Provinz",
+    shipCity: "Stadt",
+    shipAddress: "Straße und Hausnummer",
+    shipZip: "Postleitzahl",
+    shipHint: "Ohne diese Angaben können wir nicht versenden.",
   },
   pt: {
     featured: "Destaque",
@@ -224,6 +296,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "Texto a ser escrito",
     customFillHint: "Preencha os dois campos antes de pagar.",
     payLoginHint: "Entre para pagar: o pedido e o relatório ficarão salvos na sua conta.",
+    shipTitle: "Dados de envio",
+    shipName: "Nome do destinatário",
+    shipPhone: "Telefone",
+    shipCountry: "País / Região",
+    shipProvince: "Estado / Província",
+    shipCity: "Cidade",
+    shipAddress: "Endereço",
+    shipZip: "CEP / Código postal",
+    shipHint: "Sem estes dados não é possível enviar.",
   },
   ru: {
     featured: "Рекомендуем",
@@ -248,6 +329,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "Текст для нанесения",
     customFillHint: "Заполните оба поля перед оплатой.",
     payLoginHint: "Войдите, чтобы оплатить: заказ и отчёт сохранятся в вашем аккаунте.",
+    shipTitle: "Данные доставки",
+    shipName: "Имя получателя",
+    shipPhone: "Телефон",
+    shipCountry: "Страна / Регион",
+    shipProvince: "Область / Провинция",
+    shipCity: "Город",
+    shipAddress: "Адрес",
+    shipZip: "Почтовый индекс",
+    shipHint: "Без этих данных мы не сможем отправить заказ.",
   },
   ar: {
     featured: "خدمة مميزة",
@@ -272,6 +362,15 @@ const MESSAGES: Record<Locale, UiMessages> = {
     customTextLabel: "النص المطلوب كتابته",
     customFillHint: "يرجى تعبئة الحقلين قبل الدفع.",
     payLoginHint: "سجّل الدخول للدفع: سيُحفظ الطلب والتقرير في حسابك.",
+    shipTitle: "بيانات الشحن",
+    shipName: "اسم المستلم",
+    shipPhone: "رقم الهاتف",
+    shipCountry: "الدولة / المنطقة",
+    shipProvince: "المحافظة",
+    shipCity: "المدينة",
+    shipAddress: "العنوان التفصيلي",
+    shipZip: "الرمز البريدي",
+    shipHint: "لا يمكننا الشحن دون هذه البيانات.",
   },
 };
 
