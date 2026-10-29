@@ -28,6 +28,10 @@ export interface ShopMessages {
   catCustom: string;
   /** 卡片上的使用说明标题 */
   usageLabel: string;
+  /** 库存（2026-10-29 补） */
+  soldOut: string;
+  /** 用 {n} 占位 */
+  onlyLeft: string;
 }
 
 const SHOP: Record<Locale, ShopMessages> = {
@@ -54,6 +58,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "Clearing & Fortune",
     catCustom: "Custom",
     usageLabel: "How to use",
+    soldOut: "Sold out",
+    onlyLeft: "{n} left",
   },
   zh: {
     eyebrow: "精选商城",
@@ -78,6 +84,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "化煞转运",
     catCustom: "私人定制",
     usageLabel: "使用方式",
+    soldOut: "已售罄",
+    onlyLeft: "仅剩 {n} 件",
   },
   ja: {
     eyebrow: "セレクトショップ",
@@ -102,6 +110,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "厄払い・開運",
     catCustom: "オーダーメイド",
     usageLabel: "使い方",
+    soldOut: "売り切れ",
+    onlyLeft: "残り {n} 点",
   },
   ko: {
     eyebrow: "셀렉트 숍",
@@ -126,6 +136,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "액막이·운전환",
     catCustom: "맞춤 제작",
     usageLabel: "사용법",
+    soldOut: "품절",
+    onlyLeft: "{n}개 남음",
   },
   es: {
     eyebrow: "Tienda",
@@ -150,6 +162,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "Limpieza y fortuna",
     catCustom: "A medida",
     usageLabel: "Cómo usarlo",
+    soldOut: "Agotado",
+    onlyLeft: "Quedan {n}",
   },
   fr: {
     eyebrow: "Boutique",
@@ -174,6 +188,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "Dégagement & chance",
     catCustom: "Sur mesure",
     usageLabel: "Mode d'emploi",
+    soldOut: "Épuisé",
+    onlyLeft: "Plus que {n}",
   },
   de: {
     eyebrow: "Shop",
@@ -198,6 +214,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "Lösung & Glück",
     catCustom: "Individuell",
     usageLabel: "Anwendung",
+    soldOut: "Ausverkauft",
+    onlyLeft: "Nur noch {n}",
   },
   pt: {
     eyebrow: "Loja",
@@ -222,6 +240,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "Limpeza e sorte",
     catCustom: "Sob medida",
     usageLabel: "Como usar",
+    soldOut: "Esgotado",
+    onlyLeft: "Restam {n}",
   },
   ru: {
     eyebrow: "Магазин",
@@ -246,6 +266,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "Очищение и удача",
     catCustom: "На заказ",
     usageLabel: "Как использовать",
+    soldOut: "Распродано",
+    onlyLeft: "Осталось {n}",
   },
   ar: {
     eyebrow: "المتجر",
@@ -270,6 +292,8 @@ const SHOP: Record<Locale, ShopMessages> = {
     catClearing: "التنقية والحظ",
     catCustom: "حسب الطلب",
     usageLabel: "طريقة الاستخدام",
+    soldOut: "نفدت الكمية",
+    onlyLeft: "بقي {n}",
   },
 };
 

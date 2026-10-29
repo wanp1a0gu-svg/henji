@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins, Globe, RotateCcw } from "lucide-react";
+import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins, Globe, RotateCcw, Search, Download, Boxes, DatabaseBackup } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { ADMIN_EMAILS } from "@/lib/site-config";
 import { getCloud } from "@/lib/cloud";
@@ -11,6 +11,8 @@ import { SignInGate } from "./SignInGate";
 import { notifyOrder, shipToText } from "@/lib/notify";
 import { AdminSkills } from "./AdminSkills";
 import { AdminWallet } from "./AdminWallet";
+import { AdminStock } from "./AdminStock";
+import { AdminBackup } from "./AdminBackup";
 
 interface Order {
   id: number;
@@ -24,6 +26,7 @@ interface Order {
   shipping_address: any;
   paypal_order_id: string | null;
   owner_id?: string | null;
+  payer_note?: string | null;
   tracking_number?: string | null;
   carrier?: string | null;
   capture_raw?: any;
@@ -97,7 +100,9 @@ const fmtTime = (t: string) => {
 
 export function AdminContent({ locale }: { locale: Locale }) {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "orders" | "readings" | "traffic" | "skills" | "wallet">("overview");
+  const [tab, setTab] = useState<
+    "overview" | "orders" | "stock" | "readings" | "traffic" | "skills" | "wallet" | "backup"
+  >("overview");
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [readings, setReadings] = useState<Reading[] | null>(null);
   const [views, setViews] = useState<PageView[] | null>(null);
@@ -107,6 +112,9 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const [mailStatus, setMailStatus] = useState<any>(null);
   const [mailBusy, setMailBusy] = useState(false);
   const [openReading, setOpenReading] = useState<Reading | null>(null);
+  // 订单筛选（2026-10-29）
+  const [oQuery, setOQuery] = useState("");
+  const [oStatus, setOStatus] = useState<"all" | "pending" | "shipped" | "refunded" | "digital">("all");
 
   // 身份判断走服务端（is_admin RPC，读登录凭证；与数据库 RLS 同一逻辑）
   const [adminState, setAdminState] = useState<"checking" | "yes" | "no">("checking");
@@ -144,7 +152,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
       const [o, r] = await Promise.all([
         db
           .from("payment_orders")
-          .select("id,created_at,product,amount,currency,payer_email,owner_id,status,fulfillment,shipping_address,paypal_order_id,tracking_number,carrier")
+          .select("id,created_at,product,amount,currency,payer_email,owner_id,payer_note,status,fulfillment,shipping_address,paypal_order_id,tracking_number,carrier")
           .order("created_at", { ascending: false })
           .limit(300),
         db
@@ -192,6 +200,28 @@ export function AdminContent({ locale }: { locale: Locale }) {
     }
   };
 
+  /** 发货 -1 / 退款 +1（只对实体商品；定制款不限量则跳过） */
+  const adjustStock = async (product: string | null, delta: number) => {
+    if (!product || product.indexOf("shop:") !== 0) return;
+    const id = product.slice(5);
+    try {
+      const { data } = await getCloud()
+        .database.from("product_stock")
+        .select("stock, unlimited")
+        .eq("product", id)
+        .limit(1);
+      const row: any = data && data[0];
+      if (!row || row.unlimited) return;
+      const next = Math.max(0, (Number(row.stock) || 0) + delta);
+      await getCloud()
+        .database.from("product_stock")
+        .update({ stock: next, updated_at: new Date().toISOString() })
+        .eq("product", id);
+    } catch {
+      /* 库存不是关键路径，失败不打断发货/退款 */
+    }
+  };
+
   const toggleShipped = async (o: Order) => {
     try {
       const next = o.fulfillment === "shipped" ? null : "shipped";
@@ -201,6 +231,9 @@ export function AdminContent({ locale }: { locale: Locale }) {
         .eq("id", o.id);
       if (err) throw new Error(err.message || JSON.stringify(err));
       setOrders((prev) => (prev || []).map((x) => (x.id === o.id ? { ...x, fulfillment: next } : x)));
+      // 首次标记发货 → 扣一件库存（取消标记则还回去）
+      if (next === "shipped") await adjustStock(o.product, -1);
+      else if (o.fulfillment === "shipped") await adjustStock(o.product, +1);
     } catch (e: any) {
       setError((e && e.message) || "更新失败");
     }
@@ -325,6 +358,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
       setOrders((prev) =>
         (prev || []).map((x) => (x.id === o.id ? { ...x, status: "refunded", fulfillment: null } : x))
       );
+      // 还没发货就退款 → 货还在手上，库存还回去
+      if (o.fulfillment !== "shipped") await adjustStock(o.product, +1);
       notifyOrder("refunded", email, "zh", {
         id: o.id,
         product: o.product || "",
@@ -387,6 +422,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         /* 状态回写失败不影响已退款事实 */
       }
       setOrders((prev) => (prev || []).map((x) => (x.id === o.id ? { ...x, status: "refunded" } : x)));
+      if (o.fulfillment !== "shipped") await adjustStock(o.product, +1);
       notifyOrder("refunded", o.payer_email, "zh", {
         id: o.id,
         product: o.product || "",
@@ -404,6 +440,82 @@ export function AdminContent({ locale }: { locale: Locale }) {
   };
 
   const pendingShip = completed.filter((o) => (o.product || "").indexOf("shop:") === 0 && o.fulfillment !== "shipped");
+
+  /** 关键词能匹配：订单号 / 买家邮箱 / 商品名 / 收货信息 / 运单号 */
+  const orderSearchKey = (o: Order) =>
+    [
+      o.id,
+      o.payer_email,
+      o.payer_note,
+      productLabel(o.product),
+      addrText(o.shipping_address),
+      o.tracking_number,
+      o.carrier,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  const isShop = (o: Order) => (o.product || "").indexOf("shop:") === 0;
+  const filteredOrders = allOrders.filter((o) => {
+    if (oStatus === "refunded" && o.status !== "refunded") return false;
+    if (oStatus !== "refunded" && o.status === "refunded") return false;
+    if (oStatus === "pending" && !(isShop(o) && o.fulfillment !== "shipped")) return false;
+    if (oStatus === "shipped" && !(isShop(o) && o.fulfillment === "shipped")) return false;
+    if (oStatus === "digital" && isShop(o)) return false;
+    const q = oQuery.trim().toLowerCase();
+    if (!q) return true;
+    return orderSearchKey(o).indexOf(q) !== -1;
+  });
+  const filteredAmount = filteredOrders
+    .filter((o) => o.status !== "refunded")
+    .reduce((sum, o) => sum + (parseFloat(o.amount || "0") || 0), 0);
+
+  /** 导出当前筛选结果为 CSV（Excel 直接打开不乱码：加 BOM + CRLF） */
+  const exportOrdersCsv = () => {
+    const head = [
+      "订单号",
+      "下单时间",
+      "商品",
+      "金额",
+      "币种",
+      "买家邮箱",
+      "支付方式",
+      "PayPal交易号",
+      "收货信息",
+      "发货状态",
+      "运单号",
+      "承运商",
+      "订单状态",
+      "备注",
+    ];
+    const body = filteredOrders.map((o) => [
+      o.id,
+      fmtTime(o.created_at),
+      productLabel(o.product),
+      o.amount || "",
+      o.currency || "",
+      o.payer_email || "",
+      o.paypal_order_id ? "PayPal" : "余额/站内",
+      o.paypal_order_id || "",
+      addrText(o.shipping_address) || "",
+      isShop(o) ? (o.fulfillment === "shipped" ? "已发货" : "待发货") : "数字服务",
+      o.tracking_number || "",
+      o.carrier || "",
+      o.status === "refunded" ? "已退款" : o.status || "",
+      o.payer_note || "",
+    ]);
+    const esc = (v: any) => `"${String(v === null || v === undefined ? "" : v).replace(/"/g, '""')}"`;
+    const csv = "\ufeff" + [head, ...body].map((r) => r.map(esc).join(",")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `traces-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
 
   // ---- 流量统计（近 7 天，时区 Asia/Shanghai）----
   // 邮件通道状态（仅在后台展示，失败不影响任何功能）
@@ -447,10 +559,12 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const TABS = [
     { key: "overview" as const, label: "概览", icon: <Sparkles size={14} /> },
     { key: "orders" as const, label: "订单", icon: <Wallet size={14} /> },
+    { key: "stock" as const, label: "库存", icon: <Boxes size={14} /> },
     { key: "wallet" as const, label: "钱包", icon: <Coins size={14} /> },
     { key: "readings" as const, label: "测算记录", icon: <FileText size={14} /> },
     { key: "traffic" as const, label: "流量", icon: <BarChart3 size={14} /> },
     { key: "skills" as const, label: "知识库", icon: <BookOpen size={14} /> },
+    { key: "backup" as const, label: "备份", icon: <DatabaseBackup size={14} /> },
   ];
 
   return (
@@ -581,6 +695,54 @@ export function AdminContent({ locale }: { locale: Locale }) {
         {/* 订单 */}
 
         {tab === "orders" && (
+          <div>
+          <div className="mb-4 space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative min-w-[200px] flex-1">
+                <Search size={13} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted/50" />
+                <input
+                  value={oQuery}
+                  onChange={(e) => setOQuery(e.target.value)}
+                  placeholder="搜订单号 / 邮箱 / 商品 / 收件人 / 运单号"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-2 pe-3 ps-8 text-xs text-foreground placeholder:text-muted/40 focus:border-accent/40 focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={exportOrdersCsv}
+                disabled={filteredOrders.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-accent/25 bg-accent/10 px-3.5 py-2 text-xs text-accent transition hover:bg-accent/20 disabled:opacity-40"
+              >
+                <Download size={13} /> 导出 CSV
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              {([
+                { k: "all" as const, label: "全部", n: allOrders.filter((o) => o.status !== "refunded").length },
+                { k: "pending" as const, label: "待发货", n: allOrders.filter((o) => isShop(o) && o.status !== "refunded" && o.fulfillment !== "shipped").length },
+                { k: "shipped" as const, label: "已发货", n: allOrders.filter((o) => isShop(o) && o.status !== "refunded" && o.fulfillment === "shipped").length },
+                { k: "digital" as const, label: "数字服务", n: allOrders.filter((o) => !isShop(o) && o.status !== "refunded").length },
+                { k: "refunded" as const, label: "已退款", n: allOrders.filter((o) => o.status === "refunded").length },
+              ]).map((f) => (
+                <button
+                  key={f.k}
+                  onClick={() => setOStatus(f.k)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] transition ${
+                    oStatus === f.k
+                      ? "bg-accent text-background"
+                      : "border border-white/10 bg-white/[0.03] text-muted hover:border-accent/30"
+                  }`}
+                >
+                  {f.label}
+                  <span className={oStatus === f.k ? "text-background/70" : "text-muted/50"}>{f.n}</span>
+                </button>
+              ))}
+              <span className="ms-auto text-[11px] text-muted/60">
+                共 {filteredOrders.length} 笔 · 合计 ${filteredAmount.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
           <div className="glass overflow-hidden rounded-2xl">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-start text-xs">
@@ -598,14 +760,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {allOrders.length === 0 && (
+                  {filteredOrders.length === 0 && (
                     <tr>
                       <td colSpan={9} className="px-4 py-10 text-center text-muted/50">
-                        {busy ? "加载中…" : "暂无订单"}
+                        {busy ? "加载中…" : allOrders.length === 0 ? "暂无订单" : "没有符合筛选条件的订单"}
                       </td>
                     </tr>
                   )}
-                  {allOrders.map((o) => (
+                  {filteredOrders.map((o) => (
                     <tr key={o.id} className="border-b border-white/[0.04] align-top">
                       <td className="whitespace-nowrap px-4 py-3 text-muted">{fmtTime(o.created_at)}</td>
                       <td className="px-4 py-3 text-foreground/90">{productLabel(o.product)}</td>
@@ -681,6 +843,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         )}
 
@@ -846,8 +1009,10 @@ export function AdminContent({ locale }: { locale: Locale }) {
         )}
 
         {/* 知识库 */}
+        {tab === "stock" && <AdminStock />}
         {tab === "wallet" && <AdminWallet />}
         {tab === "skills" && <AdminSkills />}
+        {tab === "backup" && <AdminBackup />}
       </div>
 
       {/* 报告查看弹层 */}

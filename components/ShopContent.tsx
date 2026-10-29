@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, Gem, Truck, Info, ShieldCheck, RotateCcw, Landmark } from "lucide-react";
 import { getUiMessages } from "@/lib/ui-i18n";
 import { ShippingForm, EMPTY_SHIP, shipReady, type ShipInfo } from "./ShippingForm";
@@ -20,6 +20,7 @@ import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getCloud } from "@/lib/cloud";
+import { fetchStock, stockInfo, type StockMap } from "@/lib/shop-stock";
 import { useAuth } from "./AuthProvider";
 
 const BADGE_STYLE: Record<string, string> = {
@@ -38,6 +39,17 @@ export function ShopContent({ locale }: { locale: Locale }) {
   const ui = getUiMessages(locale);
   const customReady = (p: any) => p.id !== "custom" || (customInfo.name.trim() !== "" && customInfo.text.trim() !== "");
   const [payOpen, setPayOpen] = useState<string>(""); // 展开支付的商品 id
+  // 库存：拉不到就当有货，绝不因为网络问题让整店买不了
+  const [stock, setStock] = useState<StockMap>({});
+  useEffect(() => {
+    let alive = true;
+    fetchStock().then((m) => {
+      if (alive) setStock(m);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [paidId, setPaidId] = useState<string>(""); // 已支付商品 id
   const [cat, setCat] = useState<ShopCategory | "all">("all"); // 当前分类
   const isZh = locale === "zh";
@@ -150,16 +162,34 @@ export function ShopContent({ locale }: { locale: Locale }) {
 
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <span className="font-serif text-xl text-accent">${p.price}</span>
-                  <button
-                    type="button"
-                    onClick={() => setPayOpen(payOpen === p.id ? "" : p.id)}
-                    className="rounded-full bg-accent px-4 py-2 text-xs font-medium text-background shadow-lg shadow-accent/10 transition hover:bg-accent-light"
-                  >
-                    {s.buy}
-                  </button>
+                  {(() => {
+                    const st = stockInfo(stock, p.id);
+                    if (st.soldOut) {
+                      return (
+                        <span className="rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-xs text-muted/70">
+                          {s.soldOut}
+                        </span>
+                      );
+                    }
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setPayOpen(payOpen === p.id ? "" : p.id)}
+                        className="rounded-full bg-accent px-4 py-2 text-xs font-medium text-background shadow-lg shadow-accent/10 transition hover:bg-accent-light"
+                      >
+                        {s.buy}
+                      </button>
+                    );
+                  })()}
                 </div>
 
-                {payOpen === p.id && paidId !== p.id && (
+                {stockInfo(stock, p.id).low && (
+                  <p className="mt-1.5 text-[11px] text-amber-200/70">
+                    {s.onlyLeft.replace("{n}", String(stockInfo(stock, p.id).stock))}
+                  </p>
+                )}
+
+                {payOpen === p.id && paidId !== p.id && !stockInfo(stock, p.id).soldOut && (
                   <div className="mt-4">
                     {user ? (
                       <>
