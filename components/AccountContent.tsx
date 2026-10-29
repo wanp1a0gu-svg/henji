@@ -44,6 +44,7 @@ interface PaymentOrder {
   status: string;
   created_at: string;
   product?: string | null;
+  fulfillment?: string | null;
   tracking_number?: string | null;
   carrier?: string | null;
 }
@@ -167,7 +168,7 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
     try {
       const { data, error: err } = await getCloud()
         .database.from("payment_orders")
-        .select("id, method, amount, payer_note, status, created_at, product, tracking_number, carrier")
+        .select("id, method, amount, payer_note, status, created_at, product, fulfillment, tracking_number, carrier")
         .eq("owner_id", user.id)
         .order("created_at", { ascending: false });
       if (!err) setOrders((data as PaymentOrder[]) || []);
@@ -540,16 +541,24 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
                       className={`rounded-full border px-3 py-1 text-[11px] ${
                         o.status === "refunded"
                           ? "border-red-500/30 bg-red-500/10 text-red-300"
-                          : o.status === "completed" || o.status === "confirmed"
-                            ? "border-green-500/30 bg-green-500/10 text-green-300"
-                            : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                          : (o.product || "").indexOf("shop:") === 0
+                            ? o.fulfillment === "shipped"
+                              ? "border-green-500/30 bg-green-500/10 text-green-300"
+                              : "border-sky-500/30 bg-sky-500/10 text-sky-300"
+                            : o.status === "completed" || o.status === "confirmed"
+                              ? "border-green-500/30 bg-green-500/10 text-green-300"
+                              : "border-amber-500/30 bg-amber-500/10 text-amber-300"
                       }`}
                     >
                       {o.status === "refunded"
                         ? pm.statusRefunded
-                        : o.status === "completed" || o.status === "confirmed"
-                          ? pm.statusCompleted
-                          : pm.statusPending}
+                        : (o.product || "").indexOf("shop:") === 0
+                          ? o.fulfillment === "shipped"
+                            ? pm.statusShipped
+                            : pm.statusAwaitingShip
+                          : o.status === "completed" || o.status === "confirmed"
+                            ? pm.statusCompleted
+                            : pm.statusPending}
                     </span>
                     {o.tracking_number && (
                       <span className="text-[10px] text-muted/70">

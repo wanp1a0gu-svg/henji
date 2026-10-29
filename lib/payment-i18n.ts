@@ -26,6 +26,8 @@ export interface PaymentMessages {
   statusPending: string;
   statusConfirmed: string;
   statusCompleted: string;
+  statusAwaitingShip: string;
+  statusShipped: string;
   statusRefunded: string;
   trackingLabel: string;
 }
@@ -55,6 +57,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "Completed",
     statusRefunded: "Refunded",
     trackingLabel: "Tracking",
+    statusAwaitingShip: "Awaiting shipment",
+    statusShipped: "Shipped",
   },
   zh: {
     methodTitle: "支付方式",
@@ -80,6 +84,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "已完成",
     statusRefunded: "已退款",
     trackingLabel: "运单号",
+    statusAwaitingShip: "待发货",
+    statusShipped: "已发货",
   },
   ja: {
     methodTitle: "お支払い方法",
@@ -105,6 +111,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "完了",
     statusRefunded: "返金済み",
     trackingLabel: "追跡番号",
+    statusAwaitingShip: "発送待ち",
+    statusShipped: "発送済み",
   },
   ko: {
     methodTitle: "결제 방법",
@@ -130,6 +138,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "완료",
     statusRefunded: "환불 완료",
     trackingLabel: "운송장 번호",
+    statusAwaitingShip: "배송 대기",
+    statusShipped: "배송 완료",
   },
   es: {
     methodTitle: "MÉTODO DE PAGO",
@@ -155,6 +165,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "Completado",
     statusRefunded: "Reembolsado",
     trackingLabel: "Seguimiento",
+    statusAwaitingShip: "Pendiente de envío",
+    statusShipped: "Enviado",
   },
   fr: {
     methodTitle: "MODE DE PAIEMENT",
@@ -180,6 +192,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "Terminé",
     statusRefunded: "Remboursé",
     trackingLabel: "Suivi",
+    statusAwaitingShip: "En attente d'expédition",
+    statusShipped: "Expédié",
   },
   de: {
     methodTitle: "ZAHLUNGSMETHODE",
@@ -205,6 +219,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "Abgeschlossen",
     statusRefunded: "Erstattet",
     trackingLabel: "Sendungsnummer",
+    statusAwaitingShip: "Versand ausstehend",
+    statusShipped: "Versandt",
   },
   pt: {
     methodTitle: "MÉTODO DE PAGAMENTO",
@@ -230,6 +246,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "Concluído",
     statusRefunded: "Reembolsado",
     trackingLabel: "Rastreio",
+    statusAwaitingShip: "Aguardando envio",
+    statusShipped: "Enviado",
   },
   ru: {
     methodTitle: "СПОСОБ ОПЛАТЫ",
@@ -255,6 +273,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "Выполнено",
     statusRefunded: "Возвращено",
     trackingLabel: "Трек-номер",
+    statusAwaitingShip: "Ожидает отправки",
+    statusShipped: "Отправлено",
   },
   ar: {
     methodTitle: "طريقة الدفع",
@@ -280,6 +300,8 @@ const paymentMessages: Record<Locale, PaymentMessages> = {
     statusCompleted: "مكتمل",
     statusRefunded: "تم الاسترجاع",
     trackingLabel: "رقم التتبع",
+    statusAwaitingShip: "بانتظار الشحن",
+    statusShipped: "تم الشحن",
   },
 };
 

@@ -274,6 +274,37 @@ export function AdminContent({ locale }: { locale: Locale }) {
     }
   };
 
+  /** 余额支付的退款：调 wallet_grant 退回买家钱包，再把订单标记为已退款 */
+  const refundBalance = async (o: Order) => {
+    if (!o.payer_email) {
+      alert("这笔订单没记邮箱，无法定位钱包账户。请到「钱包」标签按 owner_id 手动处理。");
+      return;
+    }
+    if (!window.confirm("确认把 $" + (o.amount || "?") + " 退回 " + o.payer_email + " 的钱包？")) return;
+    setRefunding(o.id);
+    try {
+      const { error } = await getCloud().database.rpc("wallet_grant", {
+        p_email: o.payer_email,
+        p_amount: Number(o.amount || 0),
+        p_note: "订单退款 #" + o.id + " " + (o.product || ""),
+      });
+      if (error) throw new Error(error.message || "钱包退款失败");
+
+      await getCloud()
+        .database.from("payment_orders")
+        .update({ status: "refunded", fulfillment: null })
+        .eq("id", o.id);
+      setOrders((prev) =>
+        (prev || []).map((x) => (x.id === o.id ? { ...x, status: "refunded", fulfillment: null } : x))
+      );
+      alert("已退回买家钱包：" + (o.payer_email || ""));
+    } catch (e: any) {
+      alert("退款失败：" + ((e && e.message) || "未知错误"));
+    } finally {
+      setRefunding(null);
+    }
+  };
+
   /** PayPal 退款：服务端用 ADMIN_REFUND_TOKEN 校验后调 PayPal refundCapture */
   const refundOrder = async (o: Order) => {
     if (!o.paypal_order_id) {
@@ -523,7 +554,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
                             {refunding === o.id ? "退款中…" : "退款"}
                           </button>
                         ) : (
-                          <span className="text-[10px] text-muted/40">余额支付</span>
+                          <button
+                            onClick={() => refundBalance(o)}
+                            disabled={refunding === o.id}
+                            className="inline-flex items-center gap-1 rounded-full border border-red-400/30 bg-red-400/10 px-2.5 py-1 text-[10px] text-red-300 transition hover:bg-red-400/20 disabled:opacity-50"
+                          >
+                            <RotateCcw size={11} />
+                            {refunding === o.id ? "退款中…" : "退余额"}
+                          </button>
                         )}
                       </td>
                     </tr>
