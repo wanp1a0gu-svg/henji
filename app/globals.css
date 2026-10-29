@@ -235,12 +235,8 @@ body {
  * 首页整屏翻页（只在带 .snap-page 的页面启用，其他页不受影响）
  * 每块内容 = 一屏，滚轮/触控滑动直接吸附到下一屏。
  * ------------------------------------------------------------------------- */
-/* 用 proximity 而不是 mandatory：
-   mandatory 会把滚动死死卡在整屏边界，用户无法停在中间，
-   首页 3D 点云的「尘埃→痕字」中间态就永远看不到（10-29 实测滚到 450px 立刻被弹回 0）。
-   proximity 仍会在靠近边界时吸附，但允许停在中途。 */
 html:has(.snap-page) {
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
 }
 
 .snap-section {
