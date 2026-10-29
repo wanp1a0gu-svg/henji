@@ -89,3 +89,16 @@ where n.nspname='public' and p.prokind='f' and proname like 'wallet%' order by 1
 -- 3. pgcrypto 装了没（HMAC 依赖）
 select extname from pg_extension where extname='pgcrypto';
 ```
+
+## 商品库存 product_stock（2026-10-29 新增）
+
+| 列 | 类型 | 说明 |
+| --- | --- | --- |
+| `product` | text PK | 商品 id（对应 `lib/shop-data.ts` 的 `id`） |
+| `stock` | integer，check >= 0 | 剩余件数 |
+| `unlimited` | boolean | true = 不限量（定制款） |
+| `updated_at` | timestamptz | 最后修改时间 |
+
+RLS：`select` 公开（`using (true)`）；`insert/update/delete` 仅 `is_admin()`。
+前端只读，改动全部通过后台「库存」标签（发货 -1、未发货退款 +1、也可手动改）。
+读不到数据时前端按「有货」处理，绝不因网络问题停售。

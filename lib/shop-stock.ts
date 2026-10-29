@@ -41,9 +41,14 @@ export async function fetchStock(): Promise<StockMap> {
     const { data, error } = await getCloud()
       .database.from("product_stock")
       .select("product, stock, unlimited");
-    if (error) return {};
+    if (error) {
+      if (typeof console !== "undefined") console.warn("[stock] query error:", error.message || error);
+      return {};
+    }
     return toStockMap(data as any[]);
-  } catch {
+  } catch (e: any) {
+    // 不影响购物：出错就当有货，但把原因留在控制台，方便排查
+    if (typeof console !== "undefined") console.warn("[stock] read failed:", (e && e.message) || e);
     return {};
   }
 }
