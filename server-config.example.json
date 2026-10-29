@@ -35,12 +35,12 @@
   "ADMIN_REFUND_TOKEN": "在此填一串随机字符（32 位以上）",
 
   "MAIL_PROVIDER": "smtp",
-  "MAIL_FROM": "在此填发件邮箱",
+  "MAIL_FROM": "wanp1a0gu@gmail.com",
   "MAIL_FROM_NAME": "痕迹 Traces",
   "MAIL_REPLY_TO": "",
-  "SMTP_HOST": "smtp.qq.com",
+  "SMTP_HOST": "smtp.gmail.com",
   "SMTP_PORT": "465",
-  "SMTP_USER": "在此填邮箱账号",
-  "SMTP_PASS": "在此填邮箱授权码",
+  "SMTP_USER": "wanp1a0gu@gmail.com",
+  "SMTP_PASS": "在此填 Gmail 应用专用密码（16 位，去掉空格）",
   "RESEND_API_KEY": ""
 }
