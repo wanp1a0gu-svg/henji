@@ -61,6 +61,16 @@ try {
 } catch (e) {
   console.error("[boot] paypal module load FAILED:", (e && e.message) || e);
 }
+// 事务邮件（订单确认 / 发货通知 / 报告就绪）
+let Mailer = null;
+try {
+  Mailer = require("./lib/mailer.js");
+  const d = Mailer.describe();
+  console.error("[boot] mailer loaded (" + (d.configured ? d.provider + " 已配置" : "未配置，跳过发信") + ")");
+} catch (e) {
+  console.error("[boot] mailer module load FAILED:", (e && e.message) || e);
+  Mailer = null;
+}
 try {
   SHOP_PRICES = require("./lib/shop-prices.json");
 } catch (e) {
@@ -271,6 +281,7 @@ function newJobId() {
 const RATE_LIMITS = {
   default: { perIp: RATE_LIMIT_PER_HOUR, global: GLOBAL_LIMIT_PER_HOUR },
   bazi: { perIp: 6, global: 200 },
+  mail: { perIp: 20, global: 400 },
 };
 
 const _rateBuckets = new Map(); // "kind:ip" -> { bucket, count }
@@ -527,6 +538,68 @@ async function verifyReportReceipt(receipt) {
   }
 
   return { ok: false, error: "INVALID_RECEIPT" };
+}
+
+/**
+ * 邮件接口
+ *   GET  /api/mail/status            → 是否已配置
+ *   POST /api/mail/order  { to, locale, type:"paid"|"shipped", order:{...} }
+ *   POST /api/mail/report { to, locale, name }
+ *   POST /api/mail/test   { to, token }   ← 需要 ADMIN_REFUND_TOKEN
+ *
+ * 没配好发信通道时返回 202 { ok:false, reason:"NOT_CONFIGURED" }，
+ * 客户端忽略即可，不影响下单/发货。
+ */
+function handleMailApi(req, res) {
+  if (req.method === "GET") {
+    return sendJson(res, 200, Mailer ? Mailer.describe() : { configured: false, provider: "", hint: "mailer 未加载" });
+  }
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+
+  readBody(req, async (err, raw) => {
+    if (err) return sendJson(res, err.message === "too large" ? 413 : 400, { error: "Invalid request body" });
+
+    let body;
+    try {
+      body = JSON.parse(raw || "{}");
+    } catch {
+      return sendJson(res, 400, { error: "Invalid JSON body" });
+    }
+
+    if (!checkRateLimit(req, "mail")) return sendJson(res, 429, { error: "Too many requests" });
+
+    const to = String(body.to || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return sendJson(res, 400, { error: "INVALID_EMAIL" });
+
+    if (!Mailer) return sendJson(res, 202, { ok: false, reason: "NOT_AVAILABLE" });
+
+    const locale = String(body.locale || "en");
+    let tpl;
+    if (body.type === "paid") tpl = Mailer.orderPaid({ locale, order: body.order || {} });
+    else if (body.type === "shipped") tpl = Mailer.orderShipped({ locale, order: body.order || {} });
+    else if (body.type === "report") tpl = Mailer.reportReady({ locale, name: body.name || "" });
+    else if (body.type === "test") {
+      const expected = loadServerConfigField("ADMIN_REFUND_TOKEN") || process.env.ADMIN_REFUND_TOKEN || "";
+      let okTok = false;
+      try {
+        const a = Buffer.from(String(body.token || ""));
+        const b = Buffer.from(expected);
+        okTok = expected && a.length === b.length && crypto.timingSafeEqual(a, b);
+      } catch {
+        okTok = false;
+      }
+      if (!okTok) return sendJson(res, 403, { error: "FORBIDDEN" });
+      tpl = Mailer.testMail({ locale });
+    } else {
+      return sendJson(res, 400, { error: "UNKNOWN_TYPE" });
+    }
+
+    const result = await Mailer.send({ to, ...tpl });
+    if (result.ok) return sendJson(res, 200, result);
+    // 没配置或发送失败都不该让业务失败，统一 202 让调用方忽略
+    console.error("[mail] not sent:", to, body.type, result.reason);
+    return sendJson(res, 202, result);
+  });
 }
 
 /**
@@ -1721,6 +1794,9 @@ const server = http.createServer((req, res) => {
   }
   if (clean === "/api/paypal/refund") {
     return handlePayPalRefund(req, res);
+  }
+  if (clean === "/api/mail/status" || clean === "/api/mail/order" || clean === "/api/mail/report" || clean === "/api/mail/test") {
+    return handleMailApi(req, res);
   }
 
   if (clean === "/api/chat") {

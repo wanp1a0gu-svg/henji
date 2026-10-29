@@ -10,7 +10,16 @@
     "PAYPAL_SANDBOX_SECRET": "沙盒 Secret",
     "PAYPAL_WEBHOOK_ID": "PayPal Webhook ID（live）",
     "PAYPAL_EVENTS_TOKEN": "对账接口 GET /api/paypal/events?token= 的令牌",
-    "ADMIN_REFUND_TOKEN": "后台退款按钮用的令牌（★ 仅服务端持有，后台首次退款时输入一次）"
+    "ADMIN_REFUND_TOKEN": "后台退款按钮用的令牌（★ 仅服务端持有，后台首次退款时输入一次）",
+    "MAIL_PROVIDER": "发信通道：smtp（QQ/163 邮箱，不需要域名）或 resend（需要已验证域名）",
+    "MAIL_FROM": "发件邮箱，如 501183563@qq.com",
+    "MAIL_FROM_NAME": "发件人显示名，如 痕迹 Traces",
+    "MAIL_REPLY_TO": "回复地址，留空则用发件邮箱",
+    "SMTP_HOST": "smtp.qq.com / smtp.163.com",
+    "SMTP_PORT": "465（隐式 TLS）或 587（STARTTLS）",
+    "SMTP_USER": "邮箱账号",
+    "SMTP_PASS": "★ 邮箱授权码，不是登录密码（QQ 邮箱：设置→账户→开启 SMTP→生成授权码）",
+    "RESEND_API_KEY": "用 resend 通道时填 re_xxx"
   },
 
   "DOUBAO_API_KEY": "在此填真实豆包 API Key",
@@ -23,5 +32,15 @@
   "PAYPAL_SANDBOX_SECRET": "在此填沙盒 Secret",
   "PAYPAL_WEBHOOK_ID": "在此填 Webhook ID",
   "PAYPAL_EVENTS_TOKEN": "在此填对账令牌",
-  "ADMIN_REFUND_TOKEN": "在此填一串随机字符（32 位以上）"
+  "ADMIN_REFUND_TOKEN": "在此填一串随机字符（32 位以上）",
+
+  "MAIL_PROVIDER": "smtp",
+  "MAIL_FROM": "在此填发件邮箱",
+  "MAIL_FROM_NAME": "痕迹 Traces",
+  "MAIL_REPLY_TO": "",
+  "SMTP_HOST": "smtp.qq.com",
+  "SMTP_PORT": "465",
+  "SMTP_USER": "在此填邮箱账号",
+  "SMTP_PASS": "在此填邮箱授权码",
+  "RESEND_API_KEY": ""
 }

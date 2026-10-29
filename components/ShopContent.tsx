@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sparkles, Gem, Truck, Info, ShieldCheck, RotateCcw, Landmark } from "lucide-react";
 import { getUiMessages } from "@/lib/ui-i18n";
 import { ShippingForm, EMPTY_SHIP, shipReady, type ShipInfo } from "./ShippingForm";
+import { notifyOrder, shipToText } from "@/lib/notify";
 import { Locale } from "@/lib/i18n";
 import { getShopMessages } from "@/lib/shop-i18n";
 import {
@@ -195,6 +196,13 @@ export function ShopContent({ locale }: { locale: Locale }) {
                         locale={locale}
                         onSuccess={async (order: any) => {
                           setPaidId(p.id);
+                          notifyOrder("paid", order.payerEmail || (user && user.email), locale, {
+                            product: "shop:" + p.id,
+                            productName: (p as any).nameZh || (p as any).name || p.id,
+                            amount: order.amount || String(p.price),
+                            currency: order.currency || "USD",
+                            shipTo: shipToText(ship),
+                          });
                           try {
                             await getCloud().database.from("payment_orders").insert({
                               owner_id: user ? user.id : null,
@@ -228,7 +236,16 @@ export function ShopContent({ locale }: { locale: Locale }) {
                         product={"shop:" + p.id}
                         locale={locale}
                         shipping={shipReady(ship) ? { ...ship } : null}
-                        onSuccess={() => setPaidId(p.id)}
+                        onSuccess={() => {
+                          setPaidId(p.id);
+                          notifyOrder("paid", user && user.email, locale, {
+                            product: "shop:" + p.id,
+                            productName: (p as any).nameZh || (p as any).name || p.id,
+                            amount: String(p.price),
+                            currency: "USD",
+                            shipTo: shipToText(ship),
+                          });
+                        }}
                       />
                       </>
                       )}

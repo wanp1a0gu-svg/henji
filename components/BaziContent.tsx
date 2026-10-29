@@ -6,6 +6,7 @@ import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getPayMessages } from "@/lib/pay-i18n";
 import { getUiMessages } from "@/lib/ui-i18n";
+import { notifyReport } from "@/lib/notify";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
 import { PayPalButton } from "./PayPalButton";
@@ -154,6 +155,10 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
         setReport(success.report);
         setChart(success.chart || null);
         setTier(success.tier === "full" ? "full" : "free");
+        // 只有付过款的完整报告才发信；免费档不打扰用户
+        if (success.tier === "full" && user && user.email) {
+          notifyReport(user.email, locale, form.name || "");
+        }
         saveReading(success.report);
       } else {
         setError(apiError || t("bazi.error"));

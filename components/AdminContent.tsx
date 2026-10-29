@@ -8,6 +8,7 @@ import { getCloud } from "@/lib/cloud";
 import { SHOP_PRODUCTS } from "@/lib/shop-data";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
+import { notifyOrder, shipToText } from "@/lib/notify";
 import { AdminSkills } from "./AdminSkills";
 import { AdminWallet } from "./AdminWallet";
 
@@ -102,6 +103,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [refunding, setRefunding] = useState<number | null>(null);
+  const [mailStatus, setMailStatus] = useState<any>(null);
+  const [mailBusy, setMailBusy] = useState(false);
   const [openReading, setOpenReading] = useState<Reading | null>(null);
 
   // 身份判断走服务端（is_admin RPC，读登录凭证；与数据库 RLS 同一逻辑）
@@ -269,6 +272,16 @@ export function AdminContent({ locale }: { locale: Locale }) {
     try {
       await getCloud().database.from("payment_orders").update(patch).eq("id", o.id);
       setOrders((prev) => (prev || []).map((x) => (x.id === o.id ? { ...x, ...patch } : x)));
+      if (patch.tracking_number) {
+        notifyOrder("shipped", o.payer_email, "zh", {
+          id: o.id,
+          product: o.product || "",
+          productName: productLabel(o.product),
+          tracking: patch.tracking_number,
+          carrier: patch.carrier || "",
+          shipTo: shipToText(o.shipping_address),
+        });
+      }
     } catch (e: any) {
       alert("运单号保存失败：" + ((e && e.message) || ""));
     }
@@ -362,6 +375,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const pendingShip = completed.filter((o) => (o.product || "").indexOf("shop:") === 0 && o.fulfillment !== "shipped");
 
   // ---- 流量统计（近 7 天，时区 Asia/Shanghai）----
+  // 邮件通道状态（仅在后台展示，失败不影响任何功能）
+  useEffect(() => {
+    fetch("/api/mail/status")
+      .then((r) => r.json())
+      .then(setMailStatus)
+      .catch(() => setMailStatus({ configured: false, hint: "无法获取" }));
+  }, []);
+
   const allViews = views || [];
   const dayKey = (t: string) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Shanghai" });
   const todayKey = dayKey(new Date().toISOString());
@@ -446,28 +467,88 @@ export function AdminContent({ locale }: { locale: Locale }) {
 
         {/* 概览 */}
         {tab === "overview" && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {[
-              { label: "今日访问", value: String(todayPv) },
-              { label: "今日访客", value: String(uvToday.size) },
-              { label: "近7日访问", value: String(allViews.length) },
-              { label: "总订单", value: String(allOrders.length) },
-              { label: "已收款金额", value: "$" + revenue.toFixed(2) },
-              { label: "待发货（商品）", value: String(pendingShip.length) },
-            ].map((c) => (
-              <div key={c.label} className="glass rounded-2xl p-5">
-                <p className="text-[11px] text-muted/70">{c.label}</p>
-                <p className="mt-2 font-serif text-2xl text-accent">{c.value}</p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {[
+                { label: "今日访问", value: String(todayPv) },
+                { label: "今日访客", value: String(uvToday.size) },
+                { label: "近7日访问", value: String(allViews.length) },
+                { label: "总订单", value: String(allOrders.length) },
+                { label: "已收款金额", value: "$" + revenue.toFixed(2) },
+                { label: "待发货（商品）", value: String(pendingShip.length) },
+              ].map((c) => (
+                <div key={c.label} className="glass rounded-2xl p-5">
+                  <p className="text-[11px] text-muted/70">{c.label}</p>
+                  <p className="mt-2 font-serif text-2xl text-accent">{c.value}</p>
+                </div>
+              ))}
+              <div className="col-span-2 mt-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-[11px] leading-relaxed text-muted/70 sm:col-span-4">
+                数据实时来自云端数据库；每笔 PayPal 交易另有事件台账（服务器已自动记录，含验签）。
+                商品需发货时在「订单」页点「标记已发货」。
               </div>
-            ))}
-            <div className="col-span-2 mt-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-[11px] leading-relaxed text-muted/70 sm:col-span-4">
-              数据实时来自云端数据库；每笔 PayPal 交易另有事件台账（服务器已自动记录，含验签）。
-              商品需发货时在「订单」页点「标记已发货」。
+            </div>
+
+            {/* 发信通道状态 */}
+            <div className="glass flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-4">
+              <div className="flex items-center gap-2 text-xs">
+                <span
+                  className={`inline-block h-2 w-2 rounded-full ${
+                    mailStatus && mailStatus.configured ? "bg-green-400" : "bg-amber-400"
+                  }`}
+                />
+                <span className="text-muted">
+                  发信通道：
+                  {mailStatus && mailStatus.configured
+                    ? (mailStatus.provider === "smtp" ? "SMTP 已配置" : "Resend 已配置") +
+                      (mailStatus.from ? " · " + mailStatus.from : "")
+                    : "未配置" + (mailStatus && mailStatus.hint ? "（" + mailStatus.hint + "）" : "")}
+                </span>
+              </div>
+              <button
+                onClick={async () => {
+                  let tk = "";
+                  try {
+                    tk = sessionStorage.getItem("traces_refund_token") || "";
+                  } catch {
+                    tk = "";
+                  }
+                  if (!tk) {
+                    const input = window.prompt("发信测试需要令牌：server-config.json 里的 ADMIN_REFUND_TOKEN");
+                    if (!input) return;
+                    tk = input.trim();
+                    try {
+                      sessionStorage.setItem("traces_refund_token", tk);
+                    } catch {}
+                  }
+                  const to = window.prompt("发到哪个邮箱？", "");
+                  if (!to) return;
+                  setMailBusy(true);
+                  try {
+                    const r = await fetch("/api/mail/test", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ to, token: tk, type: "test", locale: "zh" }),
+                    });
+                    const j = (await r.json()) as { ok?: boolean; reason?: string; error?: string };
+                    if (r.ok && j.ok) alert("测试邮件已发出，请查收（也看看垃圾箱）。");
+                    else alert("没发出去：" + (j.reason || j.error || r.status));
+                  } catch (e: any) {
+                    alert("请求失败：" + ((e && e.message) || ""));
+                  } finally {
+                    setMailBusy(false);
+                  }
+                }}
+                disabled={mailBusy}
+                className="rounded-full border border-accent/30 bg-accent/10 px-3.5 py-1.5 text-[11px] text-accent transition hover:bg-accent/20 disabled:opacity-50"
+              >
+                {mailBusy ? "发送中…" : "发送测试邮件"}
+              </button>
             </div>
           </div>
         )}
 
         {/* 订单 */}
+
         {tab === "orders" && (
           <div className="glass overflow-hidden rounded-2xl">
             <div className="overflow-x-auto">
