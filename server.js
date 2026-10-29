@@ -61,6 +61,15 @@ try {
 } catch (e) {
   console.error("[boot] paypal module load FAILED:", (e && e.message) || e);
 }
+// 紫微斗数排盘引擎（零依赖，与 bazi/tarot/bagua 同源思路）
+let ZiweiEngine = null;
+try {
+  ZiweiEngine = require("./lib/ziwei-engine.js");
+  console.error("[boot] ziwei engine loaded");
+} catch (e) {
+  console.error("[boot] ziwei engine load FAILED:", (e && e.message) || e);
+}
+
 // 事务邮件（订单确认 / 发货通知 / 报告就绪）
 let Mailer = null;
 try {
@@ -1634,6 +1643,52 @@ function executeToolCall(name, argsRaw) {
       };
     } catch (e) {
       return { content: "起卦失败：" + ((e && e.message) || e), artifact: null };
+    }
+  }
+
+  if (name === "ziwei_chart") {
+    if (!ZiweiEngine) return { content: "紫微引擎未加载，排盘不可用。", artifact: null };
+
+    const date = String(args.birthDate || "").slice(0, 10);
+    if (!DATE_RE.test(date)) {
+      return {
+        content: "排盘失败：缺少有效的阳历生日（格式 YYYY-MM-DD）。请向用户询问出生日期。",
+        artifact: null,
+      };
+    }
+
+    const genderMap2 = { male: "male", female: "female", 男: "male", 女: "female" };
+    const gender =
+      genderMap2[args.gender] || (String(args.gender || "").indexOf("fe") === 0 ? "female" : "male");
+
+    const time =
+      args.birthTime && TIME_RE.test(String(args.birthTime)) ? String(args.birthTime) : null;
+
+    const lng = Number(args.longitude);
+    const off = Number(args.utcOffset);
+
+    try {
+      const chart = ZiweiEngine.generateChart({
+        date,
+        time: time || undefined,
+        gender,
+        longitude: isFinite(lng) && lng !== 0 ? lng : undefined,
+        utcOffset: isFinite(off) && off !== 0 ? off : 480,
+      });
+      const text = ZiweiEngine.renderText(chart);
+      return {
+        content:
+          "【紫微斗数命盘 — 由确定性引擎计算，为既定事实，请原样采信并据此解读】\n" +
+          text +
+          "\n（解读时请区分命宫/身宫、主星庙旺落陷、四化落宫、当前大限；不确定处如实说明。）",
+        artifact: null,
+      };
+    } catch (e) {
+      return {
+        content:
+          "排盘失败：" + ((e && e.message) || e) + "。请检查出生日期/时间是否有效，必要时向用户确认。",
+        artifact: null,
+      };
     }
   }
 
