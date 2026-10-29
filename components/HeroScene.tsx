@@ -122,43 +122,16 @@ export function HeroScene({ glyph = "痕" }: { glyph?: string }) {
         }
       }
 
-      // 2）光环：三层同心环（罗盘感）+ 环间浮尘
-      const RINGS = [
-        { r: 3.05, tilt: 0.14, share: 0.3 },
-        { r: 3.85, tilt: 0.2, share: 0.28 },
-        { r: 4.7, tilt: 0.27, share: 0.26 },
-      ];
+      // 2）光环：两圈略微倾斜的环
       const ringArr: number[] = [];
       for (let i = 0; i < COUNT; i++) {
-        const dice = Math.random();
-        if (dice < 0.16) {
-          // 环间浮尘：让光环不至于太"干净"
-          const R = rnd(2.8, 5.0);
-          const a = Math.random() * Math.PI * 2;
-          ringArr.push(
-            Math.cos(a) * R * 0.92 + rnd(-0.06, 0.06),
-            Math.sin(a) * R * rnd(0.18, 0.42),
-            Math.sin(a) * R * 0.5 + rnd(-0.12, 0.12)
-          );
-        } else {
-          // 落在某一层环上
-          let acc = 0;
-          let band = RINGS[0];
-          for (const r of RINGS) {
-            acc += r.share;
-            if (dice - 0.16 < acc) {
-              band = r;
-              break;
-            }
-          }
-          const a = Math.random() * Math.PI * 2;
-          const jitter = rnd(-0.035, 0.035);
-          ringArr.push(
-            Math.cos(a) * (band.r + jitter) * 0.92,
-            Math.sin(a) * (band.r + jitter) * band.tilt,
-            Math.sin(a) * (band.r + jitter) * 0.62
-          );
-        }
+        const band = i % 3;
+        const R = 2.35 + band * 0.42;
+        const a = Math.random() * Math.PI * 2;
+        const tilt = 0.22 + band * 0.06;
+        const x = Math.cos(a) * R;
+        const z = Math.sin(a) * R;
+        ringArr.push(x, Math.sin(a) * R * tilt + rnd(-0.05, 0.05), z * 0.55);
       }
 
       const pos = new Float32Array(COUNT * 3);
@@ -283,7 +256,7 @@ export function HeroScene({ glyph = "痕" }: { glyph?: string }) {
         return window.scrollY / vh;
       };
       // 半屏内完成「尘埃 → 字形」，之后才轮到光环
-      const morphOf = (p: number) => Math.max(0, Math.min(2, p * 1.8));
+      const morphOf = (p: number) => Math.max(0, Math.min(2, p * 1.85));
 
       let visible = true;
       const io = new IntersectionObserver(
@@ -315,8 +288,7 @@ export function HeroScene({ glyph = "痕" }: { glyph?: string }) {
         camera.position.y = Math.sin(t * 0.18) * 0.16 + morph * 0.18;
         camera.lookAt(0, 0, 0);
 
-        const ringPhase = Math.max(0, Math.min(1, morph - 1));
-        points.rotation.y = t * (0.045 + ringPhase * 0.06) + morph * 0.25;
+        points.rotation.y = t * 0.045 + morph * 0.25;
         points.rotation.z = Math.sin(t * 0.08) * 0.03;
 
         const crisp = Math.min(1, morph);
@@ -324,11 +296,7 @@ export function HeroScene({ glyph = "痕" }: { glyph?: string }) {
         bloom.radius = 0.62 - crisp * 0.18;
 
         // 过了首屏就淡下去，别抢正文；两屏之后只留一点氛围
-        // 分三段：成字期满亮 → 环成形期保留 0.42（看得见但不抢字）→ 之后退到 0.08
-        let targetOpacity;
-        if (raw < 0.5) targetOpacity = 1;
-        else if (raw < 0.95) targetOpacity = 1 - (raw - 0.5) * 0.95;
-        else targetOpacity = Math.max(0.08, 0.55 - (raw - 0.95) * 0.5);
+        const targetOpacity = raw < 0.55 ? 1 : Math.max(0.08, 1 - (raw - 0.55) * 1.9);
         host.style.opacity = String(targetOpacity);
 
         composer.render();
