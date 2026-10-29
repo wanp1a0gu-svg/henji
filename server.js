@@ -577,6 +577,7 @@ function handleMailApi(req, res) {
     let tpl;
     if (body.type === "paid") tpl = Mailer.orderPaid({ locale, order: body.order || {} });
     else if (body.type === "shipped") tpl = Mailer.orderShipped({ locale, order: body.order || {} });
+    else if (body.type === "refunded") tpl = Mailer.orderRefunded({ locale, order: body.order || {} });
     else if (body.type === "report") tpl = Mailer.reportReady({ locale, name: body.name || "" });
     else if (body.type === "test") {
       const expected = loadServerConfigField("ADMIN_REFUND_TOKEN") || process.env.ADMIN_REFUND_TOKEN || "";

@@ -19,7 +19,7 @@ async function post(url: string, payload: any) {
 
 /** 订单已付款 / 已发货 */
 export async function notifyOrder(
-  type: "paid" | "shipped",
+  type: "paid" | "shipped" | "refunded",
   to: string | null | undefined,
   locale: string,
   order: {
@@ -28,6 +28,7 @@ export async function notifyOrder(
     productName?: string;
     amount?: string;
     currency?: string;
+    method?: string;
     shipTo?: string;
     tracking?: string;
     carrier?: string;

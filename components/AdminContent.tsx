@@ -23,6 +23,7 @@ interface Order {
   fulfillment: string | null;
   shipping_address: any;
   paypal_order_id: string | null;
+  owner_id?: string | null;
   tracking_number?: string | null;
   carrier?: string | null;
   capture_raw?: any;
@@ -143,7 +144,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
       const [o, r] = await Promise.all([
         db
           .from("payment_orders")
-          .select("id,created_at,product,amount,currency,payer_email,status,fulfillment,shipping_address,paypal_order_id,tracking_number,carrier")
+          .select("id,created_at,product,amount,currency,payer_email,owner_id,status,fulfillment,shipping_address,paypal_order_id,tracking_number,carrier")
           .order("created_at", { ascending: false })
           .limit(300),
         db
@@ -289,15 +290,29 @@ export function AdminContent({ locale }: { locale: Locale }) {
 
   /** 余额支付的退款：调 wallet_grant 退回买家钱包，再把订单标记为已退款 */
   const refundBalance = async (o: Order) => {
-    if (!o.payer_email) {
-      alert("这笔订单没记邮箱，无法定位钱包账户。请到「钱包」标签按 owner_id 手动处理。");
+    // 老订单可能没记 payer_email，用 owner_id 到钱包账户里反查
+    let email = o.payer_email || "";
+    if (!email && o.owner_id) {
+      try {
+        const { data } = await getCloud()
+          .database.from("wallet_accounts")
+          .select("owner_email")
+          .eq("owner_id", o.owner_id)
+          .limit(1);
+        email = (data && data[0] && data[0].owner_email) || "";
+      } catch {
+        /* 忽略 */
+      }
+    }
+    if (!email) {
+      alert("这笔订单查不到买家邮箱，无法退款。请到「钱包」标签手动处理。");
       return;
     }
-    if (!window.confirm("确认把 $" + (o.amount || "?") + " 退回 " + o.payer_email + " 的钱包？")) return;
+    if (!window.confirm("确认把 $" + (o.amount || "?") + " 退回 " + email + " 的钱包？")) return;
     setRefunding(o.id);
     try {
       const { error } = await getCloud().database.rpc("wallet_grant", {
-        p_email: o.payer_email,
+        p_email: email,
         p_amount: Number(o.amount || 0),
         p_note: "订单退款 #" + o.id + " " + (o.product || ""),
       });
@@ -310,7 +325,15 @@ export function AdminContent({ locale }: { locale: Locale }) {
       setOrders((prev) =>
         (prev || []).map((x) => (x.id === o.id ? { ...x, status: "refunded", fulfillment: null } : x))
       );
-      alert("已退回买家钱包：" + (o.payer_email || ""));
+      notifyOrder("refunded", email, "zh", {
+        id: o.id,
+        product: o.product || "",
+        productName: productLabel(o.product),
+        amount: o.amount || "",
+        currency: "USD",
+        method: "balance",
+      });
+      alert("已退回买家钱包：" + email + "（退款通知已发送）");
     } catch (e: any) {
       alert("退款失败：" + ((e && e.message) || "未知错误"));
     } finally {
@@ -364,6 +387,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
         /* 状态回写失败不影响已退款事实 */
       }
       setOrders((prev) => (prev || []).map((x) => (x.id === o.id ? { ...x, status: "refunded" } : x)));
+      notifyOrder("refunded", o.payer_email, "zh", {
+        id: o.id,
+        product: o.product || "",
+        productName: productLabel(o.product),
+        amount: j.amount || o.amount || "",
+        currency: j.currency || "USD",
+        method: "paypal",
+      });
       alert("退款成功：" + (j.refundId || "") + "（" + (j.amount || "") + " " + (j.currency || "") + "）");
     } catch (e: any) {
       alert("退款失败：" + ((e && e.message) || "未知错误"));
