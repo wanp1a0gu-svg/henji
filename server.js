@@ -70,6 +70,14 @@ try {
   console.error("[boot] ziwei engine load FAILED:", (e && e.message) || e);
 }
 
+// 紫微解读提示词（盘由引擎算，模型只负责解读）
+let ZiweiReading = null;
+try {
+  ZiweiReading = require("./lib/ziwei-reading.js");
+} catch (e) {
+  console.error("[boot] ziwei reading prompt load FAILED:", (e && e.message) || e);
+}
+
 // 事务邮件（订单确认 / 发货通知 / 报告就绪）
 let Mailer = null;
 try {
@@ -291,6 +299,7 @@ const RATE_LIMITS = {
   default: { perIp: RATE_LIMIT_PER_HOUR, global: GLOBAL_LIMIT_PER_HOUR },
   bazi: { perIp: 6, global: 200 },
   mail: { perIp: 20, global: 400 },
+  ziwei: { perIp: 6, global: 200 },
 };
 
 const _rateBuckets = new Map(); // "kind:ip" -> { bucket, count }
@@ -984,6 +993,166 @@ async function generateTarotReading(jobId, payload, draw) {
 }
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 紫微斗数 API（/api/ziwei）
+//   盘由引擎算（POST 即刻返回，前端立刻能画十二宫）
+//   解读异步生成（GET ?id= 轮询），免费
+// ---------------------------------------------------------------------------
+
+/**
+ * 出生地 → 经度 + 时区偏移（分钟）。
+ * 用 TrueSolar 的城市库做匹配；匹配不到就按东八区 / 东经 120° 估算，
+ * 并把 level 告诉前端（3 = 没匹配上），让解读里能说明误差。
+ */
+function resolvePlaceGeo(place, birthDate, birthTime) {
+  const fallback = { longitude: 120, tzOffsetMin: 480, matched: "", matchedParent: "", level: 3 };
+  if (!TrueSolar || !place) return fallback;
+  try {
+    const ts = TrueSolar.correct({
+      birthDate: birthDate || "2000-01-01",
+      birthTime: birthTime || "12:00",
+      place,
+    });
+    if (ts && ts.applied && Number.isFinite(ts.longitude)) {
+      return {
+        longitude: ts.longitude,
+        tzOffsetMin: Number.isFinite(ts.tzOffsetMin) ? ts.tzOffsetMin : 480,
+        matched: ts.matched || "",
+        matchedParent: ts.matchedParent || "",
+        level: typeof ts.level === "number" ? ts.level : 2,
+      };
+    }
+  } catch (e) {
+    console.error("[ziwei] place resolve failed:", (e && e.message) || e);
+  }
+  return fallback;
+}
+
+function handleZiweiApi(req, res) {
+  if (req.method === "GET") return handleZiweiStatus(req, res);
+  if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed" });
+
+  readBody(req, (err, raw) => {
+    if (err) {
+      const tooLarge = err.message === "too large";
+      return sendJson(res, tooLarge ? 413 : 400, {
+        error: tooLarge ? "Request body too large" : "Invalid request body",
+      });
+    }
+
+    let body;
+    try {
+      body = JSON.parse(raw || "{}");
+    } catch {
+      return sendJson(res, 400, { error: "Invalid JSON body" });
+    }
+
+    if (!ZiweiEngine) {
+      return sendJson(res, 503, { error: "Zi Wei engine is not available" });
+    }
+
+    const date = String(body.birthDate || "").slice(0, 10);
+    const time = String(body.birthTime || "").slice(0, 5);
+    if (!DATE_RE.test(date)) return sendJson(res, 400, { error: "INVALID_DATE" });
+    if (!TIME_RE.test(time)) return sendJson(res, 400, { error: "INVALID_TIME" });
+
+    const place = String(body.birthPlace || "").trim();
+    if (!place) return sendJson(res, 400, { error: "PLACE_REQUIRED" });
+    if (place.length > 60) return sendJson(res, 400, { error: "PLACE_TOO_LONG" });
+
+    const genderRaw = String(body.gender || "male").toLowerCase();
+    if (genderRaw !== "male" && genderRaw !== "female") {
+      return sendJson(res, 400, { error: "INVALID_GENDER" });
+    }
+
+    if (!checkRateLimit(req, "ziwei")) {
+      return sendJson(res, 429, {
+        error: "Too many requests. Please try again later. 请求过于频繁，请稍后再试。",
+      });
+    }
+    if (!DOUBAO_API_KEY) return sendJson(res, 500, { error: "Server is not configured yet" });
+
+    const geo = resolvePlaceGeo(place, date, time);
+
+    let chart;
+    try {
+      chart = ZiweiEngine.generateChart({
+        date,
+        time,
+        gender: genderRaw,
+        longitude: geo.longitude,
+        utcOffset: geo.tzOffsetMin,
+      });
+    } catch (e) {
+      return sendJson(res, 400, { error: "CHART_FAILED: " + ((e && e.message) || e) });
+    }
+
+    // 出生地没匹配上时给前端一个提醒（不阻断排盘）
+    if (geo.level === 3) {
+      chart.warnings = (chart.warnings || []).concat(["place_unmatched"]);
+    }
+
+    pruneJobs();
+    const jobId = newJobId();
+    _jobs.set(jobId, { kind: "ziwei", status: "pending", chart, createdAt: Date.now() });
+    generateZiweiReading(jobId, chart, {
+      locale: String(body.locale || "en"),
+      gender: genderRaw,
+    });
+
+    return sendJson(res, 200, {
+      jobId,
+      chart,
+      place: { matched: geo.matched, level: geo.level },
+    });
+  });
+}
+
+function handleZiweiStatus(req, res) {
+  let id = "";
+  try {
+    const u = new URL(req.url, "http://localhost");
+    id = u.searchParams.get("id") || "";
+  } catch {
+    id = "";
+  }
+  if (!id) return sendJson(res, 400, { error: "Missing job id" });
+  pruneJobs();
+  const job = _jobs.get(id);
+  if (!job || job.kind !== "ziwei") return sendJson(res, 404, { error: "Job not found or expired" });
+
+  if (job.status === "done") {
+    return sendJson(res, 200, { status: "done", reading: job.reading, chart: job.chart });
+  }
+  if (job.status === "error") {
+    return sendJson(res, 200, { status: "error", error: job.error, chart: job.chart });
+  }
+  return sendJson(res, 200, { status: "pending", chart: job.chart });
+}
+
+async function generateZiweiReading(jobId, chart, opts) {
+  try {
+    if (!ZiweiReading) throw new Error("reading module missing");
+    const chartBlock = ZiweiEngine.renderText(chart);
+    const prompts = ZiweiReading.buildPrompt({
+      chartBlock,
+      locale: opts.locale,
+      gender: opts.gender === "female" ? "女 / female" : "男 / male",
+    });
+    const content = await callDoubao(prompts.system, prompts.user);
+    _jobs.set(jobId, { kind: "ziwei", status: "done", reading: content, chart, createdAt: Date.now() });
+  } catch (e) {
+    console.error("[ziwei] job failed:", (e && e.message) || e);
+    _jobs.set(jobId, {
+      kind: "ziwei",
+      status: "error",
+      error: "Reading generation failed, please try again later",
+      chart,
+      createdAt: Date.now(),
+    });
+  }
+}
+
 // 文王卦 API（/api/bagua）：起卦由引擎即时完成（POST 即刻返回卦象），解读异步生成、免费
 // ---------------------------------------------------------------------------
 
@@ -1826,6 +1995,9 @@ const server = http.createServer((req, res) => {
     return handleTarotApi(req, res);
   }
 
+  if (clean === "/api/ziwei") {
+    return handleZiweiApi(req, res);
+  }
   if (clean === "/api/bagua") {
     return handleBaguaApi(req, res);
   }

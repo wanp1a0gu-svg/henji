@@ -19,7 +19,7 @@ export const labels: Record<Locale, string> = {
 
 const messages: Record<Locale, any> = {
   en: {
-    nav: { home: "Home", advisor: "Advisor", courses: "Courses", shop: "Shop", bazi: "Bazi Reading", tarot: "Tarot Reading", bagua: "I Ching", learn: "Learn", about: "About" },
+    nav: { home: "Home", advisor: "Advisor", courses: "Courses", shop: "Shop", bazi: "Bazi Reading", tarot: "Tarot Reading", bagua: "I Ching", ziwei: "Zi Wei", learn: "Learn", about: "About" },
     hero: {
       eyebrow: "Eastern Wisdom Meets Modern Life",
       title: "Traces",
@@ -99,7 +99,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. All rights reserved.", tagline: "Guidance rooted in tradition, delivered with care." }
   },
   zh: {
-    nav: { home: "首页", advisor: "对话", courses: "课程", shop: "商店", bazi: "八字测算", tarot: "塔罗占卜", bagua: "文王卦", learn: "命理知识", about: "关于" },
+    nav: { home: "首页", advisor: "对话", courses: "课程", shop: "商店", bazi: "八字测算", tarot: "塔罗占卜", bagua: "文王卦", ziwei: "紫微斗数", learn: "命理知识", about: "关于" },
     hero: {
       eyebrow: "东方智慧，现代生活",
       title: "痕迹",
@@ -179,7 +179,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 痕迹 · 保留所有权利。", tagline: "根植传统，用心传递。" }
   },
   ja: {
-    nav: { home: "ホーム", advisor: "対話", courses: "講座", shop: "ショップ", bazi: "八字鑑定", tarot: "タロット占い", bagua: "文王卦", learn: "学び", about: "概要" },
+    nav: { home: "ホーム", advisor: "対話", courses: "講座", shop: "ショップ", bazi: "八字鑑定", tarot: "タロット占い", bagua: "文王卦", ziwei: "紫微斗数", learn: "学び", about: "概要" },
     hero: { eyebrow: "東洋の叡智と現代生活", title: "Traces", subtitle: "古代中国の命理学を通じて、あなた自身の人生の道を見つけましょう。講座・鑑定・個人指導を、現代の探究者のために。", ctaCourses: "講座を見る", ctaReading: "鑑定を予約" },
     stats: { years: "研究年数", students: "受講生", readings: "鑑定数" },
     features: {
@@ -200,7 +200,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. All rights reserved.", tagline: "伝統に根ざし、真心を込めて。" }
   },
   ko: {
-    nav: { home: "홈", advisor: "대화", courses: "강의", shop: "상점", bazi: "사주 분석", tarot: "타로 리딩", bagua: "주역", learn: "배움", about: "소개" },
+    nav: { home: "홈", advisor: "대화", courses: "강의", shop: "상점", bazi: "사주 분석", tarot: "타로 리딩", bagua: "주역", ziwei: "자미두수", learn: "배움", about: "소개" },
     hero: { eyebrow: "동양의 지혜와 현대 생활", title: "Traces", subtitle: "고대 중국 명리학을 통해 당신만의 인생 길을 발견하세요. 강좌와 분석, 개인 지도를 현대의 탐구자를 위해 제공합니다.", ctaCourses: "강의 둘러보기", ctaReading: "분석 예약" },
     stats: { years: "연구 기간", students: "수강생", readings: "분석 완료" },
     features: { subtitle: "Traces를 선택하는 이유", title: "현대 생활을 위한 안내", personal: { title: "맞춤형", desc: "일반적인 운세가 아닌 당신만의 사주를 바탕으로 합니다." }, wisdom: { title: "고대의 지혜", desc: "사주, 오행, 십신을 중심으로 한 중국 고전 명리학." }, clarity: { title: "명확한 방향", desc: "직업, 인간관계, 재물, 인생 시기에 실용적인 통찰을 드립니다." } },
@@ -215,7 +215,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. All rights reserved.", tagline: "전통에 뿌리를 두고 정성을 담아." }
   },
   es: {
-    nav: { home: "Inicio", advisor: "Asesor", courses: "Cursos", shop: "Tienda", bazi: "Lectura Bazi", tarot: "Tarot", bagua: "I Ching", learn: "Aprender", about: "Nosotros" },
+    nav: { home: "Inicio", advisor: "Asesor", courses: "Cursos", shop: "Tienda", bazi: "Lectura Bazi", tarot: "Tarot", bagua: "I Ching", ziwei: "Zi Wei", learn: "Aprender", about: "Nosotros" },
     hero: { eyebrow: "Sabiduría Oriental para la Vida Moderna", title: "Traces", subtitle: "Descubre tu camino a través de la metafísica china ancestral. Cursos, lecturas y guía personal para el explorador moderno.", ctaCourses: "Ver Cursos", ctaReading: "Reservar Lectura" },
     stats: { years: "Años de estudio", students: "Estudiantes", readings: "Lecturas" },
     features: { subtitle: "Por qué Traces", title: "Orientación para la vida moderna", personal: { title: "Personalizado", desc: "Cada lectura se adapta a tu carta natal única." }, wisdom: { title: "Sabiduría ancestral", desc: "Basado en Bazi, los Cinco Elementos y los Diez Dioses." }, clarity: { title: "Dirección clara", desc: "Consejos prácticos sobre carrera, relaciones, riqueza y momentos de vida." } },
@@ -230,7 +230,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Todos los derechos reservados.", tagline: "Guía arraigada en la tradición, entregada con cuidado." }
   },
   fr: {
-    nav: { home: "Accueil", advisor: "Conseiller", courses: "Cours", shop: "Boutique", bazi: "Lecture Bazi", tarot: "Tarot", bagua: "Yi Jing", learn: "Apprendre", about: "À propos" },
+    nav: { home: "Accueil", advisor: "Conseiller", courses: "Cours", shop: "Boutique", bazi: "Lecture Bazi", tarot: "Tarot", bagua: "Yi Jing", ziwei: "Zi Wei", learn: "Apprendre", about: "À propos" },
     hero: { eyebrow: "Sagesse Orientale et Vie Moderne", title: "Traces", subtitle: "Découvrez votre chemin de vie à travers la métaphysique chinoise ancienne. Cours, lectures et accompagnement personnel pour l'explorateur moderne.", ctaCourses: "Explorer les Cours", ctaReading: "Réserver une Lecture" },
     stats: { years: "Années d'étude", students: "Étudiants", readings: "Lectures" },
     features: { subtitle: "Pourquoi Traces", title: "Orientation pour la vie moderne", personal: { title: "Personnalisé", desc: "Chaque lecture est adaptée à votre thème natal unique." }, wisdom: { title: "Sagesse ancienne", desc: "Enraciné dans le Bazi, les Cinq Éléments et les Dix Dieux." }, clarity: { title: "Direction claire", desc: "Des perspectives pratiques sur carrière, relations, richesse et timing." } },
@@ -245,7 +245,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Tous droits réservés.", tagline: "Un guide ancré dans la tradition, offert avec soin." }
   },
   de: {
-    nav: { home: "Startseite", advisor: "Berater", courses: "Kurse", shop: "Shop", bazi: "Bazi-Lesung", tarot: "Tarot", bagua: "I Ging", learn: "Wissen", about: "Über uns" },
+    nav: { home: "Startseite", advisor: "Berater", courses: "Kurse", shop: "Shop", bazi: "Bazi-Lesung", tarot: "Tarot", bagua: "I Ging", ziwei: "Zi Wei", learn: "Wissen", about: "Über uns" },
     hero: { eyebrow: "Östliche Weisheit trifft modernes Leben", title: "Traces", subtitle: "Entdecke deinen Lebensweg durch die uralte chinesische Metaphysik. Kurse, Lesungen und persönliche Begleitung für moderne Entdecker.", ctaCourses: "Kurse entdecken", ctaReading: "Lesung buchen" },
     stats: { years: "Studienjahre", students: "Schüler", readings: "Lesungen" },
     features: { subtitle: "Warum Traces", title: "Orientierung für das moderne Leben", personal: { title: "Personalisiert", desc: "Jede Lesung ist auf dein einzigartiges Geburtshoroskop zugeschnitten." }, wisdom: { title: "Uralte Weisheit", desc: "Verwurzelt in Bazi, den Fünf Elementen und den Zehn Göttern." }, clarity: { title: "Klarheit", desc: "Praktische Einblicke zu Karriere, Beziehungen, Reichtum und Lebenszeitpunkt." } },
@@ -260,7 +260,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Alle Rechte vorbehalten.", tagline: "In der Tradition verwurzelte Führung, mit Sorge übermittelt." }
   },
   pt: {
-    nav: { home: "Início", advisor: "Conselheiro", courses: "Cursos", shop: "Loja", bazi: "Leitura Bazi", tarot: "Tarot", bagua: "I Ching", learn: "Aprender", about: "Sobre" },
+    nav: { home: "Início", advisor: "Conselheiro", courses: "Cursos", shop: "Loja", bazi: "Leitura Bazi", tarot: "Tarot", bagua: "I Ching", ziwei: "Zi Wei", learn: "Aprender", about: "Sobre" },
     hero: { eyebrow: "Sabedoria Oriental para a Vida Moderna", title: "Traces", subtitle: "Descubra seu caminho através da metafísica chinesa ancestral. Cursos, leituras e orientação pessoal para o explorador moderno.", ctaCourses: "Explorar Cursos", ctaReading: "Agendar Leitura" },
     stats: { years: "Anos de estudo", students: "Alunos", readings: "Leituras" },
     features: { subtitle: "Por que Traces", title: "Orientação para a vida moderna", personal: { title: "Personalizado", desc: "Cada leitura é adaptada ao seu mapa natal único." }, wisdom: { title: "Sabedoria antiga", desc: "Baseado em Bazi, Cinco Elementos e Dez Deuses." }, clarity: { title: "Direção clara", desc: "Insights práticos sobre carreira, relacionamentos, riqueza e timing." } },
@@ -275,7 +275,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Todos os direitos reservados.", tagline: "Orientação enraizada na tradição, entregue com cuidado." }
   },
   ru: {
-    nav: { home: "Главная", advisor: "Советник", courses: "Курсы", shop: "Магазин", bazi: "Чтение Бацзы", tarot: "Таро", bagua: "И цзин", learn: "Знания", about: "О нас" },
+    nav: { home: "Главная", advisor: "Советник", courses: "Курсы", shop: "Магазин", bazi: "Чтение Бацзы", tarot: "Таро", bagua: "И цзин", ziwei: "Цзы Вэй", learn: "Знания", about: "О нас" },
     hero: { eyebrow: "Восточная мудрость и современная жизнь", title: "Traces", subtitle: "Откройте свой жизненный путь через древнюю китайскую метафизику. Курсы, чтения и личные консультации для современного исследователя.", ctaCourses: "Смотреть курсы", ctaReading: "Забронировать чтение" },
     stats: { years: "Лет изучения", students: "Учеников", readings: "Чтений" },
     features: { subtitle: "Почему Traces", title: "Руководство для современной жизни", personal: { title: "Персонализировано", desc: "Каждое чтение адаптировано к вашей уникальной карте рождения." }, wisdom: { title: "Древняя мудрость", desc: "Основано на Бацзы, Пяти Элементах и Десяти Богах." }, clarity: { title: "Ясное направление", desc: "Практические идеи по карьере, отношениям, богатству и времени." } },
@@ -290,7 +290,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Все права защищены.", tagline: "Руководство, укорененное в традиции, с заботой доставленное." }
   },
   ar: {
-    nav: { home: "الرئيسية", advisor: "المستشار", courses: "الدورات", shop: "المتجر", bazi: "قراءة البازي", tarot: "قراءة التاروت", bagua: "أنا تشينغ", learn: "تعلّم", about: "من نحن" },
+    nav: { home: "الرئيسية", advisor: "المستشار", courses: "الدورات", shop: "المتجر", bazi: "قراءة البازي", tarot: "قراءة التاروت", bagua: "أنا تشينغ", ziwei: "تسي وي", learn: "تعلّم", about: "من نحن" },
     hero: { eyebrow: "حكمة شرقية للحياة الحديثة", title: "Traces", subtitle: "اكتشف مسار حياتك من خلال الميتافيزيقا الصينية القديمة. دورات وقراءات وإرشاد شخصي للمستكشف الحديث.", ctaCourses: "استعراض الدورات", ctaReading: "حجز قراءة" },
     stats: { years: "سنوات الدراسة", students: "الطلاب", readings: "القراءات" },
     features: { subtitle: "لماذا Traces", title: "إرشاد للحياة الحديثة", personal: { title: "مخصص", desc: "كل قراءة مخصصة لخريطة ميلادك الفريدة." }, wisdom: { title: "حكمة قديمة", desc: "مستمد من البازي والعناصر الخمسة والآلهة العشرة." }, clarity: { title: "اتجاه واضح", desc: "رؤى عملية حول المسار المهني والعلاقات والثروة وتوقيت الحياة." } },

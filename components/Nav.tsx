@@ -51,6 +51,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
     { label: t("nav.shop"), href: link("/shop") },
     { label: t("nav.tarot"), href: link("/tarot") },
     { label: t("nav.bagua"), href: link("/bagua") },
+    { label: t("nav.ziwei"), href: link("/ziwei") },
     { label: t("nav.learn"), href: link("/learn") },
   ];
 

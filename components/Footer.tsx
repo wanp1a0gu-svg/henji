@@ -43,6 +43,13 @@ export function Footer({ messages, locale }: { messages: Messages; locale: Local
           </a>
           <span className="text-white/10">·</span>
           <a
+            href={`/${locale}/ziwei`}
+            className="text-xs text-muted transition hover:text-accent"
+          >
+            {t("nav.ziwei")}
+          </a>
+          <span className="text-white/10">·</span>
+          <a
             href={`/${locale}/privacy`}
             className="text-xs text-muted transition hover:text-accent"
           >

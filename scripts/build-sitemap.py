@@ -31,7 +31,7 @@ assert m, "SITE_URL not found"
 site = m.group(1).rstrip("/")
 
 # 收录页面（不含 /account 等私有页）
-PAGES = ["", "/bazi", "/tarot", "/bagua", "/courses", "/learn", "/shop"]
+PAGES = ["", "/bazi", "/tarot", "/bagua", "/ziwei", "/courses", "/learn", "/shop"]
 TODAY = datetime.date.today().isoformat()
 
 lines = [
