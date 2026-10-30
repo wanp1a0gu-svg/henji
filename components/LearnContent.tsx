@@ -1,6 +1,7 @@
 import { BookOpen, GraduationCap, Sparkles, PlayCircle } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getLearnMessages } from "@/lib/learn-i18n";
+import { SignInGate } from "./SignInGate";
 
 const VIDEO_SRC = "/videos/mingli-basics.mp4";
 const VIDEO_POSTER = "/videos/mingli-basics-poster.jpg";
@@ -28,16 +29,19 @@ export function LearnContent({ locale }: { locale: Locale }) {
       {/* Video */}
       <section className="px-6 pb-6">
         <div className="mx-auto max-w-4xl">
-          <div className="glass glow overflow-hidden rounded-2xl">
-            <video
-              controls
-              preload="metadata"
-              poster={VIDEO_POSTER}
-              className="aspect-video w-full bg-black"
-            >
-              <source src={VIDEO_SRC} type="video/mp4" />
-            </video>
-          </div>
+          {/* 观看需登录：未登录时连 <video> 都不渲染，避免直接拿到视频地址 */}
+          <SignInGate locale={locale}>
+            <div className="glass glow overflow-hidden rounded-2xl">
+              <video
+                controls
+                preload="metadata"
+                poster={VIDEO_POSTER}
+                className="aspect-video w-full bg-black"
+              >
+                <source src={VIDEO_SRC} type="video/mp4" />
+              </video>
+            </div>
+          </SignInGate>
           <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted">
             <PlayCircle size={13} className="text-accent" />
             {l.videoNote}

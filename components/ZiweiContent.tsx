@@ -7,6 +7,7 @@ import { getZiweiMessages } from "@/lib/ziwei-i18n";
 import { ZiweiChart, type ZiweiChartData } from "./ZiweiChart";
 import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
+import { SignInGate } from "./SignInGate";
 
 /** 异步任务模式：POST 返回 {jobId, chart}（盘立即可看），GET ?id= 取解读 */
 const API = "/api/ziwei";
@@ -123,8 +124,9 @@ export function ZiweiContent({ locale }: { locale: Locale }) {
           </span>
         </div>
 
-        {/* 表单 */}
-        <div className="glass mx-auto mt-10 max-w-2xl rounded-2xl p-6">
+        {/* 表单：未登录显示登录卡片 */}
+        <SignInGate locale={locale} className="mx-auto mt-10 max-w-2xl">
+        <div className="glass rounded-2xl p-6">
           <h2 className="mb-5 flex items-center gap-2 font-serif text-base text-foreground">
             <Compass size={15} className="text-accent/70" /> {t.formTitle}
           </h2>
@@ -187,6 +189,7 @@ export function ZiweiContent({ locale }: { locale: Locale }) {
             {loading ? t.submitting : t.submit}
           </button>
         </div>
+        </SignInGate>
 
         {/* 命盘 */}
         {chart && (

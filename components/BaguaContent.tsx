@@ -7,6 +7,7 @@ import { getBaguaMessages } from "@/lib/bagua-i18n";
 import { BaguaChart, BaguaDrawData } from "./BaguaChart";
 import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
+import { SignInGate } from "./SignInGate";
 
 /** 同源 API（server.js 异步任务模式）。 */
 const API_ENDPOINTS = ["/api/bagua"];
@@ -136,7 +137,7 @@ export function BaguaContent({ locale }: { locale: Locale }) {
 
       {/* Form */}
       <section className="px-6 pb-24">
-        <div className="mx-auto max-w-2xl">
+        <SignInGate locale={locale} className="mx-auto max-w-2xl">
           <div className="glass glow rounded-2xl p-6 sm:p-10">
             <div className="mb-8 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
@@ -184,7 +185,7 @@ export function BaguaContent({ locale }: { locale: Locale }) {
               </button>
             </div>
           </div>
-        </div>
+        </SignInGate>
 
         {/* Hexagram + Reading */}
         {draw && (

@@ -6,6 +6,7 @@ import { Locale } from "@/lib/i18n";
 import { getTarotMessages, positionLabel, cardName, TAROT_ELEMENT_COLORS } from "@/lib/tarot-i18n";
 import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
+import { SignInGate } from "./SignInGate";
 
 /** 同源 API 优先（server.js），失败回退 Cloudflare Worker。 */
 // 只走同源服务端；旧的 Cloudflare Worker 兜底端点已下线（无登录态、无成本保护）
@@ -164,7 +165,7 @@ export function TarotContent({ locale }: { locale: Locale }) {
 
       {/* Form */}
       <section className="px-6 pb-24">
-        <div className="mx-auto max-w-2xl">
+        <SignInGate locale={locale} className="mx-auto max-w-2xl">
           <div className="glass glow rounded-2xl p-6 sm:p-10">
             <div className="mb-8 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
@@ -213,7 +214,7 @@ export function TarotContent({ locale }: { locale: Locale }) {
               </button>
             </div>
           </div>
-        </div>
+        </SignInGate>
 
         {/* Cards + Reading */}
         {draw && (

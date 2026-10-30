@@ -9,6 +9,7 @@ import { getUiMessages } from "@/lib/ui-i18n";
 import { notifyReport } from "@/lib/notify";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
+import { SignInGate } from "./SignInGate";
 import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
@@ -196,8 +197,8 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
 
       <section className="pb-24 px-6">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-5">
-          {/* Form */}
-          <div className="lg:col-span-3">
+          {/* Form：未登录显示登录卡片（功能需登录，页面本身仍可被搜索引擎收录） */}
+          <SignInGate locale={locale} className="lg:col-span-3">
             <div className="glass glow rounded-2xl p-6 sm:p-10">
               <div className="mb-8 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
@@ -306,7 +307,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                 )}
               </div>
             </div>
-          </div>
+          </SignInGate>
 
           {/* Info / Price */}
           <div className="lg:col-span-2 space-y-6">
