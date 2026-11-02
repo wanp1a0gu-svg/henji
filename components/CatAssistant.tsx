@@ -584,9 +584,9 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                   <div className="flex h-full flex-col justify-center gap-3">
                     {/* 小痕先自我介绍，像是在跟你开口 */}
                     <div className="flex items-start gap-2.5">
-                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f4efe6] p-[3px] shadow-[0_0_0_1px_rgba(201,168,124,0.3)]">
+                      <span className="mt-0.5 h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-accent/30">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/brand/xiaohen-avatar.png" alt="" className="h-full w-full object-contain" />
+                        <img src="/brand/xiaohen-avatar.png" alt="" className="h-full w-full object-cover" />
                       </span>
                       <div className="min-w-0 max-w-[85%]">
                         <p className="mb-1 text-[10px] tracking-wide text-accent/70">{t.catTitle}</p>
