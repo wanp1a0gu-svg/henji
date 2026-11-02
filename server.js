@@ -1785,38 +1785,14 @@ function executeToolCall(name, argsRaw) {
     return { content: "错误：工具参数不是合法 JSON。", artifact: null };
   }
 
+  // 八字是付费功能：对话接口已不再提供 bazi_chart。
+  // 即便老版本前端或伪造请求送上来，也在这里直接挡掉，杜绝绕过付费墙。
   if (name === "bazi_chart") {
-    const genderMap = { male: "male", female: "female", 男: "male", 女: "female" };
-    const gender = genderMap[args.gender] || (String(args.gender).indexOf("fe") === 0 ? "female" : "male");
-    const payload = {
-      birthDate: String(args.birthDate || "").slice(0, 10),
-      birthTime:
-        args.birthTime && TIME_RE.test(String(args.birthTime))
-          ? String(args.birthTime)
-          : shichenToTime(args.shichen),
-      gender,
-      name: typeof args.name === "string" ? args.name.slice(0, 50) : "",
-      place: typeof args.place === "string" ? args.place.slice(0, 80) : "",
-      focus: FOCUS_VALUES.indexOf(args.focus) !== -1 ? args.focus : "general",
+    return {
+      content:
+        "八字排盘是付费功能，对话里无法排盘。请到站内「八字测算」页下单后获取完整命书；想先聊聊可以用紫微、塔罗或起卦。",
+      artifact: null,
     };
-
-    if (!DATE_RE.test(payload.birthDate)) {
-      return {
-        content:
-          "排盘失败：缺少有效的阳历生日（格式 YYYY-MM-DD）。请向用户询问出生日期后再试。",
-        artifact: null,
-      };
-    }
-
-    try {
-      const { chart, chartBlock } = chartWithTrueSolar(payload);
-      return {
-        content: "【八字排盘结果 — 由确定性引擎计算，为既定事实，请原样采信并据此解读】\n" + chartBlock,
-        artifact: { type: "bazi", chart },
-      };
-    } catch (e) {
-      return { content: "排盘失败：" + ((e && e.message) || e), artifact: null };
-    }
   }
 
   if (name === "tarot_draw") {

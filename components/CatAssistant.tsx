@@ -9,7 +9,6 @@ import { useAuth } from "./AuthProvider";
 import { OPEN_CAT_EVENT } from "@/lib/cat-open";
 import { SignInGate } from "./SignInGate";
 import { RichText, loadCustomSkills } from "./ChatContent";
-import { BaziChart } from "./BaziChart";
 import { BaguaChart } from "./BaguaChart";
 
 const API = "/api/chat";
@@ -632,11 +631,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                     )}
 
                     {turn.artifacts?.map((a: any, j: number) =>
-                      a.type === "bazi" && a.chart ? (
-                        <div key={j} className="mt-3">
-                          <BaziChart chart={a.chart} locale={locale} />
-                        </div>
-                      ) : a.type === "bagua" && a.draw ? (
+                      a.type === "bagua" && a.draw ? (
                         <div key={j} className="mt-3">
                           <BaguaChart draw={a.draw} locale={locale} />
                         </div>
