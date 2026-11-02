@@ -2023,6 +2023,20 @@ const server = http.createServer((req, res) => {
   if (clean === "/api/paypal/refund") {
     return handlePayPalRefund(req, res);
   }
+  // 健康检查：用来判断「服务是不是刚重启 / 冷启动」
+  if (clean === "/api/health") {
+    const up = Math.round(process.uptime());
+    return sendJson(res, 200, {
+      ok: true,
+      uptimeSec: up,
+      startedAt: new Date(Date.now() - up * 1000).toISOString(),
+      pid: process.pid,
+      node: process.version,
+      mail: Mailer ? Mailer.isConfigured() : false,
+      ziwei: !!ZiweiEngine,
+    });
+  }
+
   if (clean === "/api/mail/status" || clean === "/api/mail/order" || clean === "/api/mail/report" || clean === "/api/mail/test") {
     return handleMailApi(req, res);
   }
