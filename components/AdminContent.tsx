@@ -196,9 +196,9 @@ export function AdminContent({ locale }: { locale: Locale }) {
       try {
         const { data: w } = await getCloud().database.rpc("whoami");
         const row: any = Array.isArray(w) ? w[0] : w;
-        if (!cancelled) setDiag(row || null);
+        if (!cancelled) setDiag(row || {});
       } catch {
-        /* 诊断失败忽略 */
+        if (!cancelled) setDiag({});
       }
     })();
     return () => {
@@ -316,6 +316,9 @@ export function AdminContent({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (loading || !user) return;
     if (adminState === "checking") return;
+    // 会话里的 user 可能没有 email（OAuth 只带 id），等 whoami 兜底后再写，避免日志里没有账号
+    const email = user.email || (diag && diag.email) || "";
+    if (!email && !diag) return;
     const key = String(user.id) + ":" + adminState;
     if (accessLoggedRef.current === key) return;
     accessLoggedRef.current = key;
@@ -345,7 +348,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
           .database.from("admin_access_log")
           .insert({
             user_id: String(user.id),
-            user_email: user.email || null,
+            user_email: email || null,
             allowed: adminState === "yes",
             path: typeof location !== "undefined" ? location.pathname : null,
             locale,
@@ -368,7 +371,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         /* 日志失败不影响后台使用 */
       }
     })();
-  }, [user, loading, adminState, locale]);
+  }, [user, loading, adminState, locale, diag]);
 
   // ---- 门禁 ----
   if (loading) {
