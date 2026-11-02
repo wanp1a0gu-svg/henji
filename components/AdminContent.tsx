@@ -46,6 +46,8 @@ interface PageView {
   region?: string | null;
   city?: string | null;
   isp?: string | null;
+  ip_kind?: string | null;
+  tz?: string | null;
   created_at: string;
 }
 
@@ -230,7 +232,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         const since = new Date(Date.now() - 7 * 86400000).toISOString();
         const v = await db
           .from("page_views")
-          .select("path,locale,ip,visitor_id,user_agent,referrer,user_id,user_email,country,region,city,isp,created_at")
+          .select("path,locale,ip,visitor_id,user_agent,referrer,user_id,user_email,country,region,city,isp,ip_kind,tz,created_at")
           .gte("created_at", since)
           .order("created_at", { ascending: false })
           .limit(5000);
@@ -353,6 +355,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
             region: cut(geo.region, 80),
             city: cut(geo.city, 80),
             isp: cut(geo.isp, 100),
+            ip_kind: cut(geo.kind, 10),
+            tz: (() => {
+              try {
+                return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+              } catch {
+                return null;
+              }
+            })(),
           });
       } catch {
         /* 日志失败不影响后台使用 */
@@ -1181,7 +1191,14 @@ export function AdminContent({ locale }: { locale: Locale }) {
                             </span>
                           )}
                         </td>
-                        <td className="whitespace-nowrap px-2 py-2 font-mono text-accent/80">{v.ip || "—"}</td>
+                        <td className="whitespace-nowrap px-2 py-2 font-mono text-accent/80">
+                          {v.ip || "—"}
+                          {v.ip_kind === "idc" && (
+                            <span className="ms-1 rounded border border-amber-400/30 bg-amber-400/10 px-1 py-0.5 text-[9px] text-amber-200/90">
+                              机房/代理
+                            </span>
+                          )}
+                        </td>
                         <td className="whitespace-nowrap px-2 py-2 text-muted/80">{geoOf(v)}</td>
                         <td className="max-w-[140px] truncate px-2 py-2 text-muted/60">{v.isp || "—"}</td>
                         <td className="whitespace-nowrap px-2 py-2 text-muted/70">{deviceOf(v.user_agent)}</td>

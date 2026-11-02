@@ -28,6 +28,8 @@ export type AccessRow = {
   region?: string | null;
   city?: string | null;
   isp?: string | null;
+  ip_kind?: string | null;
+  tz?: string | null;
 };
 
 const fmt = (t: string) => {
@@ -82,7 +84,7 @@ export function AdminAccessLog({ initialRows }: { initialRows?: AccessRow[] } = 
       try {
         const { data, error } = await getCloud()
           .database.from("admin_access_log")
-          .select("id,created_at,user_id,user_email,allowed,path,locale,ip,user_agent,country,region,city,isp")
+          .select("id,created_at,user_id,user_email,allowed,path,locale,ip,user_agent,country,region,city,isp,ip_kind,tz")
           .order("created_at", { ascending: false })
           .limit(100);
         if (error) throw new Error(error.message || "读取失败");
@@ -154,7 +156,14 @@ export function AdminAccessLog({ initialRows }: { initialRows?: AccessRow[] } = 
                     </span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono text-accent/80">{r.ip || "—"}</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono text-accent/80">
+                  {r.ip || "—"}
+                  {r.ip_kind === "idc" && (
+                    <span className="ms-1 rounded border border-amber-400/30 bg-amber-400/10 px-1 py-0.5 text-[9px] text-amber-200/90">
+                      机房/代理
+                    </span>
+                  )}
+                </td>
                 <td className="whitespace-nowrap px-2 py-2 text-muted/80">{geoOf(r)}</td>
                 <td className="whitespace-nowrap px-2 py-2 text-muted/70">{deviceOf(r.user_agent)}</td>
               </tr>

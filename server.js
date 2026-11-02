@@ -329,8 +329,29 @@ function isPrivateIp(ip) {
   return false;
 }
 
+/**
+ * 判断 IP 属于「机房/代理」还是「普通宽带」。
+ *
+ * 为什么要这个：站主反馈「我人在郑州，为什么显示济南」。查下来是他本机开着代理，
+ * 出口落在一台山东机房（AS58540 …JINAN IDC）。这类 IP 的归属地**不是用户所在地**，
+ * 必须标出来，否则后台看数据会被误导。
+ */
+const IDC_HINTS = [
+  "idc", "data center", "datacenter", "data-center", "cloud", "hosting", "colo",
+  "server", "vpn", "proxy", "dedicated",
+  "amazon", "aws", "google", "microsoft", "azure", "oracle", "digitalocean",
+  "cloudflare", "linode", "vultr", "ovh", "hetzner", "leaseweb",
+  "alibaba", "aliyun", "tencent", "huawei cloud", "ucloud", "kingsoft",
+];
+
+function ipKindOf(...texts) {
+  const t = texts.filter(Boolean).join(" ").toLowerCase();
+  if (!t) return "";
+  return IDC_HINTS.some((k) => t.indexOf(k) !== -1) ? "idc" : "resi";
+}
+
 async function lookupGeo(ip) {
-  const empty = { country: "", region: "", city: "", isp: "" };
+  const empty = { country: "", region: "", city: "", isp: "", kind: "" };
   if (isPrivateIp(ip)) return empty;
 
   const hit = _geoCache.get(ip);
@@ -354,6 +375,7 @@ async function lookupGeo(ip) {
         region: j.regionName || "",
         city: j.city || "",
         isp: [j.org || j.isp || "", asn].filter(Boolean).join(" · "),
+        kind: ipKindOf(j.as, j.org, j.isp),
       };
     }
   } catch {
@@ -373,6 +395,7 @@ async function lookupGeo(ip) {
           region: j.region || "",
           city: j.city || "",
           isp: (j.connection && j.connection.isp) || "",
+          kind: ipKindOf(j.connection && j.connection.isp, j.connection && j.connection.org),
         };
       }
     } catch {

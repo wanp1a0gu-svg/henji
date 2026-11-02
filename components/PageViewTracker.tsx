@@ -92,6 +92,14 @@ export function PageViewTracker({ locale }: { locale: string }) {
           region: cut(geo.region, 80),
           city: cut(geo.city, 80),
           isp: cut(geo.isp, 100),
+          ip_kind: cut(geo.kind, 10),
+          tz: (() => {
+            try {
+              return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+            } catch {
+              return null;
+            }
+          })(),
         });
       // 必须消费 promise 才会真正发出请求
       Promise.resolve(p).then(
