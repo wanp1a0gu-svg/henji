@@ -239,6 +239,16 @@ export function AdminContent({ locale }: { locale: Locale }) {
     }
   };
 
+  // 邮件通道状态（仅在后台展示，失败不影响任何功能）
+  // ⚠️ 必须放在上面的门禁 return 之前：hook 一旦写在「提前 return」之后，
+  //    登录后从 loading 切到后台时 hook 数量变化 → React #310 整页崩溃（11-02 踩过）
+  useEffect(() => {
+    fetch("/api/mail/status")
+      .then((r) => r.json())
+      .then(setMailStatus)
+      .catch(() => setMailStatus({ configured: false, hint: "无法获取" }));
+  }, []);
+
   // ---- 门禁 ----
   if (loading) {
     return (
@@ -518,14 +528,6 @@ export function AdminContent({ locale }: { locale: Locale }) {
   };
 
   // ---- 流量统计（近 7 天，时区 Asia/Shanghai）----
-  // 邮件通道状态（仅在后台展示，失败不影响任何功能）
-  useEffect(() => {
-    fetch("/api/mail/status")
-      .then((r) => r.json())
-      .then(setMailStatus)
-      .catch(() => setMailStatus({ configured: false, hint: "无法获取" }));
-  }, []);
-
   const allViews = views || [];
   const dayKey = (t: string) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Shanghai" });
   const todayKey = dayKey(new Date().toISOString());
