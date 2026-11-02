@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Send, Loader2, ArrowRight } from "lucide-react";
+import { X, Send, Loader2, ArrowRight, RotateCcw } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getChatMessages } from "@/lib/chat-i18n";
 import { positionLabel, cardName } from "@/lib/tarot-i18n";
@@ -36,6 +36,63 @@ interface CatTurn {
   artifacts?: any[];
   pending?: boolean;
   error?: boolean;
+}
+
+
+/* ── 聊天记录本地持久化 ──
+ * 站内跳转是整页刷新（<a href>），组件状态会丢；所以把对话存在 localStorage，
+ * 回到任意页面时小痕还记得刚才聊过什么。
+ * 只存最近 20 轮、正文截断、artifacts 只留最后一条（命盘 JSON 很大）。
+ */
+const TURNS_KEY = "traces_cat_turns_v1";
+const MAX_SAVED_TURNS = 20;
+const MAX_CONTENT_CHARS = 4000;
+const MAX_ARTIFACT_CHARS = 60000;
+
+function loadSavedTurns(): CatTurn[] {
+  try {
+    if (typeof window === "undefined") return [];
+    const raw = window.localStorage.getItem(TURNS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .filter((t: any) => t && (t.role === "user" || t.role === "assistant") && typeof t.content === "string")
+      .map((t: any) => ({
+        role: t.role,
+        content: String(t.content).slice(0, MAX_CONTENT_CHARS),
+        artifacts: Array.isArray(t.artifacts) ? t.artifacts : undefined,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function saveTurns(turns: CatTurn[]) {
+  try {
+    if (typeof window === "undefined") return;
+    const clean = turns.filter((t) => !t.pending && !t.error);
+    const tail = clean.slice(-MAX_SAVED_TURNS);
+    // 只保留最后一条助手消息的 artifacts，并限长
+    let lastArtifactIdx = -1;
+    for (let i = tail.length - 1; i >= 0; i--) {
+      if (tail[i].role === "assistant" && tail[i].artifacts && tail[i].artifacts!.length) {
+        lastArtifactIdx = i;
+        break;
+      }
+    }
+    const slim = tail.map((t, i) => {
+      const base: any = { role: t.role, content: String(t.content || "").slice(0, MAX_CONTENT_CHARS) };
+      if (i === lastArtifactIdx) {
+        const json = JSON.stringify(t.artifacts);
+        if (json.length <= MAX_ARTIFACT_CHARS) base.artifacts = t.artifacts;
+      }
+      return base;
+    });
+    window.localStorage.setItem(TURNS_KEY, JSON.stringify(slim));
+  } catch {
+    /* 存不下就算了，不影响对话 */
+  }
 }
 
 /** 轮询对话任务。 */
@@ -107,6 +164,19 @@ export function CatAssistant({ locale }: { locale: Locale }) {
   const lastDragEndRef = useRef(0);
 
   const [turns, setTurns] = useState<CatTurn[]>([]);
+  const [turnsLoaded, setTurnsLoaded] = useState(false);
+
+  // 站内跳转后恢复上次的对话（服务端渲染时读不到 localStorage，所以放 effect 里）
+  useEffect(() => {
+    const saved = loadSavedTurns();
+    if (saved.length) setTurns(saved);
+    setTurnsLoaded(true);
+  }, []);
+
+  // 变化就存（等恢复完成后再开始写，避免首次挂载把记录清空）
+  useEffect(() => {
+    if (turnsLoaded) saveTurns(turns);
+  }, [turns, turnsLoaded]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -591,6 +661,22 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                 <span className="h-1.5 w-1.5 rounded-full bg-green-400" /> Online
               </p>
             </div>
+            <button
+              onClick={() => {
+                setTurns([]);
+                try {
+                  window.localStorage.removeItem(TURNS_KEY);
+                } catch {
+                  /* ignore */
+                }
+                setInput("");
+              }}
+              className="text-muted transition hover:text-foreground"
+              aria-label={t.startOver || "新对话"}
+              title={t.startOver || "新对话"}
+            >
+              <RotateCcw size={15} />
+            </button>
             <button
               onClick={() => setChatOpen(false)}
               className="text-muted transition hover:text-foreground"
