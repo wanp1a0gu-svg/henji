@@ -210,13 +210,15 @@ export const SHOP_PRODUCTS: ShopProduct[] = [
     usageZh: USAGE_ZH,
   },
   {
+    // id 保持 zhan-taohua 不变：历史订单和 product_stock 都按这个 id 记录，
+    // 改了会断掉关联。符面实际写的是「招桃花」，所以展示文案已改为招桃花。
     id: "zhan-taohua",
-    image: "/shop/talisman/zhan-taohua.webp",
+    image: "/shop/talisman/zhao-taohua.webp",
     price: 66,
-    name: "Severing Unwanted Attachments",
-    nameZh: "斩桃花符",
-    desc: `${TALISMAN_DESC_EN} The "cutting the peach blossom" motif — in folk practice, for closing off unwanted romantic entanglements.`,
-    descZh: `${TALISMAN_DESC_ZH}斩桃花符样，民间用于了断不必要的感情牵扯。`,
+    name: "Attracting Romance",
+    nameZh: "招桃花符",
+    desc: `${TALISMAN_DESC_EN} The "inviting the peach blossom" motif — in folk practice, for drawing romance and meeting the right person.`,
+    descZh: `${TALISMAN_DESC_ZH}招桃花符样，民间取「引动姻缘、多遇良人」之意。`,
     category: "relation",
     group: "marriage",
     spec: "Traditional yellow paper · hand-brushed cinnabar · single sheet",
