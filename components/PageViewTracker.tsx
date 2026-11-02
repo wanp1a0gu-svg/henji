@@ -19,8 +19,9 @@ async function isAdminSession(): Promise<boolean> {
 }
 
 /**
- * 匿名页面访问统计（PV/UV）。
- * - 每次路由变化上报一次：path + locale + 随机访客ID（localStorage，无 IP/设备信息）
+ * 页面访问统计（PV/UV + 访问明细）。
+ * - 每次路由变化上报一次：path、locale、随机访客 ID、公网 IP、
+ *   归属地（国家/省/城市/运营商，服务端查）、UA、来源页；登录用户额外记 uid + 邮箱
  * - 不统计 /admin 与 /account 等私有页；不统计站主自己的访问
  * - 静默失败（统计失败绝不影响用户）
  */
@@ -54,28 +55,44 @@ export function PageViewTracker({ locale }: { locale: string }) {
         vid = "anon";
       }
 
-      // 公网 IP：浏览器拿不到自己的出口 IP，由服务端读 X-Forwarded-For 返回
-      // （不经过第三方接口）。同一次会话缓存，避免每次翻页都请求。
-      let ip: string | null = null;
+      // 公网 IP + 归属地：浏览器拿不到自己的出口 IP，由服务端读 X-Forwarded-For
+      // 并查归属地后返回。同一次会话缓存，避免每次翻页都请求。
+      let info: any = null;
       try {
-        const cached = sessionStorage.getItem("traces_ip");
+        const cached = sessionStorage.getItem("traces_ipinfo");
         if (cached) {
-          ip = cached;
+          info = JSON.parse(cached);
         } else {
           const r = await fetch("/api/ip", { cache: "no-store" });
-          const j = (await r.json()) as { ip?: string };
+          const j: any = await r.json();
           if (j && j.ip) {
-            ip = String(j.ip);
-            sessionStorage.setItem("traces_ip", ip);
+            info = j;
+            sessionStorage.setItem("traces_ipinfo", JSON.stringify(j));
           }
         }
       } catch {
-        /* 拿不到 IP 就留空，不影响埋点 */
+        /* 拿不到就留空，不影响埋点 */
       }
+
+      const geo = (info && info.geo) || {};
+      const cut = (v: any, n: number) => (v ? String(v).slice(0, n) : null);
 
       const p = getCloud()
         .database.from("page_views")
-        .insert({ path: pathname, locale, visitor_id: vid, ip });
+        .insert({
+          path: pathname,
+          locale,
+          visitor_id: vid,
+          ip: info && info.ip ? String(info.ip) : null,
+          user_agent: cut((info && info.ua) || navigator.userAgent, 300),
+          referrer: cut(typeof document !== "undefined" ? document.referrer : "", 300),
+          user_id: user ? String(user.id) : null,
+          user_email: user && user.email ? String(user.email) : null,
+          country: cut(geo.country, 60),
+          region: cut(geo.region, 80),
+          city: cut(geo.city, 80),
+          isp: cut(geo.isp, 100),
+        });
       // 必须消费 promise 才会真正发出请求
       Promise.resolve(p).then(
         () => {},

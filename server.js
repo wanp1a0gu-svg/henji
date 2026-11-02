@@ -311,6 +311,81 @@ function clientIp(req) {
   return (req.socket && req.socket.remoteAddress) || "unknown";
 }
 
+/**
+ * IP 归属地：先用 ipwho.is（HTTPS），失败退回 ip-api.com（HTTP）。
+ * 只用于后台「流量」页展示来源地，不参与业务；任何失败一律返回空值，绝不阻塞埋点。
+ * 缓存 12 小时（同一 IP 不重复查），上限 2000 条。
+ */
+const _geoCache = new Map();
+const GEO_TTL_MS = 12 * 3600 * 1000;
+
+function isPrivateIp(ip) {
+  if (!ip) return true;
+  const s = String(ip).replace(/^::ffff:/, "");
+  if (s === "::1" || s === "127.0.0.1") return true;
+  if (s.startsWith("10.") || s.startsWith("192.168.")) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(s)) return true;
+  if (s.startsWith("169.254.")) return true;
+  return false;
+}
+
+async function lookupGeo(ip) {
+  const empty = { country: "", region: "", city: "", isp: "" };
+  if (isPrivateIp(ip)) return empty;
+
+  const hit = _geoCache.get(ip);
+  if (hit && Date.now() - hit.at < GEO_TTL_MS) return hit.geo;
+
+  let geo = null;
+
+  // 1) ip-api.com：ISP/ASN 更完整（国内能到"联通/电信 + AS 号"），优先
+  try {
+    const r = await fetch(
+      "http://ip-api.com/json/" +
+        encodeURIComponent(ip) +
+        "?fields=status,country,regionName,city,isp,org,as&lang=en",
+      { signal: AbortSignal.timeout(3500) }
+    );
+    const j = await r.json();
+    if (j && j.status === "success") {
+      const asn = j.as ? String(j.as).split(" ")[0] : "";
+      geo = {
+        country: j.country || "",
+        region: j.regionName || "",
+        city: j.city || "",
+        isp: [j.org || j.isp || "", asn].filter(Boolean).join(" · "),
+      };
+    }
+  } catch {
+    /* 换下一个通道 */
+  }
+
+  // 2) ipwho.is：HTTPS，兜底
+  if (!geo) {
+    try {
+      const r = await fetch("https://ipwho.is/" + encodeURIComponent(ip), {
+        signal: AbortSignal.timeout(3500),
+      });
+      const j = await r.json();
+      if (j && j.success) {
+        geo = {
+          country: j.country || "",
+          region: j.region || "",
+          city: j.city || "",
+          isp: (j.connection && j.connection.isp) || "",
+        };
+      }
+    } catch {
+      /* 两个都失败就不带地理信息 */
+    }
+  }
+
+  geo = geo || empty;
+  if (_geoCache.size > 2000) _geoCache.clear();
+  _geoCache.set(ip, { at: Date.now(), geo });
+  return geo;
+}
+
 function checkRateLimit(req, kind) {
   const k = RATE_LIMITS[kind] ? kind : "default";
   const limit = RATE_LIMITS[k];
@@ -2048,7 +2123,11 @@ const server = http.createServer((req, res) => {
   // 访客 IP：埋点由浏览器写库，客户端拿不到自己的公网 IP，
   // 由服务端读 X-Forwarded-For 回给前端（不经过任何第三方接口）
   if (clean === "/api/ip") {
-    return sendJson(res, 200, { ip: clientIp(req) });
+    const ip = clientIp(req);
+    lookupGeo(ip)
+      .then((geo) => sendJson(res, 200, { ip, ua: req.headers["user-agent"] || "", geo }))
+      .catch(() => sendJson(res, 200, { ip, ua: req.headers["user-agent"] || "", geo: null }));
+    return;
   }
 
   // 默认语言（英文）：HTTP 级重定向到 /en。

@@ -37,8 +37,63 @@ interface PageView {
   locale: string | null;
   ip: string | null;
   visitor_id: string | null;
+  user_agent?: string | null;
+  referrer?: string | null;
+  user_id?: string | null;
+  user_email?: string | null;
+  country?: string | null;
+  region?: string | null;
+  city?: string | null;
+  isp?: string | null;
   created_at: string;
 }
+
+/** UA → 系统 · 浏览器（够用就好，不引入 UA 解析库） */
+const deviceOf = (ua?: string | null) => {
+  const s = (ua || "").toLowerCase();
+  if (!s) return "—";
+  const os = s.includes("windows")
+    ? "Windows"
+    : s.includes("android")
+      ? "Android"
+      : /iphone|ipad|ipod/.test(s)
+        ? "iOS"
+        : s.includes("mac os")
+          ? "macOS"
+          : s.includes("linux")
+            ? "Linux"
+            : "";
+  const br = s.includes("micromessenger")
+    ? "微信"
+    : s.includes("edg/")
+      ? "Edge"
+      : s.includes("firefox")
+        ? "Firefox"
+        : s.includes("chrome")
+          ? "Chrome"
+          : s.includes("safari")
+            ? "Safari"
+            : "";
+  const bot = /bot|crawl|spider|headless/.test(s) ? "机器人" : "";
+  return [os, br, bot].filter(Boolean).join(" · ") || "其他";
+};
+
+/** 来源：站内跳转 / 外部域名 / 直接访问 */
+const sourceOf = (ref?: string | null) => {
+  if (!ref) return "直接访问";
+  try {
+    const u = new URL(ref);
+    if (u.hostname.indexOf("mingli-club") !== -1 || u.hostname === "localhost") return "站内跳转";
+    return u.hostname;
+  } catch {
+    return String(ref).slice(0, 40);
+  }
+};
+
+const geoOf = (v: PageView) => {
+  const parts = [v.country, v.region, v.city].filter(Boolean);
+  return parts.length ? parts.join(" / ") : "—";
+};
 
 interface Reading {
   id: number;
@@ -115,6 +170,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
   // 订单筛选（2026-10-29）
   const [oQuery, setOQuery] = useState("");
   const [oStatus, setOStatus] = useState<"all" | "pending" | "shipped" | "refunded" | "digital">("all");
+  // 访问明细筛选
+  const [vQuery, setVQuery] = useState("");
 
   // 身份判断走服务端（is_admin RPC，读登录凭证；与数据库 RLS 同一逻辑）
   const [adminState, setAdminState] = useState<"checking" | "yes" | "no">("checking");
@@ -170,7 +227,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         const since = new Date(Date.now() - 7 * 86400000).toISOString();
         const v = await db
           .from("page_views")
-          .select("path,locale,ip,visitor_id,created_at")
+          .select("path,locale,ip,visitor_id,user_agent,referrer,user_id,user_email,country,region,city,isp,created_at")
           .gte("created_at", since)
           .order("created_at", { ascending: false })
           .limit(5000);
@@ -558,6 +615,51 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const maxDayPv = Math.max(1, ...days.map((d) => (byDay.get(d) || { pv: 0 }).pv));
   const topPages = Array.from(byPath.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
+  // 访问明细：关键词筛选 + 独立 IP 统计
+  const vFiltered = allViews.filter((v) => {
+    const q = vQuery.trim().toLowerCase();
+    if (!q) return true;
+    return [v.ip, v.user_email, v.path, v.city, v.region, v.country, v.isp, v.referrer, v.visitor_id]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .indexOf(q) !== -1;
+  });
+  const uniqueIpCount = new Set(allViews.map((v) => v.ip).filter(Boolean)).size;
+  const loggedInViews = allViews.filter((v) => v.user_email).length;
+
+  /** 导出访问明细 CSV（当前筛选结果） */
+  const exportViewsCsv = () => {
+    const head = [
+      "时间", "页面", "语言", "用户", "访客ID", "IP", "国家", "省/州", "城市", "运营商", "设备", "来源",
+    ];
+    const body = vFiltered.map((v) => [
+      fmtTime(v.created_at),
+      v.path,
+      v.locale || "",
+      v.user_email || (v.user_id ? "已登录（无邮箱）" : "游客"),
+      v.visitor_id || "",
+      v.ip || "",
+      v.country || "",
+      v.region || "",
+      v.city || "",
+      v.isp || "",
+      deviceOf(v.user_agent),
+      sourceOf(v.referrer),
+    ]);
+    const esc = (x: any) => `"${String(x === null || x === undefined ? "" : x).replace(/"/g, '""')}"`;
+    const csv = "\ufeff" + [head, ...body].map((r) => r.map(esc).join(",")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `traces-visits-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
   const TABS = [
     { key: "overview" as const, label: "概览", icon: <Sparkles size={14} /> },
     { key: "orders" as const, label: "订单", icon: <Wallet size={14} /> },
@@ -939,7 +1041,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
                 })}
               </div>
               <p className="mt-4 text-[10px] leading-relaxed text-muted/50">
-                记录页面路径、语言、随机访客 ID 与服务端读取的公网 IP；不含设备指纹。不含后台、账户页与站主本人的访问。UV = 去重访客数（浏览器维度）。
+                记录页面路径、语言、随机访客 ID、公网 IP、IP 归属地、浏览器 UA 与来源页；登录用户额外记邮箱。
+                不含后台、账户页与站主本人的访问。UV = 去重访客数（浏览器维度）。
               </p>
             </div>
 
@@ -965,47 +1068,86 @@ export function AdminContent({ locale }: { locale: Locale }) {
               })}
             </div>
 
-            {/* 最近访问记录（含 IP） */}
+            {/* 访问明细：IP / 归属地 / 用户 / 设备 / 来源 */}
             <div className="glass overflow-hidden rounded-2xl">
-              <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex flex-wrap items-center gap-2 px-5 py-4">
                 <p className="flex items-center gap-1.5 text-xs text-muted/70">
-                  <Globe size={12} /> 最近访问记录（最多 50 条）
+                  <Globe size={12} /> 访问明细
+                  <span className="text-muted/40">
+                    （{vFiltered.length} 条 · 独立 IP {uniqueIpCount} · 已登录 {loggedInViews} 次）
+                  </span>
                 </p>
-                <span className="text-[10px] text-muted/40">按时间倒序</span>
+                <div className="ms-auto flex items-center gap-2">
+                  <input
+                    value={vQuery}
+                    onChange={(e) => setVQuery(e.target.value)}
+                    placeholder="搜 IP / 邮箱 / 页面 / 城市"
+                    className="w-52 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-foreground placeholder:text-muted/40 focus:border-accent/40 focus:outline-none"
+                  />
+                  <button
+                    onClick={exportViewsCsv}
+                    disabled={vFiltered.length === 0}
+                    className="inline-flex items-center gap-1 rounded-lg border border-accent/25 bg-accent/10 px-3 py-1.5 text-[11px] text-accent transition hover:bg-accent/20 disabled:opacity-40"
+                  >
+                    <Download size={11} /> 导出 CSV
+                  </button>
+                </div>
               </div>
-              <div className="max-h-[420px] overflow-y-auto border-t border-white/[0.06]">
-                <table className="w-full text-start text-[11px]">
-                  <thead className="sticky top-0 bg-background/95 backdrop-blur">
+
+              <div className="max-h-[520px] overflow-auto border-t border-white/[0.06]">
+                <table className="w-full min-w-[1040px] text-start text-[11px]">
+                  <thead className="sticky top-0 z-10 bg-background/95 backdrop-blur">
                     <tr className="border-b border-white/[0.08] text-[10px] uppercase tracking-wider text-muted/60">
-                      <th className="px-5 py-2 font-normal">时间</th>
-                      <th className="px-3 py-2 font-normal">页面</th>
-                      <th className="px-3 py-2 font-normal">语言</th>
-                      <th className="px-3 py-2 font-normal">IP</th>
-                      <th className="px-3 py-2 font-normal">访客</th>
+                      <th className="px-4 py-2 font-normal">时间</th>
+                      <th className="px-2 py-2 font-normal">页面</th>
+                      <th className="px-2 py-2 font-normal">用户</th>
+                      <th className="px-2 py-2 font-normal">IP</th>
+                      <th className="px-2 py-2 font-normal">归属地</th>
+                      <th className="px-2 py-2 font-normal">运营商</th>
+                      <th className="px-2 py-2 font-normal">设备</th>
+                      <th className="px-2 py-2 font-normal">来源</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allViews.slice(0, 50).map((v, i) => (
-                      <tr key={i} className="border-b border-white/[0.04]">
-                        <td className="whitespace-nowrap px-5 py-2 text-muted">{fmtTime(v.created_at)}</td>
-                        <td className="px-3 py-2 font-mono text-foreground/80">{v.path}</td>
-                        <td className="px-3 py-2 text-muted/70">{v.locale || "—"}</td>
-                        <td className="whitespace-nowrap px-3 py-2 font-mono text-accent/80">{v.ip || "—"}</td>
-                        <td className="px-3 py-2 font-mono text-muted/50">
-                          {(v.visitor_id || "").slice(0, 8) || "—"}
+                    {vFiltered.slice(0, 300).map((v, i) => (
+                      <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
+                        <td className="whitespace-nowrap px-4 py-2 text-muted">{fmtTime(v.created_at)}</td>
+                        <td className="px-2 py-2 font-mono text-foreground/80">{v.path}</td>
+                        <td className="max-w-[180px] px-2 py-2">
+                          {v.user_email ? (
+                            <span className="inline-flex items-center gap-1 text-accent/90">
+                              <span className="truncate">{v.user_email}</span>
+                            </span>
+                          ) : v.user_id ? (
+                            <span className="text-sky-300/70">已登录（无邮箱）</span>
+                          ) : (
+                            <span className="text-muted/50">
+                              游客 · {(v.visitor_id || "").slice(0, 8) || "—"}
+                            </span>
+                          )}
                         </td>
+                        <td className="whitespace-nowrap px-2 py-2 font-mono text-accent/80">{v.ip || "—"}</td>
+                        <td className="whitespace-nowrap px-2 py-2 text-muted/80">{geoOf(v)}</td>
+                        <td className="max-w-[140px] truncate px-2 py-2 text-muted/60">{v.isp || "—"}</td>
+                        <td className="whitespace-nowrap px-2 py-2 text-muted/70">{deviceOf(v.user_agent)}</td>
+                        <td className="max-w-[150px] truncate px-2 py-2 text-muted/60">{sourceOf(v.referrer)}</td>
                       </tr>
                     ))}
-                    {allViews.length === 0 && (
+                    {vFiltered.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-5 py-6 text-center text-[11px] text-muted/50">
-                          暂无数据
+                        <td colSpan={8} className="px-5 py-8 text-center text-[11px] text-muted/50">
+                          {allViews.length === 0 ? "暂无数据" : "没有符合筛选条件的记录"}
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
+
+              <p className="border-t border-white/[0.06] px-5 py-3 text-[10px] leading-relaxed text-muted/40">
+                归属地由服务端按 IP 反查（ipwho.is / ip-api），仅供内部参考、不保证精确：中国大陆一般到城市级，
+                海外多为国家级；运营商=接入商。登录用户才会记录邮箱，游客只显示匿名访客 ID。仅管理员可见。
+              </p>
             </div>
           </div>
         )}
