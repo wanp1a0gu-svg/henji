@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Send, Loader2 } from "lucide-react";
+import { X, Send, Loader2, ArrowRight } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getChatMessages } from "@/lib/chat-i18n";
 import { positionLabel, cardName } from "@/lib/tarot-i18n";
 import { useAuth } from "./AuthProvider";
 import { OPEN_CAT_EVENT } from "@/lib/cat-open";
+import { loadAgentFacts, factsToPrompt } from "@/lib/agent-facts";
 import { SignInGate } from "./SignInGate";
 import { RichText, loadCustomSkills } from "./ChatContent";
 import { BaguaChart } from "./BaguaChart";
@@ -379,6 +380,22 @@ export function CatAssistant({ locale }: { locale: Locale }) {
     return () => clearTimeout(id);
   }, [chatOpen]);
 
+  /**
+   * 「办事」需要事实：登录用户的余额 / 订单 / 历史命书。
+   * 每次打开弹窗刷新一次（不每条消息都查，省请求）。
+   */
+  const [factsText, setFactsText] = useState("");
+  useEffect(() => {
+    if (!chatOpen) return;
+    let alive = true;
+    loadAgentFacts(user && user.id ? { id: user.id } : null).then((f) => {
+      if (alive) setFactsText(factsToPrompt(f));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [chatOpen, user]);
+
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const send = async (q: string) => {
@@ -401,6 +418,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
           messages: [...history, { role: "user", content: text }],
           locale,
           skills: await loadCustomSkills(),
+          facts: factsText || undefined,
         }),
       });
       if (!res.ok) {
@@ -625,7 +643,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                         ) : turn.error ? (
                           <p className="text-xs text-red-300/80">{turn.content}</p>
                         ) : (
-                          <RichText text={turn.content} />
+                          <AssistantBody text={turn.content} locale={locale} />
                         )}
                       </div>
                     )}
@@ -705,5 +723,55 @@ export function CatAssistant({ locale }: { locale: Locale }) {
         </div>
       )}
     </>
+  );
+}
+
+/** 可用动作按钮 → 页面路径（按语言前缀）。 */
+const LINK_PATHS: Record<string, string> = {
+  bazi: "/bazi",
+  tarot: "/tarot",
+  bagua: "/bagua",
+  ziwei: "/ziwei",
+  shop: "/shop",
+  account: "/account",
+  learn: "/learn",
+  features: "/features",
+};
+
+const LINK_RE = /^\[\[LINK:([a-z]+)\|([^\]]+)\]\]$/;
+
+/**
+ * 助手消息：正文 + 动作按钮。
+ * 模型按约定在最后一行输出 [[LINK:key|文字]]，这里把它变成真按钮，
+ * 并从正文里剔掉，免得用户看到一堆方括号。
+ */
+function AssistantBody({ text, locale }: { text: string; locale: Locale }) {
+  const lines = String(text || "").split("\n");
+  const links: { key: string; label: string }[] = [];
+  const kept: string[] = [];
+
+  for (const raw of lines) {
+    const m = LINK_RE.exec(raw.trim());
+    if (m && LINK_PATHS[m[1]]) {
+      links.push({ key: m[1], label: m[2].trim() });
+    } else {
+      kept.push(raw);
+    }
+  }
+
+  return (
+    <div>
+      {kept.join("\n").trim() && <RichText text={kept.join("\n")} />}
+      {links.map((l) => (
+        <a
+          key={l.key}
+          href={`/${locale}${LINK_PATHS[l.key]}`}
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3.5 py-1.5 text-[12px] text-accent transition hover:border-accent/70 hover:bg-accent/20"
+        >
+          {l.label}
+          <ArrowRight size={12} />
+        </a>
+      ))}
+    </div>
   );
 }

@@ -1954,7 +1954,7 @@ function shichenToTime(shichen) {
 async function runChat(jobId, body) {
   try {
     const locale = body.locale || "en";
-    const system = SkillKnowledge.buildAssistantSystem(locale, sanitizeCustomSkills(body.skills));
+    const system = SkillKnowledge.buildAssistantSystem(locale, sanitizeCustomSkills(body.skills), body.facts);
     const tools = SkillKnowledge.toolDefinitions();
 
     // 只保留最近的若干轮，避免上下文过长 / 费用失控
