@@ -5,17 +5,19 @@ import { usePathname } from "next/navigation";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
 
-// 管理员身份缓存（每页面会话查一次服务端）
-let _adminCache: boolean | null = null;
-async function isAdminSession(): Promise<boolean> {
-  if (_adminCache !== null) return _adminCache;
+// 当前登录者信息缓存（每次页面会话查一次服务端）
+// 为什么要查：OAuth 会话里的 user 只有 id、没有 email，邮箱和「是否管理员」都得问服务端
+let _whoCache: { uid?: string; email?: string; is_admin?: boolean } | null = null;
+async function whoamiOnce() {
+  if (_whoCache) return _whoCache;
   try {
-    const { data } = await getCloud().database.rpc("is_admin");
-    _adminCache = data === true;
+    const { data } = await getCloud().database.rpc("whoami");
+    const row: any = Array.isArray(data) ? data[0] : data;
+    _whoCache = row || {};
   } catch {
-    _adminCache = false;
+    _whoCache = {};
   }
-  return _adminCache;
+  return _whoCache;
 }
 
 /**
@@ -77,6 +79,15 @@ export function PageViewTracker({ locale }: { locale: string }) {
       const geo = (info && info.geo) || {};
       const cut = (v: any, n: number) => (v ? String(v).slice(0, n) : null);
 
+      // 登录用户：问一次服务端拿到 id / email（会话里的 user 通常没有 email）
+      let uid: string | null = null;
+      let email: string | null = null;
+      if (user) {
+        uid = String(user.id);
+        const w = await whoamiOnce();
+        email = (w && w.email) || (user as any).email || null;
+      }
+
       const p = getCloud()
         .database.from("page_views")
         .insert({
@@ -86,8 +97,8 @@ export function PageViewTracker({ locale }: { locale: string }) {
           ip: info && info.ip ? String(info.ip) : null,
           user_agent: cut((info && info.ua) || navigator.userAgent, 300),
           referrer: cut(typeof document !== "undefined" ? document.referrer : "", 300),
-          user_id: user ? String(user.id) : null,
-          user_email: user && user.email ? String(user.email) : null,
+          user_id: uid,
+          user_email: email,
           country: cut(geo.country, 60),
           region: cut(geo.region, 80),
           city: cut(geo.city, 80),
@@ -111,14 +122,9 @@ export function PageViewTracker({ locale }: { locale: string }) {
     }
     };
 
-    // 站主自己的访问不统计（服务端判断，避免会话字段差异）
-    if (user) {
-      isAdminSession().then((isAdmin) => {
-        if (!isAdmin) insert();
-      });
-    } else {
-      insert();
-    }
+    // 管理员也记录（后台会打「管理员」标签并从 PV/UV 里排除），
+    // 这样后台能看到「谁登录了」，而不是清一色游客。
+    insert();
   }, [pathname, user, loading, locale]);
 
   return null;

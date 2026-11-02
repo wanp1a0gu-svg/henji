@@ -653,6 +653,11 @@ export function AdminContent({ locale }: { locale: Locale }) {
 
   // ---- 流量统计（近 7 天，时区 Asia/Shanghai）----
   const allViews = views || [];
+  /** 管理员自己的访问：明细里会标出来，但不计入 PV/UV（否则自己刷两下就把数据搅浑） */
+  const isAdminRow = (v: PageView) =>
+    !!v.user_email && ADMIN_EMAILS.some((e) => e.toLowerCase() === String(v.user_email).toLowerCase());
+  const statViews = allViews.filter((v) => !isAdminRow(v));
+  const adminViewCount = allViews.length - statViews.length;
   const dayKey = (t: string) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Shanghai" });
   const todayKey = dayKey(new Date().toISOString());
   const days: string[] = [];
@@ -665,7 +670,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const uvToday = new Set<string>();
   let todayPv = 0;
   const byPath = new Map<string, number>();
-  for (const v of allViews) {
+  for (const v of statViews) {
     const k = dayKey(v.created_at);
     const rec = byDay.get(k);
     if (rec) {
@@ -1142,7 +1147,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
                 <p className="flex items-center gap-1.5 text-xs text-muted/70">
                   <Globe size={12} /> 访问明细
                   <span className="text-muted/40">
-                    （{vFiltered.length} 条 · 独立 IP {uniqueIpCount} · 已登录 {loggedInViews} 次）
+                    （{vFiltered.length} 条 · 独立 IP {uniqueIpCount} · 已登录 {loggedInViews} 次
+                    {adminViewCount > 0 ? `，其中管理员 ${adminViewCount} 次不计入 PV` : ""}）
                   </span>
                 </p>
                 <div className="ms-auto flex items-center gap-2">
@@ -1185,6 +1191,11 @@ export function AdminContent({ locale }: { locale: Locale }) {
                           {v.user_email ? (
                             <span className="inline-flex items-center gap-1 text-accent/90">
                               <span className="truncate">{v.user_email}</span>
+                              {isAdminRow(v) && (
+                                <span className="shrink-0 rounded border border-sky-400/30 bg-sky-400/10 px-1 py-0.5 text-[9px] text-sky-200/90">
+                                  管理员
+                                </span>
+                              )}
                             </span>
                           ) : v.user_id ? (
                             <span className="text-sky-300/70">已登录（无邮箱）</span>
