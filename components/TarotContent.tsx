@@ -7,6 +7,8 @@ import { getTarotMessages, positionLabel, cardName, TAROT_ELEMENT_COLORS } from 
 import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
+import { WhenToUse } from "./WhenToUse";
+import { getWhen } from "@/lib/when-i18n";
 
 /** 同源 API 优先（server.js），失败回退 Cloudflare Worker。 */
 // 只走同源服务端；旧的 Cloudflare Worker 兜底端点已下线（无登录态、无成本保护）
@@ -160,8 +162,14 @@ export function TarotContent({ locale }: { locale: Locale }) {
             {t.title}
           </h1>
           <p className="mx-auto max-w-xl text-muted">{t.subtitle}</p>
+          <span className="mt-5 inline-block rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] text-accent">
+            {t.free}
+          </span>
         </div>
       </section>
+
+      {/* 什么时候用 */}
+      <WhenToUse copy={getWhen("tarot", locale)} />
 
       {/* Form */}
       <section className="px-6 pb-24">

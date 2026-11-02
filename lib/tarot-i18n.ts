@@ -10,6 +10,7 @@ export interface TarotMessages {
   eyebrow: string;
   title: string;
   subtitle: string;
+  free: string;
   questionLabel: string;
   questionPlaceholder: string;
   spreadLabel: string;
@@ -38,6 +39,7 @@ const zh: TarotMessages = {
   eyebrow: "TAROT · 塔罗",
   title: "塔罗占卜",
   subtitle: "塔罗是镜子，不是水晶球——把牌面转成自我观察与可选择的下一步。",
+  free: "免费",
   questionLabel: "你的问题（可选）",
   questionPlaceholder: "例如：这段关系会如何发展？",
   spreadLabel: "选择牌阵",
@@ -66,6 +68,7 @@ const en: TarotMessages = {
   eyebrow: "TAROT",
   title: "Tarot Reading",
   subtitle: "Tarot is a mirror, not a crystal ball — turn the cards into self-reflection and your next step.",
+  free: "Free",
   questionLabel: "Your question (optional)",
   questionPlaceholder: "e.g. Where is this relationship heading?",
   spreadLabel: "Choose a spread",
@@ -94,6 +97,7 @@ const ja: TarotMessages = {
   eyebrow: "TAROT",
   title: "タロット占い",
   subtitle: "タロットは鏡であり、水晶玉ではありません——カードを自己観察と次の一歩に変えましょう。",
+  free: "無料",
   questionLabel: "質問（任意）",
   questionPlaceholder: "例：この関係はどう進みますか？",
   spreadLabel: "スプレッドを選択",
@@ -122,6 +126,7 @@ const ko: TarotMessages = {
   eyebrow: "TAROT",
   title: "타로 리딩",
   subtitle: "타로는 거울이지 수정구슬이 아닙니다 — 카드를 자기 성찰과 다음 행동으로 바꿔보세요.",
+  free: "무료",
   questionLabel: "질문 (선택)",
   questionPlaceholder: "예: 이 관계는 어떻게 흘러갈까요?",
   spreadLabel: "스프레드 선택",
@@ -150,6 +155,7 @@ const es: TarotMessages = {
   eyebrow: "TAROT",
   title: "Lectura de Tarot",
   subtitle: "El tarot es un espejo, no una bola de cristal: convierte las cartas en reflexión y próximos pasos.",
+  free: "Gratis",
   questionLabel: "Tu pregunta (opcional)",
   questionPlaceholder: "p. ej. ¿Hacia dónde va esta relación?",
   spreadLabel: "Elige una tirada",
@@ -178,6 +184,7 @@ const fr: TarotMessages = {
   eyebrow: "TAROT",
   title: "Tirage de Tarot",
   subtitle: "Le tarot est un miroir, pas une boule de cristal — transformez les cartes en introspection et en prochaines étapes.",
+  free: "Gratuit",
   questionLabel: "Votre question (facultatif)",
   questionPlaceholder: "ex. Où va cette relation ?",
   spreadLabel: "Choisissez un tirage",
@@ -206,6 +213,7 @@ const de: TarotMessages = {
   eyebrow: "TAROT",
   title: "Tarot-Lesung",
   subtitle: "Tarot ist ein Spiegel, keine Glaskugel — verwandle die Karten in Selbstreflexion und nächste Schritte.",
+  free: "Kostenlos",
   questionLabel: "Deine Frage (optional)",
   questionPlaceholder: "z. B. Wohin entwickelt sich diese Beziehung?",
   spreadLabel: "Legung wählen",
@@ -234,6 +242,7 @@ const pt: TarotMessages = {
   eyebrow: "TAROT",
   title: "Leitura de Tarot",
   subtitle: "O tarot é um espelho, não uma bola de cristal — transforme as cartas em reflexão e próximos passos.",
+  free: "Grátis",
   questionLabel: "Sua pergunta (opcional)",
   questionPlaceholder: "ex.: Para onde vai este relacionamento?",
   spreadLabel: "Escolha uma tiragem",
@@ -262,6 +271,7 @@ const ru: TarotMessages = {
   eyebrow: "ТАРО",
   title: "Расклад Таро",
   subtitle: "Таро — это зеркало, а не хрустальный шар: превратите карты в самонаблюдение и следующий шаг.",
+  free: "Бесплатно",
   questionLabel: "Ваш вопрос (необязательно)",
   questionPlaceholder: "напр. Куда движутся эти отношения?",
   spreadLabel: "Выберите расклад",
@@ -290,6 +300,7 @@ const ar: TarotMessages = {
   eyebrow: "التاروت",
   title: "قراءة التاروت",
   subtitle: "التاروت مرآة وليس كرة بلورية — حوّل البطاقات إلى تأمل وخطوتك التالية.",
+  free: "مجاني",
   questionLabel: "سؤالك (اختياري)",
   questionPlaceholder: "مثال: إلى أين تتجه هذه العلاقة؟",
   spreadLabel: "اختر الانتشار",

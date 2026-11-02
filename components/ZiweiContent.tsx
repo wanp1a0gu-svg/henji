@@ -8,6 +8,8 @@ import { ZiweiChart, type ZiweiChartData } from "./ZiweiChart";
 import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
+import { WhenToUse } from "./WhenToUse";
+import { getWhen } from "@/lib/when-i18n";
 
 /** 异步任务模式：POST 返回 {jobId, chart}（盘立即可看），GET ?id= 取解读 */
 const API = "/api/ziwei";
@@ -113,20 +115,28 @@ export function ZiweiContent({ locale }: { locale: Locale }) {
 
   return (
     <main className="flex-1 pt-[72px]">
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        {/* 标题 */}
-        <div className="text-center">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-accent/60">{t.eyebrow}</p>
-          <h1 className="mt-3 font-serif text-3xl text-foreground sm:text-4xl">{t.title}</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted">{t.subtitle}</p>
-          <span className="mt-4 inline-block rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] text-accent">
+      <div className="mx-auto max-w-5xl px-4 pb-12 sm:px-6">
+        {/* 标题：和塔罗 / 文王卦保持同一套字号与节奏 */}
+        <div className="relative overflow-hidden px-2 py-14 text-center sm:py-20">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute left-1/2 top-1/3 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.06] blur-[120px]" />
+          </div>
+          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-accent">{t.eyebrow}</p>
+          <h1 className="mb-6 font-serif text-4xl font-light tracking-wide text-gradient sm:text-5xl">
+            {t.title}
+          </h1>
+          <p className="mx-auto max-w-xl text-muted">{t.subtitle}</p>
+          <span className="mt-5 inline-block rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] text-accent">
             {t.free}
           </span>
         </div>
 
+        {/* 什么时候用 */}
+        <WhenToUse copy={getWhen("ziwei", locale)} />
+
         {/* 表单：未登录显示登录卡片 */}
-        <SignInGate locale={locale} className="mx-auto mt-10 max-w-2xl">
-        <div className="glass rounded-2xl p-6">
+        <SignInGate locale={locale} className="mx-auto mt-8 max-w-2xl">
+        <div className="glass glow rounded-2xl p-6 sm:p-10">
           <h2 className="mb-5 flex items-center gap-2 font-serif text-base text-foreground">
             <Compass size={15} className="text-accent/70" /> {t.formTitle}
           </h2>

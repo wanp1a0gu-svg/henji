@@ -8,6 +8,8 @@ import { BaguaChart, BaguaDrawData } from "./BaguaChart";
 import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
+import { WhenToUse } from "./WhenToUse";
+import { getWhen } from "@/lib/when-i18n";
 
 /** 同源 API（server.js 异步任务模式）。 */
 const API_ENDPOINTS = ["/api/bagua"];
@@ -132,8 +134,14 @@ export function BaguaContent({ locale }: { locale: Locale }) {
             {t.title}
           </h1>
           <p className="mx-auto max-w-xl text-muted">{t.subtitle}</p>
+          <span className="mt-5 inline-block rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[10px] text-accent">
+            {t.free}
+          </span>
         </div>
       </section>
+
+      {/* 什么时候用 */}
+      <WhenToUse copy={getWhen("bagua", locale)} />
 
       {/* Form */}
       <section className="px-6 pb-24">
@@ -147,9 +155,6 @@ export function BaguaContent({ locale }: { locale: Locale }) {
                 <h2 className="font-serif text-xl">{t.formTitle}</h2>
                 <p className="text-xs text-muted">{method === "yarrow" ? t.engineNoteYarrow : t.engineNote}</p>
               </div>
-              <span className="ms-auto rounded-full border border-accent/25 bg-accent/[0.06] px-2.5 py-1 text-[10px] text-accent">
-                {t.free}
-              </span>
             </div>
 
             <div className="space-y-5">
