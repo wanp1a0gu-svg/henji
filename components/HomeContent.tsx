@@ -94,23 +94,25 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
             {t("hero.subtitle")}
           </p>
 
+          {/* 主按钮推免费（先让人玩起来），次按钮才是 $6.80 微付费 */}
           <div className="flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row">
             <a
-              href={link("/bazi")}
+              href={link("/tarot")}
               className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-8 py-4 text-sm font-medium text-background shadow-lg shadow-accent/20 transition hover:bg-accent-light hover:text-background sm:w-auto"
             >
               <Sparkles size={17} />
-              {t("hero.ctaReading")}
+              {t("hero.ctaFree")}
               <span className="rounded-full bg-[#0d0b09]/85 px-2 py-0.5 text-[11px] font-medium text-accent">
-                {t("bazi.price")}
+                {t("tiers.free")}
               </span>
             </a>
             <a
-              href={link("/courses")}
+              href={link("/bazi")}
               className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-accent/30 bg-white/[0.03] px-8 py-4 text-sm font-medium text-accent backdrop-blur-sm transition hover:border-accent/60 hover:bg-accent/10 sm:w-auto"
             >
               <BookOpen size={17} />
-              {t("hero.ctaCourses")}
+              {t("hero.ctaReading")}
+              <span className="text-[11px] text-muted">{t("bazi.price")}</span>
             </a>
           </div>
 
@@ -208,6 +210,46 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
               <span>{ui.sampleDayMaster}</span>
               <span>{ui.pillarsNote}</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 价格梯度：免费 → 微付费 → 重付费 */}
+      <section className="snap-section flex items-center px-6 py-16 sm:py-20">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mb-10 text-center">
+            <p className="mb-3 text-xs uppercase tracking-[0.28em] text-accent/70">{t("tiers.subtitle")}</p>
+            <h2 className="font-serif text-3xl font-light text-gradient sm:text-4xl">{t("tiers.title")}</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { href: link("/tarot"), badge: t("tiers.free"), desc: t("tiers.freeDesc"), cta: t("tiers.freeCta"), hot: true },
+              { href: link("/bazi"), badge: t("tiers.mid"), desc: t("tiers.midDesc"), cta: t("tiers.midCta"), hot: false },
+              { href: link("/shop"), badge: t("tiers.high"), desc: t("tiers.highDesc"), cta: t("tiers.highCta"), hot: false },
+            ].map((tier) => (
+              <a
+                key={tier.badge}
+                href={tier.href}
+                className={`group flex flex-col rounded-2xl border p-6 transition ${
+                  tier.hot
+                    ? "border-accent/35 bg-accent/[0.06] hover:border-accent/60"
+                    : "border-white/[0.07] bg-white/[0.02] hover:border-accent/30"
+                }`}
+              >
+                <span
+                  className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] ${
+                    tier.hot ? "bg-accent text-background" : "border border-accent/25 text-accent"
+                  }`}
+                >
+                  {tier.badge}
+                </span>
+                <p className="mt-4 flex-1 text-[13px] leading-relaxed text-muted">{tier.desc}</p>
+                <span className="mt-5 inline-flex items-center gap-1.5 text-xs text-accent">
+                  {tier.cta}
+                  <ArrowRight size={13} className="transition group-hover:translate-x-0.5" />
+                </span>
+              </a>
+            ))}
           </div>
         </div>
       </section>

@@ -29,13 +29,6 @@ export function Footer({ messages, locale }: { messages: Messages; locale: Local
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-6 border-t border-white/[0.04] pt-6">
           <a
-            href={`/${locale}/bazi`}
-            className="text-xs text-muted transition hover:text-accent"
-          >
-            {t("nav.bazi")}
-          </a>
-          <span className="text-white/10">·</span>
-          <a
             href={`/${locale}/tarot`}
             className="text-xs text-muted transition hover:text-accent"
           >
@@ -47,6 +40,13 @@ export function Footer({ messages, locale }: { messages: Messages; locale: Local
             className="text-xs text-muted transition hover:text-accent"
           >
             {t("nav.ziwei")}
+          </a>
+          <span className="text-white/10">·</span>
+          <a
+            href={`/${locale}/bazi`}
+            className="text-xs text-muted transition hover:text-accent"
+          >
+            {t("nav.bazi")}
           </a>
           <span className="text-white/10">·</span>
           <a

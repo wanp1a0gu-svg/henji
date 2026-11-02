@@ -43,16 +43,17 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
 
   const link = (path: string) => `/${locale}${path}`;
 
+  // 顺序按价格梯度排：免费 → 微付费（$6.80 八字）→ 重付费（$66 符纸 / 课程）
   const navItems = [
     { label: t("nav.home"), href: link("/") },
-    { label: t("nav.bazi"), href: link("/bazi") },
     { label: t("nav.advisor"), href: link("/#advisor") },
-    { label: t("nav.courses"), href: link("/courses") },
-    { label: t("nav.shop"), href: link("/shop") },
     { label: t("nav.tarot"), href: link("/tarot") },
     { label: t("nav.bagua"), href: link("/bagua") },
     { label: t("nav.ziwei"), href: link("/ziwei") },
     { label: t("nav.learn"), href: link("/learn") },
+    { label: t("nav.bazi"), href: link("/bazi") },
+    { label: t("nav.shop"), href: link("/shop") },
+    { label: t("nav.courses"), href: link("/courses") },
   ];
 
   const isActive = (href: string) => {
