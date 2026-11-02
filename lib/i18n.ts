@@ -19,7 +19,7 @@ export const labels: Record<Locale, string> = {
 
 const messages: Record<Locale, any> = {
   en: {
-    nav: { home: "Home", features: "Features", advisor: "Advisor", courses: "Courses", shop: "Shop", bazi: "Bazi Reading", tarot: "Tarot Reading", bagua: "I Ching", ziwei: "Zi Wei", learn: "Learn", about: "About" },
+    nav: { home: "Home", features: "Explore", advisor: "Advisor", courses: "Courses", shop: "Shop", bazi: "Bazi Reading", tarot: "Tarot Reading", bagua: "I Ching", ziwei: "Zi Wei", learn: "Learn", about: "About" },
     hero: {
       eyebrow: "Eastern Wisdom Meets Modern Life",
       title: "Traces",
@@ -100,7 +100,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. All rights reserved.", tagline: "Guidance rooted in tradition, delivered with care." }
   },
   zh: {
-    nav: { home: "首页", features: "功能", advisor: "对话", courses: "课程", shop: "商店", bazi: "八字测算", tarot: "塔罗占卜", bagua: "文王卦", ziwei: "紫微斗数", learn: "命理知识", about: "关于" },
+    nav: { home: "首页", features: "探索", advisor: "对话", courses: "课程", shop: "商店", bazi: "八字测算", tarot: "塔罗占卜", bagua: "文王卦", ziwei: "紫微斗数", learn: "命理知识", about: "关于" },
     hero: {
       eyebrow: "东方智慧，现代生活",
       title: "痕迹",
@@ -181,7 +181,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 痕迹 · 保留所有权利。", tagline: "根植传统，用心传递。" }
   },
   ja: {
-    nav: { home: "ホーム", features: "機能", advisor: "対話", courses: "講座", shop: "ショップ", bazi: "八字鑑定", tarot: "タロット占い", bagua: "文王卦", ziwei: "紫微斗数", learn: "学び", about: "概要" },
+    nav: { home: "ホーム", features: "探索", advisor: "対話", courses: "講座", shop: "ショップ", bazi: "八字鑑定", tarot: "タロット占い", bagua: "文王卦", ziwei: "紫微斗数", learn: "学び", about: "概要" },
     hero: { eyebrow: "東洋の叡智と現代生活", title: "Traces", subtitle: "古代中国の命理学を通じて、あなた自身の人生の道を見つけましょう。講座・鑑定・個人指導を、現代の探究者のために。", ctaCourses: "講座を見る", ctaFree: "無料で占う", ctaReading: "鑑定を予約" },
     tiers: { subtitle: "はじめかた", title: "まず無料、必要なら次へ", free: "無料", freeDesc: "タロット・文王卦・紫微斗数・知識ライブラリは、ログイン後すべて無料です。", freeCta: "無料で試す", mid: "$6.80", midDesc: "八字の個人鑑定：900〜1200語の鑑定書を出生データから作成します。", midCta: "八字鑑定を見る", high: "$66〜", highDesc: "手描き朱砂の護符 $66 から、オーダーメイド $99。", highCta: "ショップを見る" },
     stats: { years: "研究年数", students: "受講生", readings: "鑑定数" },
@@ -203,7 +203,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. All rights reserved.", tagline: "伝統に根ざし、真心を込めて。" }
   },
   ko: {
-    nav: { home: "홈", features: "기능", advisor: "대화", courses: "강의", shop: "상점", bazi: "사주 분석", tarot: "타로 리딩", bagua: "주역", ziwei: "자미두수", learn: "배움", about: "소개" },
+    nav: { home: "홈", features: "탐색", advisor: "대화", courses: "강의", shop: "상점", bazi: "사주 분석", tarot: "타로 리딩", bagua: "주역", ziwei: "자미두수", learn: "배움", about: "소개" },
     hero: { eyebrow: "동양의 지혜와 현대 생활", title: "Traces", subtitle: "고대 중국 명리학을 통해 당신만의 인생 길을 발견하세요. 강좌와 분석, 개인 지도를 현대의 탐구자를 위해 제공합니다.", ctaCourses: "강의 둘러보기", ctaFree: "무료로 보기", ctaReading: "분석 예약" },
     tiers: { subtitle: "시작하는 방법", title: "먼저 무료, 필요하면 그다음", free: "무료", freeDesc: "타로·주역·자미두수·지식 라이브러리는 로그인 후 모두 무료입니다.", freeCta: "무료로 체험", mid: "$6.80", midDesc: "사주 개인 분석: 900~1200단어 리포트를 생년월일로 작성합니다.", midCta: "사주 분석 보기", high: "$66부터", highDesc: "손으로 그린 주사 부적 $66부터, 맞춤 제작 $99.", highCta: "상점 둘러보기" },
     stats: { years: "연구 기간", students: "수강생", readings: "분석 완료" },
@@ -219,7 +219,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. All rights reserved.", tagline: "전통에 뿌리를 두고 정성을 담아." }
   },
   es: {
-    nav: { home: "Inicio", features: "Funciones", advisor: "Asesor", courses: "Cursos", shop: "Tienda", bazi: "Lectura Bazi", tarot: "Tarot", bagua: "I Ching", ziwei: "Zi Wei", learn: "Aprender", about: "Nosotros" },
+    nav: { home: "Inicio", features: "Explorar", advisor: "Asesor", courses: "Cursos", shop: "Tienda", bazi: "Lectura Bazi", tarot: "Tarot", bagua: "I Ching", ziwei: "Zi Wei", learn: "Aprender", about: "Nosotros" },
     hero: { eyebrow: "Sabiduría Oriental para la Vida Moderna", title: "Traces", subtitle: "Descubre tu camino a través de la metafísica china ancestral. Cursos, lecturas y guía personal para el explorador moderno.", ctaCourses: "Ver Cursos", ctaFree: "Empezar gratis", ctaReading: "Reservar Lectura" },
     tiers: { subtitle: "Cómo empezar", title: "Primero gratis, luego solo si quieres más", free: "Gratis", freeDesc: "Tarot, I Ching, Zi Wei y la biblioteca: todo gratis tras iniciar sesión.", freeCta: "Probar gratis", mid: "$6.80", midDesc: "Lectura BaZi personal: 900–1.200 palabras según tus datos de nacimiento.", midCta: "Ver la lectura BaZi", high: "Desde $66", highDesc: "Talismanes de cinabrio pintados a mano desde $66; a medida $99.", highCta: "Ver la tienda" },
     stats: { years: "Años de estudio", students: "Estudiantes", readings: "Lecturas" },
@@ -235,7 +235,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Todos los derechos reservados.", tagline: "Guía arraigada en la tradición, entregada con cuidado." }
   },
   fr: {
-    nav: { home: "Accueil", features: "Fonctions", advisor: "Conseiller", courses: "Cours", shop: "Boutique", bazi: "Lecture Bazi", tarot: "Tarot", bagua: "Yi Jing", ziwei: "Zi Wei", learn: "Apprendre", about: "À propos" },
+    nav: { home: "Accueil", features: "Explorer", advisor: "Conseiller", courses: "Cours", shop: "Boutique", bazi: "Lecture Bazi", tarot: "Tarot", bagua: "Yi Jing", ziwei: "Zi Wei", learn: "Apprendre", about: "À propos" },
     hero: { eyebrow: "Sagesse Orientale et Vie Moderne", title: "Traces", subtitle: "Découvrez votre chemin de vie à travers la métaphysique chinoise ancienne. Cours, lectures et accompagnement personnel pour l'explorateur moderne.", ctaCourses: "Explorer les Cours", ctaFree: "Commencer gratuitement", ctaReading: "Réserver une Lecture" },
     tiers: { subtitle: "Comment commencer", title: "D'abord gratuit, puis seulement si vous en voulez plus", free: "Gratuit", freeDesc: "Tarot, Yi Jing, Zi Wei et la bibliothèque : tout est gratuit après connexion.", freeCta: "Essayer gratuitement", mid: "$6.80", midDesc: "Lecture BaZi personnelle : 900 à 1 200 mots d'après vos données de naissance.", midCta: "Voir la lecture BaZi", high: "Dès $66", highDesc: "Talismans au cinabre peints à la main dès $66 ; sur mesure $99.", highCta: "Voir la boutique" },
     stats: { years: "Années d'étude", students: "Étudiants", readings: "Lectures" },
@@ -251,7 +251,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Tous droits réservés.", tagline: "Un guide ancré dans la tradition, offert avec soin." }
   },
   de: {
-    nav: { home: "Startseite", features: "Funktionen", advisor: "Berater", courses: "Kurse", shop: "Shop", bazi: "Bazi-Lesung", tarot: "Tarot", bagua: "I Ging", ziwei: "Zi Wei", learn: "Wissen", about: "Über uns" },
+    nav: { home: "Startseite", features: "Entdecken", advisor: "Berater", courses: "Kurse", shop: "Shop", bazi: "Bazi-Lesung", tarot: "Tarot", bagua: "I Ging", ziwei: "Zi Wei", learn: "Wissen", about: "Über uns" },
     hero: { eyebrow: "Östliche Weisheit trifft modernes Leben", title: "Traces", subtitle: "Entdecke deinen Lebensweg durch die uralte chinesische Metaphysik. Kurse, Lesungen und persönliche Begleitung für moderne Entdecker.", ctaCourses: "Kurse entdecken", ctaFree: "Kostenlos starten", ctaReading: "Lesung buchen" },
     tiers: { subtitle: "So fängst du an", title: "Erst kostenlos, dann nur wenn du mehr willst", free: "Kostenlos", freeDesc: "Tarot, I Ging, Zi Wei und die Wissensbibliothek – nach dem Login alles kostenlos.", freeCta: "Kostenlos testen", mid: "$6.80", midDesc: "Persönliche BaZi-Lesung: 900–1.200 Wörter aus deinen Geburtsdaten.", midCta: "BaZi-Lesung ansehen", high: "ab $66", highDesc: "Handgemalte Zinnober-Talismane ab $66; Sonderanfertigung $99.", highCta: "Zum Shop" },
     stats: { years: "Studienjahre", students: "Schüler", readings: "Lesungen" },
@@ -267,7 +267,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Alle Rechte vorbehalten.", tagline: "In der Tradition verwurzelte Führung, mit Sorge übermittelt." }
   },
   pt: {
-    nav: { home: "Início", features: "Recursos", advisor: "Conselheiro", courses: "Cursos", shop: "Loja", bazi: "Leitura Bazi", tarot: "Tarot", bagua: "I Ching", ziwei: "Zi Wei", learn: "Aprender", about: "Sobre" },
+    nav: { home: "Início", features: "Explorar", advisor: "Conselheiro", courses: "Cursos", shop: "Loja", bazi: "Leitura Bazi", tarot: "Tarot", bagua: "I Ching", ziwei: "Zi Wei", learn: "Aprender", about: "Sobre" },
     hero: { eyebrow: "Sabedoria Oriental para a Vida Moderna", title: "Traces", subtitle: "Descubra seu caminho através da metafísica chinesa ancestral. Cursos, leituras e orientação pessoal para o explorador moderno.", ctaCourses: "Explorar Cursos", ctaFree: "Começar grátis", ctaReading: "Agendar Leitura" },
     tiers: { subtitle: "Como começar", title: "Primeiro grátis, depois só se quiser mais", free: "Grátis", freeDesc: "Tarot, I Ching, Zi Wei e a biblioteca: tudo grátis após iniciar sessão.", freeCta: "Experimentar grátis", mid: "$6.80", midDesc: "Leitura BaZi pessoal: 900–1.200 palavras a partir dos teus dados de nascimento.", midCta: "Ver a leitura BaZi", high: "Desde $66", highDesc: "Talismãs de cinábrio pintados à mão desde $66; peças à medida $99.", highCta: "Ver a loja" },
     stats: { years: "Anos de estudo", students: "Alunos", readings: "Leituras" },
@@ -283,7 +283,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Todos os direitos reservados.", tagline: "Orientação enraizada na tradição, entregue com cuidado." }
   },
   ru: {
-    nav: { home: "Главная", features: "Возможности", advisor: "Советник", courses: "Курсы", shop: "Магазин", bazi: "Чтение Бацзы", tarot: "Таро", bagua: "И цзин", ziwei: "Цзы Вэй", learn: "Знания", about: "О нас" },
+    nav: { home: "Главная", features: "Изучить", advisor: "Советник", courses: "Курсы", shop: "Магазин", bazi: "Чтение Бацзы", tarot: "Таро", bagua: "И цзин", ziwei: "Цзы Вэй", learn: "Знания", about: "О нас" },
     hero: { eyebrow: "Восточная мудрость и современная жизнь", title: "Traces", subtitle: "Откройте свой жизненный путь через древнюю китайскую метафизику. Курсы, чтения и личные консультации для современного исследователя.", ctaCourses: "Смотреть курсы", ctaFree: "Начать бесплатно", ctaReading: "Забронировать чтение" },
     tiers: { subtitle: "С чего начать", title: "Сначала бесплатно — платите только если захотите больше", free: "Бесплатно", freeDesc: "Таро, И цзин, Цзы Вэй и библиотека знаний — всё бесплатно после входа.", freeCta: "Попробовать бесплатно", mid: "$6.80", midDesc: "Личный разбор Бацзы: 900–1200 слов по вашим данным рождения.", midCta: "Смотреть разбор Бацзы", high: "от $66", highDesc: "Талисманы киноварью от $66; на заказ $99.", highCta: "В магазин" },
     stats: { years: "Лет изучения", students: "Учеников", readings: "Чтений" },
@@ -299,7 +299,7 @@ const messages: Record<Locale, any> = {
     footer: { copyright: "© 2026 Traces. Все права защищены.", tagline: "Руководство, укорененное в традиции, с заботой доставленное." }
   },
   ar: {
-    nav: { home: "الرئيسية", features: "الميزات", advisor: "المستشار", courses: "الدورات", shop: "المتجر", bazi: "قراءة البازي", tarot: "قراءة التاروت", bagua: "أنا تشينغ", ziwei: "تسي وي", learn: "تعلّم", about: "من نحن" },
+    nav: { home: "الرئيسية", features: "استكشف", advisor: "المستشار", courses: "الدورات", shop: "المتجر", bazi: "قراءة البازي", tarot: "قراءة التاروت", bagua: "أنا تشينغ", ziwei: "تسي وي", learn: "تعلّم", about: "من نحن" },
     hero: { eyebrow: "حكمة شرقية للحياة الحديثة", title: "Traces", subtitle: "اكتشف مسار حياتك من خلال الميتافيزيقا الصينية القديمة. دورات وقراءات وإرشاد شخصي للمستكشف الحديث.", ctaCourses: "استعراض الدورات", ctaFree: "ابدأ مجانًا", ctaReading: "حجز قراءة" },
     tiers: { subtitle: "كيف تبدأ", title: "المجاني أولًا، ثم المدفوع إن أردت المزيد", free: "مجاني", freeDesc: "التاروت والإي تشينغ وتساي وي ومكتبة المعرفة — كلها مجانية بعد تسجيل الدخول.", freeCta: "جرّب مجانًا", mid: "$6.80", midDesc: "قراءة بازي شخصية: 900–1200 كلمة بناءً على بيانات ميلادك.", midCta: "اطّلع على قراءة بازي", high: "من $66", highDesc: "تمائم الزنجفر المرسومة يدويًا من $66؛ حسب الطلب $99.", highCta: "تصفح المتجر" },
     stats: { years: "سنوات الدراسة", students: "الطلاب", readings: "القراءات" },
