@@ -46,6 +46,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
   // 顺序按价格梯度排：免费 → 微付费（$6.80 八字）→ 重付费（$66 符纸 / 课程）
   const navItems = [
     { label: t("nav.home"), href: link("/") },
+    { label: t("nav.features"), href: link("/features"), compact: true },
     { label: t("nav.advisor"), href: link("/#advisor") },
     { label: t("nav.tarot"), href: link("/tarot") },
     { label: t("nav.bagua"), href: link("/bagua") },
@@ -82,7 +83,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
             <a
               key={item.href}
               href={item.href}
-              className={`relative px-4 py-2 text-sm tracking-wide transition ${
+              className={`${(item as any).compact ? "hidden xl:inline-flex" : ""} relative px-4 py-2 text-sm tracking-wide transition ${
                 isActive(item.href)
                   ? "text-accent"
                   : "text-muted hover:text-foreground"

@@ -220,6 +220,13 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
           <div className="mb-10 text-center">
             <p className="mb-3 text-xs uppercase tracking-[0.28em] text-accent/70">{t("tiers.subtitle")}</p>
             <h2 className="font-serif text-3xl font-light text-gradient sm:text-4xl">{t("tiers.title")}</h2>
+            <a
+              href={link("/features")}
+              className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-1.5 text-xs text-muted transition hover:border-accent/40 hover:text-accent"
+            >
+              {t("nav.features")}
+              <ArrowRight size={12} />
+            </a>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
