@@ -6,6 +6,8 @@ import { Locale, Messages } from "@/lib/i18n";
 import { COURSES_OPEN } from "@/lib/site-config";
 import { getUiMessages } from "@/lib/ui-i18n";
 import { openCatAssistant } from "@/lib/cat-open";
+import { HomeKnowledge } from "./HomeKnowledge";
+import { HomeFeatures } from "./HomeFeatures";
 
 export function HomeContent({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -135,6 +137,12 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
         </div>
       </section>
 
+      {/* 命理知识 — 讲座视频（未登录给海报 + 登录入口） */}
+      <HomeKnowledge locale={locale} />
+
+      {/* 功能介绍 — 八项能力，按免费 → 微付费 → 重付费 */}
+      <HomeFeatures locale={locale} />
+
       {/* Bazi — 主推服务 */}
       <section className="snap-section relative flex items-center overflow-hidden px-6 py-16 sm:py-20">
         <div className="pointer-events-none absolute inset-0 -z-10">
@@ -203,53 +211,6 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
               <span>{ui.sampleDayMaster}</span>
               <span>{ui.pillarsNote}</span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 价格梯度：免费 → 微付费 → 重付费 */}
-      <section className="snap-section flex items-center px-6 py-16 sm:py-20">
-        <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-10 text-center">
-            <p className="mb-3 text-xs uppercase tracking-[0.28em] text-accent/70">{t("tiers.subtitle")}</p>
-            <h2 className="font-serif text-3xl font-light text-gradient sm:text-4xl">{t("tiers.title")}</h2>
-            <a
-              href={link("/features")}
-              className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-white/10 px-4 py-1.5 text-xs text-muted transition hover:border-accent/40 hover:text-accent"
-            >
-              {t("nav.features")}
-              <ArrowRight size={12} />
-            </a>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { href: link("/tarot"), badge: t("tiers.free"), desc: t("tiers.freeDesc"), cta: t("tiers.freeCta"), hot: true },
-              { href: link("/bazi"), badge: t("tiers.mid"), desc: t("tiers.midDesc"), cta: t("tiers.midCta"), hot: false },
-              { href: link("/shop"), badge: t("tiers.high"), desc: t("tiers.highDesc"), cta: t("tiers.highCta"), hot: false },
-            ].map((tier) => (
-              <a
-                key={tier.badge}
-                href={tier.href}
-                className={`group flex flex-col rounded-2xl border p-6 transition ${
-                  tier.hot
-                    ? "border-accent/35 bg-accent/[0.06] hover:border-accent/60"
-                    : "border-white/[0.07] bg-white/[0.02] hover:border-accent/30"
-                }`}
-              >
-                <span
-                  className={`inline-flex w-fit rounded-full px-3 py-1 text-[11px] ${
-                    tier.hot ? "bg-accent text-background" : "border border-accent/25 text-accent"
-                  }`}
-                >
-                  {tier.badge}
-                </span>
-                <p className="mt-4 flex-1 text-[13px] leading-relaxed text-muted">{tier.desc}</p>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-xs text-accent">
-                  {tier.cta}
-                  <ArrowRight size={13} className="transition group-hover:translate-x-0.5" />
-                </span>
-              </a>
-            ))}
           </div>
         </div>
       </section>

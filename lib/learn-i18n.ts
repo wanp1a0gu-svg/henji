@@ -14,6 +14,7 @@ export interface LearnMessages {
   ctaTitle: string;
   ctaBazi: string;
   ctaTarot: string;
+  ctaMore: string;
 }
 
 const LEARN: Record<Locale, LearnMessages> = {
@@ -36,6 +37,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "After the Lecture, Try It Yourself",
     ctaBazi: "Bazi Reading",
     ctaTarot: "Tarot Reading",
+    ctaMore: "Open the knowledge library",
   },
   zh: {
     eyebrow: "命理知识",
@@ -56,6 +58,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "看完讲座，亲身体验一下",
     ctaBazi: "八字测算",
     ctaTarot: "塔罗占卜",
+    ctaMore: "去知识库看完整讲座",
   },
   ja: {
     eyebrow: "学び",
@@ -76,6 +79,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "講義を見たら、体験してみましょう",
     ctaBazi: "八字鑑定",
     ctaTarot: "タロット占い",
+    ctaMore: "知識ライブラリで見る",
   },
   ko: {
     eyebrow: "배움",
@@ -96,6 +100,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "강연을 봤다면, 직접 체험해 보세요",
     ctaBazi: "사주 분석",
     ctaTarot: "타로 리딩",
+    ctaMore: "지식 라이브러리에서 보기",
   },
   es: {
     eyebrow: "Aprender",
@@ -116,6 +121,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "Después de la conferencia, pruébalo tú mismo",
     ctaBazi: "Lectura Bazi",
     ctaTarot: "Tarot",
+    ctaMore: "Abrir la biblioteca",
   },
   fr: {
     eyebrow: "Apprendre",
@@ -136,6 +142,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "Après la conférence, essayez vous-même",
     ctaBazi: "Lecture Bazi",
     ctaTarot: "Tarot",
+    ctaMore: "Ouvrir la bibliothèque",
   },
   de: {
     eyebrow: "Wissen",
@@ -156,6 +163,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "Nach dem Vortrag: selbst ausprobieren",
     ctaBazi: "Bazi-Lesung",
     ctaTarot: "Tarot",
+    ctaMore: "Zur Wissensbibliothek",
   },
   pt: {
     eyebrow: "Aprender",
@@ -176,6 +184,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "Depois da palestra, experimente você mesmo",
     ctaBazi: "Leitura Bazi",
     ctaTarot: "Tarot",
+    ctaMore: "Abrir a biblioteca",
   },
   ru: {
     eyebrow: "Знания",
@@ -196,6 +205,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "После лекции попробуйте сами",
     ctaBazi: "Чтение Бацзы",
     ctaTarot: "Таро",
+    ctaMore: "Открыть библиотеку знаний",
   },
   ar: {
     eyebrow: "تعلّم",
@@ -216,6 +226,7 @@ const LEARN: Record<Locale, LearnMessages> = {
     ctaTitle: "بعد المحاضرة، جرّب بنفسك",
     ctaBazi: "قراءة البازي",
     ctaTarot: "قراءة التاروت",
+    ctaMore: "افتح مكتبة المعرفة",
   },
 };
 
