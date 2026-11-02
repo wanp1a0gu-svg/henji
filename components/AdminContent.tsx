@@ -697,8 +697,9 @@ export function AdminContent({ locale }: { locale: Locale }) {
       .toLowerCase()
       .indexOf(q) !== -1;
   });
-  const uniqueIpCount = new Set(allViews.map((v) => v.ip).filter(Boolean)).size;
-  const loggedInViews = allViews.filter((v) => v.user_email).length;
+  // 这两个数字也只看真实访客：管理员自己的 IP / 登录次数不算进来
+  const uniqueIpCount = new Set(statViews.map((v) => v.ip).filter(Boolean)).size;
+  const loggedInViews = statViews.filter((v) => v.user_email).length;
 
   /** 导出访问明细 CSV（当前筛选结果） */
   const exportViewsCsv = () => {
@@ -1147,8 +1148,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
                 <p className="flex items-center gap-1.5 text-xs text-muted/70">
                   <Globe size={12} /> 访问明细
                   <span className="text-muted/40">
-                    （{vFiltered.length} 条 · 独立 IP {uniqueIpCount} · 已登录 {loggedInViews} 次
-                    {adminViewCount > 0 ? `，其中管理员 ${adminViewCount} 次不计入 PV` : ""}）
+                    （明细 {vFiltered.length} 条 · 独立 IP {uniqueIpCount} · 登录用户 {loggedInViews} 次
+                    {adminViewCount > 0 ? `；管理员 ${adminViewCount} 条仅留底，不计入上面任何统计` : ""}）
                   </span>
                 </p>
                 <div className="ms-auto flex items-center gap-2">
