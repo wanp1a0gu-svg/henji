@@ -30,6 +30,8 @@ export interface ChatMessages {
   catIntro: string;
   catBubble: string;
   catPlaceholder: string;
+  catHello: string;
+  catStarters: string[];
 }
 
 const zh: ChatMessages = {
@@ -65,6 +67,9 @@ const zh: ChatMessages = {
   catIntro: "你好，我是小痕。想聊点什么？",
   catBubble: "我是小痕，快来和我聊天！",
   catPlaceholder: "想说点什么？",
+  catHello:
+    "我是小痕，一只住在网站里的猫。八字、塔罗、文王卦、紫微我都能帮你算，也可以先陪你把心里的事说清楚——从哪句开始都行。",
+  catStarters: ["帮我排个八字", "抽三张牌看看", "我最近有点迷茫"],
 };
 
 const en: ChatMessages = {
@@ -100,6 +105,9 @@ const en: ChatMessages = {
   catIntro: "Hi, I'm Xiaohen. What would you like to know?",
   catBubble: "I'm Xiaohen — come chat with me!",
   catPlaceholder: "Say anything…",
+  catHello:
+    "I'm Xiaohen, a cat who lives on this site. I can read BaZi, draw tarot, cast the I Ching or Zi Wei — or just talk through what's on your mind. Start anywhere.",
+  catStarters: ["Read my BaZi", "Draw three cards", "I feel stuck lately"],
 };
 
 const ja: ChatMessages = {
@@ -135,6 +143,9 @@ const ja: ChatMessages = {
   catIntro: "こんにちは、小痕です。何でも聞いてくださいね。",
   catBubble: "小痕です。おしゃべりしましょう！",
   catPlaceholder: "何でも聞いてください",
+  catHello:
+    "小痕です。このサイトに住んでいる猫。八字・タロット・文王卦・紫微斗数、どれでも読めます。まずは話を聞かせてください。",
+  catStarters: ["八字を見て", "タロットを3枚", "最近ちょっと迷ってる"],
 };
 
 const ko: ChatMessages = {
@@ -170,6 +181,9 @@ const ko: ChatMessages = {
   catIntro: "안녕하세요, 샤오헨이에요. 궁금한 것을 물어보세요.",
   catBubble: "샤오헨이에요. 같이 얘기해요!",
   catPlaceholder: "무엇이든 물어보세요",
+  catHello:
+    "저는 샤오헨, 이 사이트에 사는 고양이예요. 사주·타로·주역·자미두수를 봐 드릴 수 있고, 그냥 이야기를 들어도 돼요.",
+  catStarters: ["사주 봐줘", "타로 3장 뽑기", "요즘 좀 막막해"],
 };
 
 const es: ChatMessages = {
@@ -205,6 +219,9 @@ const es: ChatMessages = {
   catIntro: "Hola, soy Xiaohen. ¿Qué te gustaría saber?",
   catBubble: "¡Soy Xiaohen, ven a charlar conmigo!",
   catPlaceholder: "Dime lo que quieras",
+  catHello:
+    "Soy Xiaohen, una gata que vive en este sitio. Puedo leer BaZi, tarot, I Ching o Zi Wei; o simplemente escucharte. Empieza por donde quieras.",
+  catStarters: ["Lee mi BaZi", "Tres cartas de tarot", "Últimamente estoy perdido"],
 };
 
 const fr: ChatMessages = {
@@ -240,6 +257,9 @@ const fr: ChatMessages = {
   catIntro: "Bonjour, je suis Xiaohen. Que voulez-vous savoir ?",
   catBubble: "Je suis Xiaohen — venez discuter avec moi !",
   catPlaceholder: "Dites-moi ce que vous voulez",
+  catHello:
+    "Je suis Xiaohen, une chatte qui vit sur ce site. BaZi, tarot, Yi Jing, Zi Wei : je peux tout lire — ou simplement vous écouter. Commencez où vous voulez.",
+  catStarters: ["Lisez mon BaZi", "Tirez trois cartes", "Je suis un peu perdu"],
 };
 
 const de: ChatMessages = {
@@ -275,6 +295,9 @@ const de: ChatMessages = {
   catIntro: "Hallo, ich bin Xiaohen. Was möchtest du wissen?",
   catBubble: "Ich bin Xiaohen – komm, plaudere mit mir!",
   catPlaceholder: "Frag mich einfach",
+  catHello:
+    "Ich bin Xiaohen, eine Katze, die auf dieser Seite wohnt. BaZi, Tarot, I Ging, Zi Wei – ich kann alles lesen, oder einfach zuhören. Fang an, wo du willst.",
+  catStarters: ["Meine BaZi lesen", "Drei Karten ziehen", "Ich bin gerade unsicher"],
 };
 
 const pt: ChatMessages = {
@@ -310,6 +333,9 @@ const pt: ChatMessages = {
   catIntro: "Olá, sou Xiaohen. O que você quer saber?",
   catBubble: "Sou o Xiaohen — venha conversar comigo!",
   catPlaceholder: "Diz o que quiseres",
+  catHello:
+    "Sou o Xiaohen, um gato que vive neste site. Posso ler BaZi, tarô, I Ching ou Zi Wei — ou só te ouvir. Começa por onde quiseres.",
+  catStarters: ["Lê o meu BaZi", "Tira três cartas", "Ando meio perdido"],
 };
 
 const ru: ChatMessages = {
@@ -345,6 +371,9 @@ const ru: ChatMessages = {
   catIntro: "Привет, я Сяохэнь. Спрашивайте о чём угодно.",
   catBubble: "Я Сяохэнь — давайте поболтаем!",
   catPlaceholder: "Спросите что угодно",
+  catHello:
+    "Я Сяо Хэнь, кот, который живёт на этом сайте. Могу разобрать Бацзы, таро, И цзин, Цзы Вэй — или просто выслушать. Начните с чего угодно.",
+  catStarters: ["Разбери мой Бацзы", "Три карты таро", "Я немного запутался"],
 };
 
 const ar: ChatMessages = {
@@ -380,6 +409,9 @@ const ar: ChatMessages = {
   catIntro: "مرحباً، أنا شياوهن. اسألني ما تشاء.",
   catBubble: "أنا شياوهن — تعال تحدّث معي!",
   catPlaceholder: "اسأل ما تشاء",
+  catHello:
+    "أنا شياوهن، قطّة تعيش في هذا الموقع. أستطيع قراءة البازي والتاروت والإي تشينغ وتساي وي، أو أن أسمعك فقط. ابدأ من أي شيء.",
+  catStarters: ["اقرأ بازي", "اسحب ثلاث بطاقات", "أشعر بالضياع قليلًا"],
 };
 
 const ALL: Record<Locale, ChatMessages> = { en, zh, ja, ko, es, fr, de, pt, ru, ar };

@@ -373,6 +373,15 @@ export function CatAssistant({ locale }: { locale: Locale }) {
     if (el) el.scrollTop = el.scrollHeight;
   }, [turns, chatOpen]);
 
+  /** 打开弹窗后自动聚焦输入框：少点一下，更容易开口 */
+  useEffect(() => {
+    if (!chatOpen) return;
+    const id = setTimeout(() => taRef.current?.focus(), 260);
+    return () => clearTimeout(id);
+  }, [chatOpen]);
+
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
   const send = async (q: string) => {
     const text = q.trim();
     if (!text || busy) return;
@@ -572,10 +581,33 @@ export function CatAssistant({ locale }: { locale: Locale }) {
               {/* 消息区 */}
               <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
                 {turns.length === 0 && (
-                  <div className="py-3 text-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/brand/xiaohen.png" alt="" className="mx-auto mb-3 h-20 w-20 object-contain" />
-                    <p className="text-sm text-muted">{t.catIntro}</p>
+                  <div className="flex h-full flex-col justify-center gap-3">
+                    {/* 小痕先自我介绍，像是在跟你开口 */}
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f4efe6] p-[3px] shadow-[0_0_0_1px_rgba(201,168,124,0.3)]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/brand/xiaohen-avatar.png" alt="" className="h-full w-full object-contain" />
+                      </span>
+                      <div className="min-w-0 max-w-[85%]">
+                        <p className="mb-1 text-[10px] tracking-wide text-accent/70">{t.catTitle}</p>
+                        <div className="rounded-2xl rounded-ss-sm border border-white/[0.06] bg-white/[0.03] px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground/85">
+                          {t.catHello}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 引导：点一下就能开始，不用自己想问什么 */}
+                    <div className="ms-10 flex flex-wrap gap-1.5">
+                      {t.catStarters.map((s0) => (
+                        <button
+                          key={s0}
+                          onClick={() => send(s0)}
+                          className="rounded-full border border-white/10 bg-white/[0.02] px-2.5 py-1 text-[11px] text-muted transition hover:border-accent/35 hover:bg-accent/[0.08] hover:text-accent"
+                        >
+                          {s0}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -639,6 +671,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
               <div className="border-t border-white/[0.06] p-2.5">
                 <div className="flex items-end gap-2">
                   <textarea
+                    ref={taRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
