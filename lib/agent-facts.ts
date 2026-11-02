@@ -87,6 +87,36 @@ export async function loadAgentFacts(user: { id: string } | null): Promise<Agent
   }
 }
 
+
+/**
+ * 演示数据：只在本机预览构建（NEXT_PUBLIC_PREVIEW_MODE=1）且未登录时使用。
+ * 用途：站主没登录态时，也能看到小痕「查订单 / 报余额 / 给按钮」的效果。
+ * 线上正式构建不会走到这里（PREVIEW 为 false）。
+ */
+export function demoFacts(): AgentFacts {
+  const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+  return {
+    displayName: "演示访客",
+    balance: "128.60",
+    readings: [
+      { created_at: daysAgo(5), birth_date: "1990-05-15", gender: "male", focus: "career" },
+      { created_at: daysAgo(21), birth_date: "1990-05-15", gender: "male", focus: "general" },
+    ],
+    orders: [
+      {
+        created_at: daysAgo(2),
+        product: "shop:zhao-taohua",
+        status: "shipped",
+        amount: "66.00",
+        tracking: "SF1234567890",
+        carrier: "顺丰",
+      },
+      { created_at: daysAgo(5), product: "bazi", status: "completed", amount: "6.80", tracking: null, carrier: null },
+      { created_at: daysAgo(9), product: "tarot", status: "pending", amount: "0.00", tracking: null, carrier: null },
+    ],
+  };
+}
+
 /** 把事实整理成给模型看的文本。没有事实时返回空串（不注入这一段）。 */
 export function factsToPrompt(f: AgentFacts | null): string {
   if (!f) return "";

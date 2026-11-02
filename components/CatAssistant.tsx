@@ -7,7 +7,7 @@ import { getChatMessages } from "@/lib/chat-i18n";
 import { positionLabel, cardName } from "@/lib/tarot-i18n";
 import { useAuth } from "./AuthProvider";
 import { OPEN_CAT_EVENT } from "@/lib/cat-open";
-import { loadAgentFacts, factsToPrompt } from "@/lib/agent-facts";
+import { loadAgentFacts, factsToPrompt, demoFacts } from "@/lib/agent-facts";
 import { SignInGate } from "./SignInGate";
 import { RichText, loadCustomSkills } from "./ChatContent";
 import { BaguaChart } from "./BaguaChart";
@@ -388,6 +388,13 @@ export function CatAssistant({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (!chatOpen) return;
     let alive = true;
+    if (!user && PREVIEW) {
+      // 本机预览且未登录：用演示数据，看得到「办事」的样子
+      setFactsText(factsToPrompt(demoFacts()));
+      return () => {
+        alive = false;
+      };
+    }
     loadAgentFacts(user && user.id ? { id: user.id } : null).then((f) => {
       if (alive) setFactsText(factsToPrompt(f));
     });
