@@ -22,11 +22,19 @@ export function SignInGate({
   const a = getAuthMessages(locale);
 
   /**
+   * 登录后不能直接 return <>{children}</>：调用方常把布局类挂在门禁上
+   * （比如八字页的 lg:col-span-3、塔罗页的 mx-auto max-w-2xl）。
+   * 直接返回 children 会把这些类丢掉，导致登录状态下页面被挤成一条。
+   */
+  const passthrough = (node: React.ReactNode) =>
+    className ? <div className={className}>{node}</div> : <>{node}</>;
+
+  /**
    * 本地预览开关：只有构建时设了 NEXT_PUBLIC_PREVIEW_MODE=1 才生效。
    * 线上正式构建不带这个变量 → 门禁照旧。
    * 用途：站主没登录账号时，也能在本地看到被门禁包住的界面（对话/测算页）。
    */
-  if (process.env.NEXT_PUBLIC_PREVIEW_MODE === "1") return <>{children}</>;
+  if (process.env.NEXT_PUBLIC_PREVIEW_MODE === "1") return passthrough(children);
 
   if (loading) {
     return (
@@ -36,7 +44,7 @@ export function SignInGate({
     );
   }
 
-  if (user) return <>{children}</>;
+  if (user) return passthrough(children);
 
   return (
     <div className={`mx-auto w-full max-w-md ${className}`}>
