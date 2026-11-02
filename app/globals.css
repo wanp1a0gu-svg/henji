@@ -273,23 +273,3 @@ html[dir="rtl"] textarea {
   text-align: start;
 }
 
-/* 功能总览卡片：触屏设备没有 hover，简介与「进入」必须常显 */
-@media (hover: none) {
-  /* 手机上简介常显，固定高度会把长文案裁掉，改成最小高度 */
-  .feat-card {
-    height: auto !important;
-    min-height: 168px;
-  }
-  .feat-desc,
-  .feat-cta {
-    max-height: 120px !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .feat-desc {
-    margin-top: 0.75rem !important;
-  }
-  .feat-cta {
-    margin-top: 0.75rem !important;
-  }
-}

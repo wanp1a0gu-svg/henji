@@ -26,64 +26,86 @@ const ICONS: Record<string, any> = {
 };
 
 /**
- * 功能总览：按「免费 → 微付费 → 重付费」分组。
- * 每张卡整块是链接，点哪儿都能进详情页。
+ * 功能总览：列表式左右排。
+ *
+ * 一行一个功能：左边 序号 + 图标 + 名字 + 价格角标；右边 简介（悬停才出现）+ 箭头。
+ *
+ * 为什么不用网格卡片：8 个功能分三档，网格会空出好几格（免费 5 个占 3 列 → 空 1 格，
+ * 微付费只有 1 个 → 空 2 格），看上去像没做完。列表没有空格子，数量怎么变都不会失衡。
+ *
+ * 触屏没有 hover：简介在名字下方常显（见 globals.css 里 .feat-desc-side 的 @media 规则）。
  */
 export function FeaturesContent({ locale }: { locale: Locale }) {
   const t = getFeaturesMessages(locale);
   const link = (p: string) => `/${locale}${p}`;
 
-  /**
-   * 默认态只露「图标 + 名字」；鼠标移上去（或触屏点开）才浮出简介与箭头。
-   * 触屏没有 hover，用 @media(hover:none) 让简介常显，避免手机上永远看不到说明。
-   */
-  const card = (item: FeatureItem, hot: boolean) => {
+  let index = 0;
+
+  const row = (item: FeatureItem, hot: boolean) => {
     const Icon = ICONS[item.key] || Sparkles;
+    index += 1;
+    const no = String(index).padStart(2, "0");
     return (
       <a
         key={item.key}
         href={link(item.href)}
-        className={`feat-card group relative flex h-[168px] flex-col justify-start overflow-hidden rounded-2xl border p-6 transition-all duration-300 ease-out hover:translate-x-1.5 hover:shadow-[12px_0_36px_-18px_rgba(201,168,124,0.5)] ${
-          hot
-            ? "border-white/[0.08] bg-white/[0.02] hover:border-accent/55 hover:bg-accent/[0.06]"
-            : "border-white/[0.06] bg-white/[0.015] hover:border-accent/45 hover:bg-accent/[0.05]"
-        }`}
+        className="feat-row group relative flex items-start gap-4 border-s-2 border-transparent px-3 py-5 transition-all duration-300 hover:border-accent/60 hover:bg-accent/[0.045] hover:ps-5 sm:items-center"
       >
-        {/* 悬停时的金色光晕 */}
-        <span className="pointer-events-none absolute -inset-px rounded-2xl bg-[radial-gradient(circle_at_0%_50%,rgba(201,168,124,0.18),transparent_62%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-        <div className="relative flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 transition-colors duration-300 group-hover:border-accent/45 group-hover:bg-accent/15">
-            <Icon size={16} className="text-accent" />
-          </span>
-          <h3 className="font-serif text-lg text-foreground transition-colors duration-300 group-hover:text-accent">
-            {item.title}
-          </h3>
-          <span className="ms-auto shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-muted/60 transition-colors duration-300 group-hover:border-accent/30 group-hover:text-accent/80">
-            {item.badge}
-          </span>
-        </div>
-
-        {/* 简介：默认收起，悬停/触屏展开 */}
-        <div className="feat-desc relative mt-0 max-h-0 -translate-x-1.5 overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:mt-3 group-hover:max-h-[84px] group-hover:translate-x-0 group-hover:opacity-100">
-          <p className="text-[12.5px] leading-relaxed text-muted">{item.desc}</p>
-        </div>
-
-        <span className="feat-cta relative mt-0 inline-flex max-h-0 -translate-x-1.5 items-center gap-1.5 overflow-hidden text-[11px] text-accent opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:max-h-6 group-hover:translate-x-0 group-hover:opacity-100">
-          {t.cta}
-          <ArrowRight size={12} className="transition group-hover:translate-x-0.5" />
+        {/* 序号 */}
+        <span className="w-5 shrink-0 pt-1 font-mono text-[11px] text-muted/30 transition-colors group-hover:text-accent/50 sm:pt-0">
+          {no}
         </span>
+
+        {/* 图标 */}
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/15 bg-accent/[0.07] transition-colors duration-300 group-hover:border-accent/45 group-hover:bg-accent/15">
+          <Icon size={15} className="text-accent" />
+        </span>
+
+        {/* 左半：名字 + 角标（手机上简介也在这里） */}
+        <span className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none sm:basis-[220px]">
+          <span className="flex flex-wrap items-center gap-2.5">
+            <span className="font-serif text-[17px] text-foreground transition-colors duration-300 group-hover:text-accent">
+              {item.title}
+            </span>
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] ${
+                hot ? "border border-accent/30 bg-accent/10 text-accent" : "border border-white/10 text-muted/60"
+              }`}
+            >
+              {item.badge}
+            </span>
+          </span>
+          <span className="block text-[12px] leading-relaxed text-muted sm:hidden">{item.desc}</span>
+        </span>
+
+        {/* 右半：简介（悬停从左滑入）+ 箭头 */}
+        <span className="feat-desc-side hidden min-w-0 flex-1 translate-x-2 text-end text-[12.5px] leading-relaxed text-muted opacity-0 transition-all duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100 sm:block">
+          {item.desc}
+        </span>
+
+        <ArrowRight
+          size={14}
+          className="mt-1.5 shrink-0 text-accent/25 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-accent sm:mt-0"
+        />
       </a>
     );
   };
 
-  const byKeys = (keys: string[]) =>
-    t.items.filter((i) => keys.indexOf(i.key) !== -1);
+  const byKeys = (keys: string[]) => t.items.filter((i) => keys.indexOf(i.key) !== -1);
+
+  const block = (label: string, keys: string[], hot: boolean) => (
+    <section className="mt-6 first:mt-0">
+      <div className="mb-1 flex items-center gap-3 px-3">
+        <h2 className="shrink-0 text-[10px] uppercase tracking-[0.2em] text-muted/55">{label}</h2>
+        <span className="h-px flex-1 bg-white/[0.06]" />
+      </div>
+      <div className="divide-y divide-white/[0.04]">{byKeys(keys).map((i) => row(i, hot))}</div>
+    </section>
+  );
 
   return (
     <main className="flex-1 pt-[72px]">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-        {/* 标题 */}
+      <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 sm:py-20">
         <div className="text-center">
           <p className="text-[11px] uppercase tracking-[0.24em] text-accent/60">{t.eyebrow}</p>
           <h1 className="mx-auto mt-4 max-w-3xl font-serif text-3xl leading-tight text-gradient sm:text-4xl">
@@ -92,44 +114,13 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-muted">{t.subtitle}</p>
         </div>
 
-        {/* 免费 */}
-        <section className="mt-14">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-white/[0.07]" />
-            <h2 className="text-[11px] uppercase tracking-[0.2em] text-accent/70">{t.sectionFree}</h2>
-            <span className="h-px flex-1 bg-white/[0.07]" />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {byKeys(FREE_KEYS).map((i) => card(i, true))}
-          </div>
-        </section>
+        <div className="mt-12 rounded-2xl border border-white/[0.07] bg-white/[0.015] px-2 py-4 sm:px-4">
+          {block(t.sectionFree, FREE_KEYS, true)}
+          {block(t.sectionMid, MID_KEYS, false)}
+          {block(t.sectionHigh, HIGH_KEYS, false)}
+        </div>
 
-        {/* 微付费 */}
-        <section className="mt-12">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-white/[0.07]" />
-            <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted/60">{t.sectionMid}</h2>
-            <span className="h-px flex-1 bg-white/[0.07]" />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {byKeys(MID_KEYS).map((i) => card(i, false))}
-          </div>
-        </section>
-
-        {/* 重付费 */}
-        <section className="mt-12">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="h-px flex-1 bg-white/[0.07]" />
-            <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted/60">{t.sectionHigh}</h2>
-            <span className="h-px flex-1 bg-white/[0.07]" />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {byKeys(HIGH_KEYS).map((i) => card(i, false))}
-          </div>
-        </section>
-
-        {/* 两句说明 */}
-        <div className="mx-auto mt-12 max-w-2xl space-y-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-4 text-center">
+        <div className="mx-auto mt-8 max-w-2xl space-y-2 text-center">
           <p className="text-[11px] leading-relaxed text-muted/70">{t.freeNote}</p>
           <p className="text-[11px] leading-relaxed text-muted/50">{t.loginNote}</p>
         </div>
