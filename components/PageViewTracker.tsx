@@ -27,6 +27,87 @@ async function whoamiOnce() {
  * - 不统计 /admin 与 /account 等私有页；不统计站主自己的访问
  * - 静默失败（统计失败绝不影响用户）
  */
+/**
+ * 访客 ID：localStorage → cookie → sessionStorage 三级兜底。
+ *
+ * 为什么要 cookie：无痕模式、Safari 严格模式或隐私插件常把 localStorage 禁掉，
+ * 那样每次访问都会生成新 ID，同一个人被算成多个访客，UV 直接虚高
+ * （今天就发生过：一台 Mac 的 4 次访问记成了 4 个不同游客）。
+ * 三级都写不进去时退回 "anon"，UV 统计会跳过它，宁可少算也不虚高。
+ */
+const VID_KEY = "traces_vid";
+const VID_MAX_AGE = 60 * 60 * 24 * 365;
+
+function readCookie(name: string): string {
+  try {
+    const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]+)"));
+    return m ? decodeURIComponent(m[1]) : "";
+  } catch {
+    return "";
+  }
+}
+
+function writeCookie(name: string, value: string) {
+  try {
+    document.cookie =
+      name + "=" + encodeURIComponent(value) + "; max-age=" + VID_MAX_AGE + "; path=/; SameSite=Lax";
+  } catch {
+    /* cookie 也被禁就算了 */
+  }
+}
+
+function newId(): string {
+  return (
+    (typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID()) ||
+    Math.random().toString(36).slice(2) + Date.now().toString(36)
+  );
+}
+
+function getVisitorId(): string {
+  // 1) localStorage 有就直接用，顺手补齐 cookie
+  try {
+    const ls = localStorage.getItem(VID_KEY);
+    if (ls) {
+      if (readCookie(VID_KEY) !== ls) writeCookie(VID_KEY, ls);
+      return ls;
+    }
+  } catch {
+    /* 继续往下试 */
+  }
+
+  // 2) cookie 有（比如 localStorage 被清过），回填 localStorage
+  const ck = readCookie(VID_KEY);
+  if (ck) {
+    try {
+      localStorage.setItem(VID_KEY, ck);
+    } catch {
+      /* 写不进也无妨，至少这次认得出来 */
+    }
+    return ck;
+  }
+
+  // 3) 都没有：新建一个，尽量存住
+  const id = newId();
+  let saved = false;
+  try {
+    localStorage.setItem(VID_KEY, id);
+    saved = true;
+  } catch {
+    /* 试 cookie */
+  }
+  writeCookie(VID_KEY, id);
+  if (!saved && readCookie(VID_KEY) === id) saved = true;
+  if (!saved) {
+    try {
+      sessionStorage.setItem(VID_KEY, id);
+      saved = true;
+    } catch {
+      /* 全禁 */
+    }
+  }
+  return saved ? id : "anon";
+}
+
 export function PageViewTracker({ locale }: { locale: string }) {
   const pathname = usePathname();
   const { user, loading } = useAuth();
@@ -44,18 +125,7 @@ export function PageViewTracker({ locale }: { locale: string }) {
 
     const insert = async () => {
     try {
-      let vid = "";
-      try {
-        vid = localStorage.getItem("traces_vid") || "";
-        if (!vid) {
-          vid =
-            (typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID()) ||
-            Math.random().toString(36).slice(2) + Date.now().toString(36);
-          localStorage.setItem("traces_vid", vid);
-        }
-      } catch {
-        vid = "anon";
-      }
+      const vid = getVisitorId();
 
       // 公网 IP + 归属地：浏览器拿不到自己的出口 IP，由服务端读 X-Forwarded-For
       // 并查归属地后返回。同一次会话缓存，避免每次翻页都请求。
