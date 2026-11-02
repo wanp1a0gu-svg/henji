@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Locale, Messages, labels, locales } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
-import { Menu, X, ChevronDown, Globe, Check, User } from "lucide-react";
+import { Menu, X, ChevronDown, Globe, Check, User, ArrowRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 import { BrandMark } from "./BrandMark";
@@ -22,16 +22,24 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
   const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, "") || "/";
   const [open, setOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangOpen(false);
       }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
     };
     const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLangOpen(false);
+      if (e.key === "Escape") {
+        setLangOpen(false);
+        setMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", onClickOutside);
     document.addEventListener("keydown", onEsc);
@@ -43,18 +51,33 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
 
   const link = (path: string) => `/${locale}${path}`;
 
-  // 顺序按价格梯度排：免费 → 微付费（$6.80 八字）→ 重付费（$66 符纸 / 课程）
-  const navItems = [
+  /**
+   * 顶栏只留 4 项：首页 / 功能（下拉）/ 八字（$6.80）/ 商店（$66 起）。
+   * 其余全部收进「功能」下拉，避免 10 个平铺挤成一排。
+   * 下拉里仍按免费 → 付费的顺序排，底部再给「全部功能」入口。
+   */
+  const navItems: {
+    label: string;
+    href?: string;
+    note?: string;
+    children?: { label: string; href: string }[];
+    footer?: { label: string; href: string };
+  }[] = [
     { label: t("nav.home"), href: link("/") },
-    { label: t("nav.features"), href: link("/features"), compact: true },
-    { label: t("nav.advisor"), href: link("/#advisor") },
-    { label: t("nav.tarot"), href: link("/tarot") },
-    { label: t("nav.bagua"), href: link("/bagua") },
-    { label: t("nav.ziwei"), href: link("/ziwei") },
-    { label: t("nav.learn"), href: link("/learn") },
-    { label: t("nav.bazi"), href: link("/bazi") },
+    {
+      label: t("nav.features"),
+      children: [
+        { label: t("nav.advisor"), href: link("/#advisor") },
+        { label: t("nav.tarot"), href: link("/tarot") },
+        { label: t("nav.bagua"), href: link("/bagua") },
+        { label: t("nav.ziwei"), href: link("/ziwei") },
+        { label: t("nav.learn"), href: link("/learn") },
+        { label: t("nav.courses"), href: link("/courses") },
+      ],
+      footer: { label: t("nav.features"), href: link("/features") },
+    },
+    { label: t("nav.bazi"), href: link("/bazi"), note: t("bazi.price") },
     { label: t("nav.shop"), href: link("/shop") },
-    { label: t("nav.courses"), href: link("/courses") },
   ];
 
   const isActive = (href: string) => {
@@ -79,22 +102,80 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
         </a>
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`${(item as any).compact ? "hidden xl:inline-flex" : ""} relative px-4 py-2 text-sm tracking-wide transition ${
-                isActive(item.href)
-                  ? "text-accent"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              {item.label}
-              {isActive(item.href) && (
-                <span className="absolute bottom-0 left-1/2 h-[2px] w-1 -translate-x-1/2 rounded-full bg-accent" />
-              )}
-            </a>
-          ))}
+          {navItems.map((item) =>
+            item.children ? (
+              <div
+                key={item.label}
+                ref={menuRef}
+                className="relative"
+                onMouseEnter={() => setMenuOpen(true)}
+                onMouseLeave={() => setMenuOpen(false)}
+              >
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  className={`relative flex items-center gap-1.5 px-4 py-2 text-sm tracking-wide transition ${
+                    menuOpen || item.children.some((c) => isActive(c.href))
+                      ? "text-accent"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                  <ChevronDown
+                    size={12}
+                    className={`transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute start-0 top-full z-50 w-56 pt-2">
+                    <div className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#12100c] p-1.5 shadow-2xl shadow-black/60 backdrop-blur-xl">
+                      {item.children.map((c) => (
+                        <a
+                          key={c.href}
+                          href={c.href}
+                          onClick={() => setMenuOpen(false)}
+                          className={`flex items-center justify-between rounded-lg px-3 py-2 text-[13px] transition ${
+                            isActive(c.href)
+                              ? "bg-accent/10 text-accent"
+                              : "text-muted hover:bg-white/[0.05] hover:text-foreground"
+                          }`}
+                        >
+                          {c.label}
+                        </a>
+                      ))}
+                      {item.footer && (
+                        <a
+                          href={item.footer.href}
+                          onClick={() => setMenuOpen(false)}
+                          className="mt-1 flex items-center justify-between gap-1 border-t border-white/[0.06] px-3 pb-1 pt-2.5 text-[12px] text-accent/90 transition hover:text-accent"
+                        >
+                          {item.footer.label}
+                          <ArrowRight size={11} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`relative px-4 py-2 text-sm tracking-wide transition ${
+                  item.href && isActive(item.href) ? "text-accent" : "text-muted hover:text-foreground"
+                }`}
+              >
+                {item.label}
+                {item.note && <span className="ms-1.5 text-[10px] text-muted/45">{item.note}</span>}
+                {item.href && isActive(item.href) && (
+                  <span className="absolute bottom-0 left-1/2 h-[2px] w-1 -translate-x-1/2 rounded-full bg-accent" />
+                )}
+              </a>
+            )
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -183,16 +264,44 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
       {open && (
         <div className="border-t border-white/[0.06] bg-background/95 backdrop-blur-xl lg:hidden">
           <nav className="flex flex-col px-6 py-4">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`py-3 text-sm ${isActive(item.href) ? "text-accent" : "text-muted"}`}
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.children ? (
+                <div key={item.label} className="py-1">
+                  <p className="pb-1 pt-2 text-[10px] uppercase tracking-[0.18em] text-muted/40">
+                    {item.label}
+                  </p>
+                  {item.children.map((c) => (
+                    <a
+                      key={c.href}
+                      href={c.href}
+                      onClick={() => setOpen(false)}
+                      className={`block py-2 ps-3 text-sm ${isActive(c.href) ? "text-accent" : "text-muted"}`}
+                    >
+                      {c.label}
+                    </a>
+                  ))}
+                  {item.footer && (
+                    <a
+                      href={item.footer.href}
+                      onClick={() => setOpen(false)}
+                      className="block py-2 ps-3 text-sm text-accent/90"
+                    >
+                      {item.footer.label} →
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`py-3 text-sm ${item.href && isActive(item.href) ? "text-accent" : "text-muted"}`}
+                >
+                  {item.label}
+                  {item.note && <span className="ms-1.5 text-[11px] text-muted/45">{item.note}</span>}
+                </a>
+              )
+            )}
             <a
               href={link("/account")}
               onClick={() => setOpen(false)}
