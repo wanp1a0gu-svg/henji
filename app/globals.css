@@ -284,6 +284,7 @@ html[dir="rtl"] textarea {
   .feat-cta {
     max-height: 120px !important;
     opacity: 1 !important;
+    transform: none !important;
   }
   .feat-desc {
     margin-top: 0.75rem !important;

@@ -43,14 +43,14 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
       <a
         key={item.key}
         href={link(item.href)}
-        className={`feat-card group relative flex h-[168px] flex-col justify-start overflow-hidden rounded-2xl border p-6 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_50px_-24px_rgba(201,168,124,0.55)] ${
+        className={`feat-card group relative flex h-[168px] flex-col justify-start overflow-hidden rounded-2xl border p-6 transition-all duration-300 ease-out hover:translate-x-1.5 hover:shadow-[12px_0_36px_-18px_rgba(201,168,124,0.5)] ${
           hot
             ? "border-white/[0.08] bg-white/[0.02] hover:border-accent/55 hover:bg-accent/[0.06]"
             : "border-white/[0.06] bg-white/[0.015] hover:border-accent/45 hover:bg-accent/[0.05]"
         }`}
       >
         {/* 悬停时的金色光晕 */}
-        <span className="pointer-events-none absolute -inset-px rounded-2xl bg-[radial-gradient(circle_at_30%_0%,rgba(201,168,124,0.16),transparent_62%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <span className="pointer-events-none absolute -inset-px rounded-2xl bg-[radial-gradient(circle_at_0%_50%,rgba(201,168,124,0.18),transparent_62%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         <div className="relative flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 transition-colors duration-300 group-hover:border-accent/45 group-hover:bg-accent/15">
@@ -65,11 +65,11 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
         </div>
 
         {/* 简介：默认收起，悬停/触屏展开 */}
-        <div className="feat-desc relative mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:mt-3 group-hover:max-h-[84px] group-hover:opacity-100">
+        <div className="feat-desc relative mt-0 max-h-0 -translate-x-1.5 overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:mt-3 group-hover:max-h-[84px] group-hover:translate-x-0 group-hover:opacity-100">
           <p className="text-[12.5px] leading-relaxed text-muted">{item.desc}</p>
         </div>
 
-        <span className="feat-cta relative mt-0 inline-flex max-h-0 items-center gap-1.5 overflow-hidden text-[11px] text-accent opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:max-h-6 group-hover:opacity-100">
+        <span className="feat-cta relative mt-0 inline-flex max-h-0 -translate-x-1.5 items-center gap-1.5 overflow-hidden text-[11px] text-accent opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:max-h-6 group-hover:translate-x-0 group-hover:opacity-100">
           {t.cta}
           <ArrowRight size={12} className="transition group-hover:translate-x-0.5" />
         </span>
