@@ -33,39 +33,43 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
   const t = getFeaturesMessages(locale);
   const link = (p: string) => `/${locale}${p}`;
 
+  /**
+   * 默认态只露「图标 + 名字」；鼠标移上去（或触屏点开）才浮出简介与箭头。
+   * 触屏没有 hover，用 @media(hover:none) 让简介常显，避免手机上永远看不到说明。
+   */
   const card = (item: FeatureItem, hot: boolean) => {
     const Icon = ICONS[item.key] || Sparkles;
     return (
       <a
         key={item.key}
         href={link(item.href)}
-        className={`group flex flex-col rounded-2xl border p-5 transition ${
+        className={`feat-card group relative flex h-[168px] flex-col justify-start overflow-hidden rounded-2xl border p-6 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_22px_50px_-24px_rgba(201,168,124,0.55)] ${
           hot
-            ? "border-white/[0.08] bg-white/[0.025] hover:border-accent/40 hover:bg-accent/[0.05]"
-            : "border-white/[0.07] bg-white/[0.02] hover:border-accent/35"
+            ? "border-white/[0.08] bg-white/[0.02] hover:border-accent/55 hover:bg-accent/[0.06]"
+            : "border-white/[0.06] bg-white/[0.015] hover:border-accent/45 hover:bg-accent/[0.05]"
         }`}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
-            <Icon size={17} className="text-accent" />
-          </div>
-          <span
-            className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] ${
-              hot
-                ? "border border-accent/30 bg-accent/10 text-accent"
-                : "border border-white/10 bg-white/[0.04] text-muted/80"
-            }`}
-          >
+        {/* 悬停时的金色光晕 */}
+        <span className="pointer-events-none absolute -inset-px rounded-2xl bg-[radial-gradient(circle_at_30%_0%,rgba(201,168,124,0.16),transparent_62%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+        <div className="relative flex items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/20 bg-accent/10 transition-colors duration-300 group-hover:border-accent/45 group-hover:bg-accent/15">
+            <Icon size={16} className="text-accent" />
+          </span>
+          <h3 className="font-serif text-lg text-foreground transition-colors duration-300 group-hover:text-accent">
+            {item.title}
+          </h3>
+          <span className="ms-auto shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-muted/60 transition-colors duration-300 group-hover:border-accent/30 group-hover:text-accent/80">
             {item.badge}
           </span>
         </div>
 
-        <h3 className="mt-4 font-serif text-base text-foreground group-hover:text-accent transition">
-          {item.title}
-        </h3>
-        <p className="mt-2 flex-1 text-[12.5px] leading-relaxed text-muted">{item.desc}</p>
+        {/* 简介：默认收起，悬停/触屏展开 */}
+        <div className="feat-desc relative mt-0 max-h-0 overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:mt-3 group-hover:max-h-[84px] group-hover:opacity-100">
+          <p className="text-[12.5px] leading-relaxed text-muted">{item.desc}</p>
+        </div>
 
-        <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-accent">
+        <span className="feat-cta relative mt-0 inline-flex max-h-0 items-center gap-1.5 overflow-hidden text-[11px] text-accent opacity-0 transition-all duration-300 group-hover:mt-3 group-hover:max-h-6 group-hover:opacity-100">
           {t.cta}
           <ArrowRight size={12} className="transition group-hover:translate-x-0.5" />
         </span>
