@@ -102,3 +102,20 @@ select extname from pg_extension where extname='pgcrypto';
 RLS：`select` 公开（`using (true)`）；`insert/update/delete` 仅 `is_admin()`。
 前端只读，改动全部通过后台「库存」标签（发货 -1、未发货退款 +1、也可手动改）。
 读不到数据时前端按「有货」处理，绝不因网络问题停售。
+
+## 后台访问日志 admin_access_log（2026-11-02 新增）
+
+| 列 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial PK | |
+| `created_at` | timestamptz | 默认 now() |
+| `user_id` / `user_email` | text | 打开后台的账号 |
+| `allowed` | boolean | true=通过管理员校验，false=被拒 |
+| `path` / `locale` | text | 哪个后台地址 |
+| `ip` / `user_agent` | text | 来源 IP 与设备 |
+| `country` / `region` / `city` / `isp` | text | IP 归属地（服务端反查） |
+
+RLS：`select` 仅 `is_admin()`；`insert` 限 `authenticated` 且 `user_id = auth.uid()`（不能替别人记账）。
+
+为什么单独建表：普通流量统计故意排除管理员与 /admin 路径（否则站主自己刷两下就污染 PV），
+而「谁什么时候进过后台」属于安全审计信息，需要独立留痕，且要能记录**被拒的尝试**。

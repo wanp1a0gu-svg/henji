@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, RefreshCw, Package, FileText, Wallet, Sparkles, Truck, X, ShieldAlert, BarChart3, Eye, Users, BookOpen, Coins, Globe, RotateCcw, Search, Download, Boxes, DatabaseBackup } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { ADMIN_EMAILS } from "@/lib/site-config";
@@ -13,6 +13,7 @@ import { AdminSkills } from "./AdminSkills";
 import { AdminWallet } from "./AdminWallet";
 import { AdminStock } from "./AdminStock";
 import { AdminBackup } from "./AdminBackup";
+import { AdminAccessLog } from "./AdminAccessLog";
 
 interface Order {
   id: number;
@@ -172,6 +173,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
   const [oStatus, setOStatus] = useState<"all" | "pending" | "shipped" | "refunded" | "digital">("all");
   // 访问明细筛选
   const [vQuery, setVQuery] = useState("");
+  // 后台访问日志：每次进入只记一条
+  const accessLoggedRef = useRef("");
 
   // 身份判断走服务端（is_admin RPC，读登录凭证；与数据库 RLS 同一逻辑）
   const [adminState, setAdminState] = useState<"checking" | "yes" | "no">("checking");
@@ -305,6 +308,57 @@ export function AdminContent({ locale }: { locale: Locale }) {
       .then(setMailStatus)
       .catch(() => setMailStatus({ configured: false, hint: "无法获取" }));
   }, []);
+
+  // 后台访问日志：登录态与管理员校验都就绪后记一条（含被拒的尝试）
+  // ⚠️ 必须在门禁 return 之前，否则登录后 hook 数变化会崩（React #310）
+  useEffect(() => {
+    if (loading || !user) return;
+    if (adminState === "checking") return;
+    const key = String(user.id) + ":" + adminState;
+    if (accessLoggedRef.current === key) return;
+    accessLoggedRef.current = key;
+
+    (async () => {
+      try {
+        let info: any = null;
+        try {
+          const cached = sessionStorage.getItem("traces_ipinfo");
+          if (cached) {
+            info = JSON.parse(cached);
+          } else {
+            const r = await fetch("/api/ip", { cache: "no-store" });
+            const j: any = await r.json();
+            if (j && j.ip) {
+              info = j;
+              sessionStorage.setItem("traces_ipinfo", JSON.stringify(j));
+            }
+          }
+        } catch {
+          /* 拿不到就留空 */
+        }
+        const geo = (info && info.geo) || {};
+        const cut = (v: any, n: number) => (v ? String(v).slice(0, n) : null);
+
+        await getCloud()
+          .database.from("admin_access_log")
+          .insert({
+            user_id: String(user.id),
+            user_email: user.email || null,
+            allowed: adminState === "yes",
+            path: typeof location !== "undefined" ? location.pathname : null,
+            locale,
+            ip: info && info.ip ? String(info.ip) : null,
+            user_agent: cut(typeof navigator !== "undefined" ? navigator.userAgent : "", 300),
+            country: cut(geo.country, 60),
+            region: cut(geo.region, 80),
+            city: cut(geo.city, 80),
+            isp: cut(geo.isp, 100),
+          });
+      } catch {
+        /* 日志失败不影响后台使用 */
+      }
+    })();
+  }, [user, loading, adminState, locale]);
 
   // ---- 门禁 ----
   if (loading) {
@@ -1004,6 +1058,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
         {/* 流量 */}
         {tab === "traffic" && (
           <div className="space-y-4">
+            <AdminAccessLog />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { label: "今日访问（PV）", value: String(todayPv) },
