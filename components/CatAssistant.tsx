@@ -6,6 +6,7 @@ import { Locale } from "@/lib/i18n";
 import { getChatMessages } from "@/lib/chat-i18n";
 import { positionLabel, cardName } from "@/lib/tarot-i18n";
 import { useAuth } from "./AuthProvider";
+import { OPEN_CAT_EVENT } from "@/lib/cat-open";
 import { SignInGate } from "./SignInGate";
 import { RichText, loadCustomSkills } from "./ChatContent";
 import { BaziChart } from "./BaziChart";
@@ -63,6 +64,8 @@ async function poll(jobId: string): Promise<any> {
 export function CatAssistant({ locale }: { locale: Locale }) {
   const t = getChatMessages(locale);
   const { user, loading } = useAuth();
+  /** 本地预览：构建时带 NEXT_PUBLIC_PREVIEW_MODE=1 才生效，正式构建为 false */
+  const PREVIEW = process.env.NEXT_PUBLIC_PREVIEW_MODE === "1";
 
   /* ── 桌宠状态 ── */
   const [chatOpen, setChatOpen] = useState(false);
@@ -74,6 +77,16 @@ export function CatAssistant({ locale }: { locale: Locale }) {
   const [lift, setLift] = useState(0); // 离地高度（0 = 站在屏幕底部）
   const [onLeft, setOnLeft] = useState(false);
   const [activeTick, setActiveTick] = useState(0);
+
+  // 外部（顶栏「对话」、首页按钮、探索页卡片）要求打开弹窗
+  useEffect(() => {
+    const onOpen = () => {
+      setChatOpen(true);
+      setBubbleOn(false);
+    };
+    window.addEventListener(OPEN_CAT_EVENT, onOpen as EventListener);
+    return () => window.removeEventListener(OPEN_CAT_EVENT, onOpen as EventListener);
+  }, []);
 
   const xRef = useRef(0);
   const liftRef = useRef(0);
@@ -554,7 +567,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
             </button>
           </div>
 
-          {user ? (
+          {user || PREVIEW ? (
             <>
               {/* 消息区 */}
               <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
@@ -635,7 +648,7 @@ export function CatAssistant({ locale }: { locale: Locale }) {
                       }
                     }}
                     rows={1}
-                    placeholder={t.placeholder}
+                    placeholder={t.catPlaceholder}
                     disabled={busy}
                     className="max-h-24 min-h-[40px] flex-1 resize-none rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[16px] text-foreground outline-none transition placeholder:text-[13px] placeholder:text-muted/50 focus:border-accent/50 disabled:opacity-60 sm:text-sm sm:placeholder:text-sm"
                   />

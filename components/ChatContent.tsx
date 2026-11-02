@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Sparkles, Send, Loader2, RotateCcw } from "lucide-react";
+import { Send, Loader2, RotateCcw } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getChatMessages } from "@/lib/chat-i18n";
 import { getTarotMessages, positionLabel, cardName, TAROT_ELEMENT_COLORS } from "@/lib/tarot-i18n";
@@ -269,11 +269,27 @@ export function ChatContent({ locale }: { locale: Locale }) {
           className="max-h-[560px] min-h-[220px] space-y-5 overflow-y-auto px-4 py-5 sm:px-6"
         >
           {turns.length === 0 && (
-            <div className="py-6 text-center">
-              <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-accent/20 bg-accent/10">
-                <Sparkles size={20} className="text-accent" />
+            <div className="py-2">
+              {/* 小痕先开口，像真的在跟你讲话 */}
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f4efe6] p-1 shadow-[0_0_0_1px_rgba(201,168,124,0.35)]">
+                  <img
+                    src="/brand/xiaohen-avatar.png"
+                    alt={t.catTitle}
+                    className="h-full w-full object-contain"
+                    loading="eager"
+                  />
+                </span>
+                <div className="max-w-[85%]">
+                  <p className="mb-1 text-[10px] tracking-wide text-accent/70">{t.catTitle}</p>
+                  <div className="rounded-2xl rounded-ss-sm border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-[13px] leading-relaxed text-foreground/85">
+                    {t.catIntro}
+                  </div>
+                </div>
               </div>
-              <div className="mx-auto flex max-w-lg flex-col gap-2">
+
+              {/* 小痕给的几个开场问题 */}
+              <div className="ms-12 mt-4 flex flex-col gap-2">
                 {t.suggestions.map((s) => (
                   <button
                     key={s}
@@ -289,15 +305,19 @@ export function ChatContent({ locale }: { locale: Locale }) {
 
           {turns.map((turn, i) => (
             <div key={i} className="flex gap-3">
-              <div
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] ${
-                  turn.role === "user"
-                    ? "border-white/10 bg-white/[0.05] text-muted"
-                    : "border-accent/25 bg-accent/10 text-accent"
-                }`}
-              >
-                {turn.role === "user" ? "·" : <Sparkles size={13} />}
-              </div>
+              {turn.role === "user" ? (
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-[10px] text-muted">
+                  ·
+                </div>
+              ) : (
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#f4efe6] p-[3px] shadow-[0_0_0_1px_rgba(201,168,124,0.3)]">
+                  <img
+                    src="/brand/xiaohen-avatar.png"
+                    alt={t.catTitle}
+                    className="h-full w-full object-contain"
+                  />
+                </span>
+              )}
 
               <div className="min-w-0 flex-1">
                 <p className="mb-1.5 text-[10px] uppercase tracking-wider text-muted/50">

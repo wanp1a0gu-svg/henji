@@ -7,6 +7,7 @@ import { Menu, X, ChevronDown, Globe, Check, User, ArrowRight } from "lucide-rea
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 import { BrandMark } from "./BrandMark";
+import { openCatAssistant } from "@/lib/cat-open";
 
 export function Nav({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -62,12 +63,14 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
     note?: string;
     children?: { label: string; href: string }[];
     footer?: { label: string; href: string };
+    action?: "open-cat";
   }[] = [
     { label: t("nav.home"), href: link("/") },
+    // 对话没有独立页面了，点它直接打开右下角小痕弹窗
+    { label: t("nav.advisor"), action: "open-cat" },
     {
       label: t("nav.features"),
       children: [
-        { label: t("nav.advisor"), href: link("/#advisor") },
         { label: t("nav.tarot"), href: link("/tarot") },
         { label: t("nav.bagua"), href: link("/bagua") },
         { label: t("nav.ziwei"), href: link("/ziwei") },
@@ -160,6 +163,15 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
                   </div>
                 )}
               </div>
+            ) : item.action === "open-cat" ? (
+              <button
+                key={item.label}
+                type="button"
+                onClick={openCatAssistant}
+                className="relative px-4 py-2 text-sm tracking-wide text-muted transition hover:text-foreground"
+              >
+                {item.label}
+              </button>
             ) : (
               <a
                 key={item.href}
@@ -290,6 +302,18 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
                     </a>
                   )}
                 </div>
+              ) : item.action === "open-cat" ? (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    openCatAssistant();
+                  }}
+                  className="py-3 text-start text-sm text-muted"
+                >
+                  {item.label}
+                </button>
               ) : (
                 <a
                   key={item.href}

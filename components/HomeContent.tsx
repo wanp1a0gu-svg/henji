@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { Sparkles, BookOpen, Compass, Star, ArrowRight, Check } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
-import { ChatContent } from "./ChatContent";
 import { COURSES_OPEN } from "@/lib/site-config";
 import { getUiMessages } from "@/lib/ui-i18n";
+import { openCatAssistant } from "@/lib/cat-open";
 
 export function HomeContent({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -116,15 +116,16 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
             </a>
           </div>
 
-          {/* Jump to the advisor */}
-          <a
-            href="#advisor"
+          {/* 打开右下角小痕弹窗（对话不再有独立区块） */}
+          <button
+            type="button"
+            onClick={openCatAssistant}
             className="mt-8 inline-flex items-center gap-2 text-xs text-muted transition hover:text-accent"
           >
             <Sparkles size={13} />
             {ui.chatCta}
-            <ArrowRight size={12} className="rotate-90" />
-          </a>
+            <ArrowRight size={12} />
+          </button>
         </div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-muted/50">
@@ -132,14 +133,6 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
             <div className="h-1.5 w-1 rounded-full bg-accent mx-auto" />
           </div>
         </div>
-      </section>
-
-      {/* AI Advisor — 默认加载全部 skill 的对话入口 */}
-      <section id="advisor" className="snap-section relative flex items-center overflow-hidden px-6 pt-[96px] pb-16 sm:pb-24">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-1/4 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-accent/[0.05] blur-[120px]" />
-        </div>
-        <ChatContent locale={locale} />
       </section>
 
       {/* Bazi — 主推服务 */}

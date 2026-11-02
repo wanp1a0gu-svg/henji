@@ -21,6 +21,13 @@ export function SignInGate({
   const { user, loading, openAuth } = useAuth();
   const a = getAuthMessages(locale);
 
+  /**
+   * 本地预览开关：只有构建时设了 NEXT_PUBLIC_PREVIEW_MODE=1 才生效。
+   * 线上正式构建不带这个变量 → 门禁照旧。
+   * 用途：站主没登录账号时，也能在本地看到被门禁包住的界面（对话/测算页）。
+   */
+  if (process.env.NEXT_PUBLIC_PREVIEW_MODE === "1") return <>{children}</>;
+
   if (loading) {
     return (
       <div className={`flex items-center justify-center py-16 ${className}`}>

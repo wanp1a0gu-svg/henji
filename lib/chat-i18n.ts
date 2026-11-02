@@ -29,11 +29,12 @@ export interface ChatMessages {
   catTitle: string;
   catIntro: string;
   catBubble: string;
+  catPlaceholder: string;
 }
 
 const zh: ChatMessages = {
   eyebrow: "玄学对话",
-  title: "与命理助手对话",
+  title: "和小痕聊聊",
   subtitle: "AI 顾问",
   intro:
     "直接说人话就行。助手已加载八字与塔罗两套能力，会自己判断该排盘、该抽牌，还是先陪你把话聊清楚。",
@@ -63,11 +64,12 @@ const zh: ChatMessages = {
   catTitle: "小痕 · 命理助手",
   catIntro: "你好，我是小痕。想聊点什么？",
   catBubble: "我是小痕，快来和我聊天！",
+  catPlaceholder: "想说点什么？",
 };
 
 const en: ChatMessages = {
   eyebrow: "Oracle Chat",
-  title: "Talk to the Destiny Advisor",
+  title: "Talk to Xiaohen",
   subtitle: "AI Advisor",
   intro:
     "Just speak naturally. Both the Bazi and Tarot skills are already loaded — the advisor decides on its own whether to cast a chart, draw cards, or simply talk it through with you first.",
@@ -97,11 +99,12 @@ const en: ChatMessages = {
   catTitle: "Xiaohen · Fortune Guide",
   catIntro: "Hi, I'm Xiaohen. What would you like to know?",
   catBubble: "I'm Xiaohen — come chat with me!",
+  catPlaceholder: "Say anything…",
 };
 
 const ja: ChatMessages = {
   eyebrow: "占いチャット",
-  title: "運命アドバイザーと話す",
+  title: "小痕と話す",
   subtitle: "占いアドバイザー",
   intro:
     "自然な言葉でどうぞ。八字とタロットの二つの能力がすでに読み込まれており、助手が自分で判断して命盤を出したりカードを引いたりします。",
@@ -131,11 +134,12 @@ const ja: ChatMessages = {
   catTitle: "小痕・運命アシスタント",
   catIntro: "こんにちは、小痕です。何でも聞いてくださいね。",
   catBubble: "小痕です。おしゃべりしましょう！",
+  catPlaceholder: "何でも聞いてください",
 };
 
 const ko: ChatMessages = {
   eyebrow: "운세 대화",
-  title: "운명 어드바이저와 대화하기",
+  title: "샤오헨과 대화하기",
   subtitle: "운세 상담사",
   intro:
     "편하게 말씀하세요. 사주와 타로 두 가지 능력이 이미 로드되어 있으며, 어드바이저가 스스로 판단해 명반을 세우거나 카드를 뽑습니다.",
@@ -165,11 +169,12 @@ const ko: ChatMessages = {
   catTitle: "샤오헨 · 운세 도우미",
   catIntro: "안녕하세요, 샤오헨이에요. 궁금한 것을 물어보세요.",
   catBubble: "샤오헨이에요. 같이 얘기해요!",
+  catPlaceholder: "무엇이든 물어보세요",
 };
 
 const es: ChatMessages = {
   eyebrow: "Chat del oráculo",
-  title: "Habla con el asesor del destino",
+  title: "Habla con Xiaohen",
   subtitle: "Asesor del oráculo",
   intro:
     "Habla con naturalidad. Las habilidades de Bazi y Tarot ya están cargadas: el asesor decide por sí mismo si traza una carta, extrae tarot o simplemente conversa contigo.",
@@ -199,11 +204,12 @@ const es: ChatMessages = {
   catTitle: "Xiaohen · Guía de Fortuna",
   catIntro: "Hola, soy Xiaohen. ¿Qué te gustaría saber?",
   catBubble: "¡Soy Xiaohen, ven a charlar conmigo!",
+  catPlaceholder: "Dime lo que quieras",
 };
 
 const fr: ChatMessages = {
   eyebrow: "Chat de l'oracle",
-  title: "Parlez au conseiller du destin",
+  title: "Parlez à Xiaohen",
   subtitle: "Conseiller de l'oracle",
   intro:
     "Parlez naturellement. Les compétences Bazi et Tarot sont déjà chargées : le conseiller décide seul s'il dresse une carte, tire des tarots ou échange d'abord avec vous.",
@@ -233,11 +239,12 @@ const fr: ChatMessages = {
   catTitle: "Xiaohen · Guide de Fortune",
   catIntro: "Bonjour, je suis Xiaohen. Que voulez-vous savoir ?",
   catBubble: "Je suis Xiaohen — venez discuter avec moi !",
+  catPlaceholder: "Dites-moi ce que vous voulez",
 };
 
 const de: ChatMessages = {
   eyebrow: "Orakel-Chat",
-  title: "Sprich mit dem Schicksalsberater",
+  title: "Sprich mit Xiaohen",
   subtitle: "Orakel-Berater",
   intro:
     "Sprich einfach natürlich. Die Fähigkeiten Bazi und Tarot sind bereits geladen — der Berater entscheidet selbst, ob er ein Chart erstellt, Karten zieht oder zunächst mit dir spricht.",
@@ -267,11 +274,12 @@ const de: ChatMessages = {
   catTitle: "Xiaohen · Schicksalsberater",
   catIntro: "Hallo, ich bin Xiaohen. Was möchtest du wissen?",
   catBubble: "Ich bin Xiaohen – komm, plaudere mit mir!",
+  catPlaceholder: "Frag mich einfach",
 };
 
 const pt: ChatMessages = {
   eyebrow: "Chat do oráculo",
-  title: "Fale com o conselheiro do destino",
+  title: "Fala com o Xiaohen",
   subtitle: "Consultor do oráculo",
   intro:
     "Fale naturalmente. As habilidades de Bazi e Tarô já estão carregadas — o conselheiro decide sozinho se traça um mapa, tira cartas ou apenas conversa com você.",
@@ -301,11 +309,12 @@ const pt: ChatMessages = {
   catTitle: "Xiaohen · Guia de Fortuna",
   catIntro: "Olá, sou Xiaohen. O que você quer saber?",
   catBubble: "Sou o Xiaohen — venha conversar comigo!",
+  catPlaceholder: "Diz o que quiseres",
 };
 
 const ru: ChatMessages = {
   eyebrow: "Чат с оракулом",
-  title: "Поговорите с советником судьбы",
+  title: "Поговорите с Сяо Хэнем",
   subtitle: "Консультант-оракул",
   intro:
     "Говорите свободно. Навыки Бацзы и Таро уже загружены — советник сам решит, составить карту, вытянуть карты или сначала просто поговорить с вами.",
@@ -335,11 +344,12 @@ const ru: ChatMessages = {
   catTitle: "Сяохэнь · Гид судьбы",
   catIntro: "Привет, я Сяохэнь. Спрашивайте о чём угодно.",
   catBubble: "Я Сяохэнь — давайте поболтаем!",
+  catPlaceholder: "Спросите что угодно",
 };
 
 const ar: ChatMessages = {
   eyebrow: "محادثة العرّاف",
-  title: "تحدّث مع مستشار المصير",
+  title: "تحدّث مع شياوهن",
   subtitle: "مستشار العرافة",
   intro:
     "تحدّث بعفوية. مهارتا البازي والتاروت محمّلتان مسبقًا — يقرّر المستشار بنفسه إن كان سيرسم مخططًا أو يسحب بطاقات أو يتحاور معك أولًا.",
@@ -369,6 +379,7 @@ const ar: ChatMessages = {
   catTitle: "شياوهن · مرشد الحظ",
   catIntro: "مرحباً، أنا شياوهن. اسألني ما تشاء.",
   catBubble: "أنا شياوهن — تعال تحدّث معي!",
+  catPlaceholder: "اسأل ما تشاء",
 };
 
 const ALL: Record<Locale, ChatMessages> = { en, zh, ja, ko, es, fr, de, pt, ru, ar };

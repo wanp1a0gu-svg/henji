@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { getFeaturesMessages, FREE_KEYS, MID_KEYS, HIGH_KEYS, type FeatureItem } from "@/lib/features-i18n";
+import { openCatAssistant } from "@/lib/cat-open";
 
 const ICONS: Record<string, any> = {
   advisor: Sparkles,
@@ -45,10 +46,15 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
     const Icon = ICONS[item.key] || Sparkles;
     index += 1;
     const no = String(index).padStart(2, "0");
+    // 对话没有独立页面：这一行点开右下角小痕弹窗
+    const isCat = item.key === "advisor";
+    const Tag: any = isCat ? "button" : "a";
     return (
-      <a
+      <Tag
         key={item.key}
-        href={link(item.href)}
+        {...(isCat
+          ? { type: "button", onClick: openCatAssistant }
+          : { href: link(item.href) })}
         className="feat-row group relative flex items-start gap-4 border-s-2 border-transparent px-3 py-5 transition-all duration-300 hover:border-accent/60 hover:bg-accent/[0.045] hover:ps-5 sm:items-center"
       >
         {/* 序号 */}
@@ -87,7 +93,7 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
           size={14}
           className="mt-1.5 shrink-0 text-accent/25 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-accent sm:mt-0"
         />
-      </a>
+      </Tag>
     );
   };
 
