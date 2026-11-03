@@ -8,6 +8,7 @@ import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
 import { WhenToUse } from "./WhenToUse";
+import { ShareBar } from "./ShareButton";
 import { getWhen } from "@/lib/when-i18n";
 
 /** 同源 API 优先（server.js），失败回退 Cloudflare Worker。 */
@@ -231,6 +232,20 @@ export function TarotContent({ locale }: { locale: Locale }) {
             <div className="glass glow rounded-2xl p-6 sm:p-8">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-serif text-xl text-accent">{draw.spreadName}</h3>
+                <div className="mt-3">
+                  <ShareBar
+                    locale={locale}
+                    data={{
+                      title: t.title,
+                      headline: draw.spreadName,
+                      rows: draw.cards.slice(0, 6).map((c) => ({
+                        label: positionLabel(locale, c.position),
+                        value: (c.orientation === "逆位" ? "逆 " : "正 ") + cardName(locale, c.card, c.cardEn),
+                      })),
+                      note: draw.question || undefined,
+                    }}
+                  />
+                </div>
                 <p className="text-[11px] text-muted/70">
                   seed {draw.seed.length > 12 ? draw.seed.slice(0, 12) + "…" : draw.seed} · {draw.timeFactor}
                 </p>

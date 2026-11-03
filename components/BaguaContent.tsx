@@ -9,6 +9,7 @@ import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
 import { WhenToUse } from "./WhenToUse";
+import { ShareBar } from "./ShareButton";
 import { getWhen } from "@/lib/when-i18n";
 
 /** 同源 API（server.js 异步任务模式）。 */

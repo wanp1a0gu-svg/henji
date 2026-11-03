@@ -9,6 +9,7 @@ import { Select } from "./Select";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
 import { WhenToUse } from "./WhenToUse";
+import { ShareBar } from "./ShareButton";
 import { getWhen } from "@/lib/when-i18n";
 
 /** 异步任务模式：POST 返回 {jobId, chart}（盘立即可看），GET ?id= 取解读 */
@@ -206,6 +207,23 @@ export function ZiweiContent({ locale }: { locale: Locale }) {
           <div className="mt-10">
             <h2 className="mb-4 text-center font-serif text-lg text-foreground">{t.chartTitle}</h2>
             <ZiweiChart chart={chart} locale={locale} />
+            <div className="mt-4 flex justify-center">
+              <ShareBar
+                locale={locale}
+                data={{
+                  title: t.title,
+                  headline:
+                    (chart.palaces.find((p) => p.isMingGong)?.stars.slice(0, 2).join(" ") || "") + " · " + t.lifePalace,
+                  rows: [
+                    { label: t.chartTitle, value: chart.wuxingJu || "-" },
+                    { label: t.lifePalace, value: (chart.mingZhu || "-") + " / " + (chart.shenZhu || "-") },
+                    { label: t.birthDate, value: chart.lunarText || "-" },
+                      { label: t.birthTime, value: chart.timeZhi || "-" },
+                  ],
+                  note: chart.trueSolar && chart.trueSolar.corrected ? chart.trueSolar.timeText : undefined,
+                }}
+              />
+            </div>
           </div>
         )}
 

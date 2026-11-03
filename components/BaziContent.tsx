@@ -10,6 +10,7 @@ import { notifyReport } from "@/lib/notify";
 import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
+import { ShareBar } from "./ShareButton";
 import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
@@ -459,6 +460,30 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                 </div>
               )}
               {chart && <BaziChart chart={chart} locale={locale} />}
+              {chart && (
+                <div className="mt-4">
+                  <ShareBar
+                    locale={locale}
+                    data={{
+                      title: t("bazi.title"),
+                      headline: ["year", "month", "day", "hour"]
+                        .map((k) => {
+                          const p = (chart.pillars as any)[k];
+                          return p ? p.gan + p.zhi : "";
+                        })
+                        .filter(Boolean)
+                        .join(" "),
+                      rows: [
+                        { label: "日主", value: chart.dayMaster.gan + (chart.dayMaster.element ? " · " + chart.dayMaster.element : "") },
+                        { label: "生肖", value: chart.shichenText || "-" },
+                        { label: "大运", value: (chart.dayun && chart.dayun[0] && chart.dayun[0].gz) || "-" },
+                        { label: "流年", value: chart.currentYear + " " + (chart.currentGz || "") },
+                      ],
+                      note: chart.lunarText,
+                    }}
+                  />
+                </div>
+              )}
               <div className="prose prose-invert max-w-none text-sm leading-relaxed text-muted">
                 {report.split("\n").map((line, i) => (
                   <p key={i} className="mb-3">{line}</p>
