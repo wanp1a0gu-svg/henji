@@ -21,7 +21,7 @@ export const SITE_URL = "https://mingli-club.app.workbuddy.host";
  * 填到这里，下次构建会在 <head> 输出 google-site-verification，回 GSC 点「验证」即可。
  * 留空则不输出该标签。
  */
-export const GOOGLE_SITE_VERIFICATION = "";
+export const GOOGLE_SITE_VERIFICATION = "B3xJAlwYYutAuW6YW4ukM7kO1O5INwbx_tf5GxdAbLs";
 
 export const ADMIN_EMAILS = ["wanp1a0gu@gmail.com", "501183563@qq.com"];
 
