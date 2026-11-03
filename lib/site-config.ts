@@ -13,6 +13,16 @@ export const SITE_URL = "https://mingli-club.app.workbuddy.host";
  * ⚠️ 前端仅做界面控制；真正的数据权限在数据库 RLS 策略里（auth.email() 白名单），
  *    改这里的同时必须同步更新 payment_orders / readings 的 *_select_admin 策略。
  */
+/**
+ * Google Search Console 的验证码。
+ *
+ * 取值位置：GSC → 添加资源 → 选「网址前缀」→ 填 https://mingli-club.app.workbuddy.host/
+ * → 验证方式选「HTML 标记」→ 复制 content="..." 里那串（形如 abc123...）。
+ * 填到这里，下次构建会在 <head> 输出 google-site-verification，回 GSC 点「验证」即可。
+ * 留空则不输出该标签。
+ */
+export const GOOGLE_SITE_VERIFICATION = "";
+
 export const ADMIN_EMAILS = ["wanp1a0gu@gmail.com", "501183563@qq.com"];
 
 /**
