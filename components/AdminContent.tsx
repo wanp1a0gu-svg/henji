@@ -1202,7 +1202,8 @@ export function AdminContent({ locale }: { locale: Locale }) {
                             <span className="text-sky-300/70">已登录（无邮箱）</span>
                           ) : (
                             <span className="text-muted/50">
-                              游客 · {(v.visitor_id || "").slice(0, 8) || "—"}
+                              {(v.visitor_id || "").startsWith("fp:") ? "设备" : "游客"} ·{" "}
+                              {(v.visitor_id || "").replace(/^fp:/, "").slice(0, 8) || "—"}
                             </span>
                           )}
                         </td>
@@ -1233,7 +1234,7 @@ export function AdminContent({ locale }: { locale: Locale }) {
 
               <p className="border-t border-white/[0.06] px-5 py-3 text-[10px] leading-relaxed text-muted/40">
                 归属地由服务端按 IP 反查（ipwho.is / ip-api），仅供内部参考、不保证精确：中国大陆一般到城市级，
-                海外多为国家级；运营商=接入商。登录用户才会记录邮箱，游客只显示匿名访客 ID。仅管理员可见。
+                海外多为国家级；运营商=接入商。登录用户才会记录邮箱；游客显示匿名访客 ID，标「设备」的是存储被禁（无痕/隐私插件）时按设备指纹识别，换 IP 也能认出是同一台。仅管理员可见。
               </p>
             </div>
           </div>

@@ -305,10 +305,66 @@ const RATE_LIMITS = {
 const _rateBuckets = new Map(); // "kind:ip" -> { bucket, count }
 const _globalBuckets = new Map(); // kind -> { bucket, count }
 
+/**
+ * 取访问者 IP。
+ *
+ * 现实：站点挂在托管平台上，前面有网关 + 用户自己的代理/VPN。
+ * 服务端能看到的永远是「最后一跳」。把常见携带真实 IP 的头都收一遍，
+ * 取链条里第一个公网地址，取不到就退回直连地址。
+ */
+function ipCandidates(req) {
+  const h = req.headers || {};
+  const out = [];
+
+  const push = (v) => {
+    if (!v) return;
+    String(v)
+      .split(",")
+      .forEach((x) => {
+        const t = x.trim().replace(/^\[|\]$/g, "");
+        if (t) out.push(t);
+      });
+  };
+
+  push(h["cf-connecting-ip"]);
+  push(h["true-client-ip"]);
+  push(h["x-real-ip"]);
+  push(h["x-forwarded-for"]);
+  // RFC 7239: for=1.2.3.4;proto=https, for="[2001:db8::1]"
+  if (h["forwarded"]) {
+    String(h["forwarded"])
+      .split(",")
+      .forEach((part) => {
+        const m = /for=("?\[?)([^\];,"]+)/i.exec(part);
+        if (m && m[2]) out.push(m[2].trim());
+      });
+  }
+  if (req.socket && req.socket.remoteAddress) out.push(req.socket.remoteAddress);
+
+  // 去重，保留顺序
+  const seen = new Set();
+  return out.filter((ip) => {
+    if (seen.has(ip)) return false;
+    seen.add(ip);
+    return true;
+  });
+}
+
+/** 挑「最像真实访客」的那个：第一个非内网地址。 */
+function pickClientIp(req) {
+  const list = ipCandidates(req);
+  const isBad = (ip) =>
+    !ip ||
+    isPrivateIp(ip) ||
+    ip === "unknown" ||
+    /^(::1|::ffff:127\.0\.0\.1)$/.test(ip) ||
+    ip.startsWith("100.") /* 运营商级 NAT 段 */;
+  const good = list.find((ip) => !isBad(ip));
+  return { ip: good || list[0] || "unknown", chain: list };
+}
+
 function clientIp(req) {
-  const fwd = req.headers["x-forwarded-for"];
-  if (fwd) return String(fwd).split(",")[0].trim();
-  return (req.socket && req.socket.remoteAddress) || "unknown";
+  return pickClientIp(req).ip;
 }
 
 /**
@@ -2121,11 +2177,36 @@ const server = http.createServer((req, res) => {
 
   // 访客 IP：埋点由浏览器写库，客户端拿不到自己的公网 IP，
   // 由服务端读 X-Forwarded-For 回给前端（不经过任何第三方接口）
+  // 诊断用：把这个请求里所有跟来源有关的头原样吐出来，判断真实 IP 是否可得
+  if (clean === "/api/ip-debug") {
+    const h = req.headers || {};
+    const picked = pickClientIp(req);
+    return sendJson(res, 200, {
+      picked: picked.ip,
+      chain: picked.chain,
+      socketRemote: (req.socket && req.socket.remoteAddress) || null,
+      headers: {
+        "x-forwarded-for": h["x-forwarded-for"] || null,
+        "x-real-ip": h["x-real-ip"] || null,
+        "cf-connecting-ip": h["cf-connecting-ip"] || null,
+        "true-client-ip": h["true-client-ip"] || null,
+        forwarded: h["forwarded"] || null,
+        via: h["via"] || null,
+        "x-forwarded-proto": h["x-forwarded-proto"] || null,
+        "x-forwarded-host": h["x-forwarded-host"] || null,
+        "cf-ipcountry": h["cf-ipcountry"] || null,
+      },
+      ua: h["user-agent"] || null,
+      at: new Date().toISOString(),
+    });
+  }
+
   if (clean === "/api/ip") {
-    const ip = clientIp(req);
+    const picked = pickClientIp(req);
+    const ip = picked.ip;
     lookupGeo(ip)
-      .then((geo) => sendJson(res, 200, { ip, ua: req.headers["user-agent"] || "", geo }))
-      .catch(() => sendJson(res, 200, { ip, ua: req.headers["user-agent"] || "", geo: null }));
+      .then((geo) => sendJson(res, 200, { ip, ipChain: picked.chain, ua: req.headers["user-agent"] || "", geo }))
+      .catch(() => sendJson(res, 200, { ip, ipChain: picked.chain, ua: req.headers["user-agent"] || "", geo: null }));
     return;
   }
 

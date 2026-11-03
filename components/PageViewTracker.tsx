@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { getCloud } from "@/lib/cloud";
+import { deviceFingerprint } from "@/lib/fingerprint";
 import { useAuth } from "./AuthProvider";
 
 // 当前登录者信息缓存（每次页面会话查一次服务端）
@@ -105,7 +106,12 @@ function getVisitorId(): string {
       /* 全禁 */
     }
   }
-  return saved ? id : "anon";
+  if (saved) return id;
+
+  // 存储全被禁（无痕模式 / 隐私插件）：退回设备指纹。
+  // 这样同一个人反复访问只算一个访客，不会每次生成新 ID 把 UV 冲高。
+  const fp = deviceFingerprint();
+  return fp ? "fp:" + fp : "anon";
 }
 
 export function PageViewTracker({ locale }: { locale: string }) {
