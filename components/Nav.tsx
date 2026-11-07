@@ -260,7 +260,7 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
               className="flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3.5 py-1.5 text-xs font-medium tracking-wide text-accent transition hover:bg-accent/20"
             >
               <User size={13} />
-              <span className="hidden sm:inline">{a.signIn}</span>
+              <span className="hidden sm:inline">{a.signInOrSignUp}</span>
             </button>
           )}
 

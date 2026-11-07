@@ -323,6 +323,9 @@ export function AuthModal({
                     </button>
                   </div>
                 </div>
+                {!pending && (
+                  <p className="text-[11px] leading-relaxed text-muted/60">{m.otpNewUser}</p>
+                )}
                 <div>
                   <label className="mb-2 block text-sm text-muted">{m.code}</label>
                   <input
