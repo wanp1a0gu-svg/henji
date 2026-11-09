@@ -36,7 +36,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "为你推荐这一款",
     note: "依据你命盘里这几处信息，不是套话。",
     basis: "命盘依据",
-    plainLabel: "说白了",
+    plainLabel: "简单来说",
     plain: {
       caishen: "你命里代表收入的那股力只有 {n} 点，还容易被同辈分走——赚得到，但存不住、机会也留不住。财神符管的就是这一块。",
       shiye: "代表职位和话语权的力量只有 {n} 点。常见的样子是：活你干得最多，决定却轮不到你。事业符主攻这里，让你在该被看见时被看见。",
@@ -63,7 +63,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "One charm that fits your chart",
     note: "Based on these specific points in your chart — not a sales line.",
     basis: "Chart basis",
-    plainLabel: "In plain words",
+    plainLabel: "Simply put",
     plain: {
       caishen: "The force that carries income in your chart is only {n} points, and peers easily divide it. You can earn, but it doesn't stay. This charm targets exactly that.",
       shiye: "The force behind position and say-so is only {n} points — you often do the most work and still miss the decision. This charm targets that gap.",
@@ -90,7 +90,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "あなたに合うお札はこれ",
     note: "命盤のこの点を根拠にしています。決まり文句ではありません。",
     basis: "命盤の根拠",
-    plainLabel: "かみくだくと",
+    plainLabel: "簡単に言うと",
     plain: {
       caishen: "収入を担う力が {n} 点しかなく、同輩に分けられやすい。稼げても残らない。このお札はそこに働きます。",
       shiye: "地位や発言力を支える力が {n} 点だけ。仕事は一番しているのに決定に加われない、という形で出ます。",
@@ -117,7 +117,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "당신의 명반에 맞는 부적",
     note: "명반의 다음 지점을 근거로 골랐습니다.",
     basis: "명반 근거",
-    plainLabel: "쉽게 말하면",
+    plainLabel: "간단히 말하면",
     plain: {
       caishen: "소득을 담당하는 힘이 {n}점뿐이고 동료에게 쉽게 나뉩니다. 벌어도 남지 않는다는 뜻. 이 부적이 그 부분을 봅니다.",
       shiye: "직책과 발언권을 받치는 힘이 {n}점뿐. 일은 가장 많이 하는데 결정은 못 하는 모습으로 나타납니다.",
@@ -144,7 +144,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "Un talismán que encaja con tu carta",
     note: "Basado en estos puntos concretos de tu carta, no en una frase de venta.",
     basis: "Base de la carta",
-    plainLabel: "En palabras simples",
+    plainLabel: "En términos simples",
     plain: {
       caishen: "La fuerza que sostiene tus ingresos solo tiene {n} puntos y se reparte con facilidad. Ganas, pero no se queda. Este talismán apunta ahí.",
       shiye: "La fuerza del puesto y la palabra solo tiene {n} puntos: haces más trabajo y aun así no decides. Apunta a esa brecha.",
@@ -171,7 +171,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "Un talisman accordé à votre thème",
     note: "Fondé sur ces points précis de votre thème, pas sur un argumentaire.",
     basis: "Base du thème",
-    plainLabel: "En clair",
+    plainLabel: "Autrement dit",
     plain: {
       caishen: "La force qui porte vos revenus ne pèse que {n} points et se partage vite. Vous gagnez, mais ça ne reste pas. Ce talisman vise ce point.",
       shiye: "La force du poste et de la parole ne pèse que {n} points : vous faites le plus de travail sans décider. Il vise cet écart.",
@@ -198,7 +198,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "Ein Talisman, der zu deinem Chart passt",
     note: "Begründet mit diesen konkreten Punkten deines Charts – kein Verkaufssatz.",
     basis: "Grundlage im Chart",
-    plainLabel: "Klartext",
+    plainLabel: "Einfach gesagt",
     plain: {
       caishen: "Die Kraft hinter deinem Einkommen hat nur {n} Punkte und wird leicht geteilt. Du verdienst, aber es bleibt nicht. Genau da setzt der Talisman an.",
       shiye: "Die Kraft für Position und Mitsprache hat nur {n} Punkte: du machst die meiste Arbeit, entscheidest aber nicht mit.",
@@ -225,7 +225,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "Um talismã que combina com o teu mapa",
     note: "Baseado nestes pontos concretos do teu mapa, não em conversa de venda.",
     basis: "Base do mapa",
-    plainLabel: "Em palavras simples",
+    plainLabel: "Em termos simples",
     plain: {
       caishen: "A força que sustenta o rendimento tem só {n} pontos e é facilmente dividida. Ganhas, mas não fica. O talismã actua aí.",
       shiye: "A força do cargo e da palavra tem só {n} pontos: fazes mais trabalho e ainda assim não decides.",
@@ -252,7 +252,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "Талисман под вашу карту",
     note: "Основано на этих конкретных точках карты, а не на рекламной фразе.",
     basis: "Основание в карте",
-    plainLabel: "Проще говоря",
+    plainLabel: "Иными словами",
     plain: {
       caishen: "Сила, отвечающая за доход, всего {n} балла и легко делится. Зарабатываете, но не удерживается. Талисман про это.",
       shiye: "Сила должности и права голоса — {n} балла: работы больше всех, а решения не ваши.",
@@ -279,7 +279,7 @@ const T: Record<Locale, TalismanMessages> = {
     title: "تميمة تناسب مخططك",
     note: "مبنية على هذه النقاط المحددة في مخططك، لا على عبارة ترويجية.",
     basis: "أساس المخطط",
-    plainLabel: "ببساطة",
+    plainLabel: "بعبارة أبسط",
     plain: {
       caishen: "القوة التي تحمل الرزق في مخططك {n} نقاط فقط، ويسهل اقتسامها. تكسب لكن لا يبقى. هذه التميمة تعالج ذلك.",
       shiye: "قوة المنصب والكلمة {n} نقاط فقط: تعمل أكثر الجميع ولا تشارك في القرار.",
