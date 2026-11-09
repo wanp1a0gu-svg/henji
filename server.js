@@ -276,9 +276,16 @@ const CHAT_PROVIDER =
   process.env.CHAT_PROVIDER ||
   fileConfig.CHAT_PROVIDER ||
   (function () {
+    // 通用 OpenAI 兼容通道优先（硅基流动 / 混元 / 通义 / 千帆 都能用这一套）
+    if (process.env.CHAT_ENDPOINT || fileConfig.CHAT_ENDPOINT) return "openai";
     if (process.env.GLM_API_KEY || fileConfig.GLM_API_KEY) return "glm";
     return "doubao";
   })();
+
+/** 任意 OpenAI 兼容平台：端点 + key + 模型名三件套由配置决定。 */
+const RAW_ENDPOINT = process.env.CHAT_ENDPOINT || fileConfig.CHAT_ENDPOINT || "";
+const RAW_KEY = process.env.CHAT_API_KEY || fileConfig.CHAT_API_KEY || "";
+const RAW_MODEL = process.env.CHAT_MODEL || fileConfig.CHAT_MODEL || "";
 
 const GLM_API_KEY = process.env.GLM_API_KEY || fileConfig.GLM_API_KEY || "";
 const GLM_MODEL = process.env.GLM_MODEL || fileConfig.GLM_MODEL || "glm-4.7-flash";
@@ -290,12 +297,12 @@ const DOUBAO_MODEL = process.env.DOUBAO_MODEL || fileConfig.DOUBAO_MODEL || "ep-
 const DOUBAO_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 
 /** 当前生效的模型通道。 */
-const CHAT = {
-  provider: CHAT_PROVIDER,
-  apiKey: CHAT_PROVIDER === "glm" ? GLM_API_KEY : DOUBAO_API_KEY,
-  model: CHAT_PROVIDER === "glm" ? GLM_MODEL : DOUBAO_MODEL,
-  endpoint: CHAT_PROVIDER === "glm" ? GLM_ENDPOINT : DOUBAO_ENDPOINT,
-};
+const CHAT =
+  CHAT_PROVIDER === "openai"
+    ? { provider: "openai", apiKey: RAW_KEY, model: RAW_MODEL, endpoint: RAW_ENDPOINT }
+    : CHAT_PROVIDER === "glm"
+      ? { provider: "glm", apiKey: GLM_API_KEY, model: GLM_MODEL, endpoint: GLM_ENDPOINT }
+      : { provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT };
 const CHAT_CONFIGURED = !!CHAT.apiKey;
 
 /**
