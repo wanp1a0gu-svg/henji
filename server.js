@@ -1003,30 +1003,20 @@ function handleBaziStatus(req, res) {
   });
 }
 
-/** 统一调用豆包生成文本（bazi / tarot 共用）。 */
+/**
+ * 统一生成文本（八字 / 塔罗 / 文王卦 / 紫微 共用）。
+ *
+ * ⚠️ 这里以前写死走豆包，换模型时只改了聊天路径，导致这四个功能全挂在欠费的豆包上。
+ * 现在统一走 callDoubaoRaw 的候选链（主模型 → 备用模型 → 豆包），
+ * 排队、降级、reasoning_effort 全部复用同一套逻辑。
+ */
 async function callDoubao(system, user) {
-  const upstream = await httpsPostJson(
-    DOUBAO_ENDPOINT,
-    { Authorization: "Bearer " + DOUBAO_API_KEY },
-    {
-      model: DOUBAO_MODEL,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
-    },
-    UPSTREAM_TIMEOUT_MS
-  );
-
-  if (upstream.status < 200 || upstream.status >= 300) {
-    throw new Error("upstream error " + upstream.status + " " + String(upstream.text).slice(0, 200));
-  }
-
-  const data = JSON.parse(upstream.text);
-  const content =
-    (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
+  const messages = [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
+  const msg = await callDoubaoRaw(messages, null, UPSTREAM_TIMEOUT_MS);
+  const content = (msg && msg.content) || "";
   if (!content) throw new Error("empty completion");
   return content;
 }
@@ -1889,7 +1879,7 @@ async function callModelOnce(cfg, messages, tools, timeoutMs) {
     model: cfg.model,
     messages,
     temperature: 0.7,
-    max_tokens: 3000,
+    max_tokens: 4000,
   };
   // 只在配置了才带（老模型不认这个字段，带了会 400）
   if (CHAT_REASONING_EFFORT) payload.reasoning_effort = CHAT_REASONING_EFFORT;
