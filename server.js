@@ -329,6 +329,79 @@ console.error(
   "[boot] chat provider=" + CHAT.provider + " model=" + CHAT.model + " configured=" + CHAT_CONFIGURED +
     " queue=" + JSON.stringify(MODEL_QUEUE ? MODEL_QUEUE.stats() : null)
 );
+
+// ---------------------------------------------------------------------------
+// 模型用量统计：每次调用累计 tokens（按模型 / 按天），落盘 data/model-usage.json
+// 用途：/api/health 随时看资源包烧了多少；进程重启不丢总数。
+// 按天只保留最近 30 天，防止文件无限膨胀；模型维度的总数永久保留。
+// ---------------------------------------------------------------------------
+const USAGE_FILE = path.join(__dirname, "data", "model-usage.json");
+const usageState = (() => {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(USAGE_FILE, "utf8"));
+    return { models: parsed.models || {}, days: parsed.days || {} };
+  } catch {
+    return { models: {}, days: {} };
+  }
+})();
+
+function recordModelUsage(model, usage, ok) {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const m =
+      usageState.models[model] ||
+      (usageState.models[model] = {
+        calls: 0,
+        failures: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        firstCall: null,
+        lastCall: null,
+      });
+    const d =
+      usageState.days[day] ||
+      (usageState.days[day] = { calls: 0, failures: 0, totalTokens: 0 });
+    const now = new Date().toISOString();
+    m.calls++;
+    m.lastCall = now;
+    if (!m.firstCall) m.firstCall = now;
+    d.calls++;
+    if (ok && usage) {
+      const pt = usage.prompt_tokens || 0;
+      const ct = usage.completion_tokens || 0;
+      const tt = usage.total_tokens || pt + ct;
+      m.promptTokens += pt;
+      m.completionTokens += ct;
+      m.totalTokens += tt;
+      d.totalTokens += tt;
+    } else {
+      m.failures++;
+      d.failures++;
+    }
+    // 天数窗口裁剪
+    const dayKeys = Object.keys(usageState.days).sort();
+    while (dayKeys.length > 30) {
+      delete usageState.days[dayKeys.shift()];
+    }
+    fs.mkdirSync(path.dirname(USAGE_FILE), { recursive: true });
+    fs.writeFileSync(USAGE_FILE, JSON.stringify(usageState, null, 2), "utf8");
+  } catch (e) {
+    // 统计写不进去不影响业务
+    console.warn("[usage] 记录失败：" + String(e && e.message).slice(0, 80));
+  }
+}
+
+function usageSummary() {
+  const today = new Date().toISOString().slice(0, 10);
+  const emptyDay = { calls: 0, failures: 0, totalTokens: 0 };
+  return {
+    today: usageState.days[today] || emptyDay,
+    days: usageState.days,
+    models: usageState.models,
+  };
+}
+
 const UPSTREAM_TIMEOUT_MS = 170000; // 神煞详解等长报告约需 90–130s，留足余量（前端轮询 240s）
 
 const FOCUS_VALUES = ["general", "career", "love", "wealth", "health"];
@@ -1895,6 +1968,8 @@ async function callModelOnce(cfg, messages, tools, timeoutMs) {
   const data = JSON.parse(upstream.text);
   const msg = data.choices && data.choices[0] && data.choices[0].message;
   if (!msg) throw new Error("empty completion");
+  // 成功调用：累计 tokens（没有 usage 字段的老平台记 0，只记次数）
+  recordModelUsage(cfg.model, data.usage || null, true);
   return msg;
 }
 
@@ -1921,6 +1996,8 @@ async function callChatModel(messages, tools, timeoutMs) {
     } catch (e) {
       // 排队满 / 排队超时：直接抛出去，让上层给出「人太多」的提示
       if (e && (e.code === "QUEUE_FULL" || e.code === "QUEUE_TIMEOUT")) throw e;
+      // 模型本身失败（限流/超时/欠费）：计入该模型的失败次数
+      recordModelUsage(cfg.model, null, false);
       lastErr = e;
       const more = i + 1 < chain.length;
       console.warn(
@@ -2277,6 +2354,8 @@ const server = http.createServer((req, res) => {
       // 当前对话模型通道（切换 provider 后可直接看这里确认）
       chat: { provider: CHAT.provider, model: CHAT.model, configured: CHAT_CONFIGURED },
       modelQueue: MODEL_QUEUE ? MODEL_QUEUE.stats() : null,
+      // 对话模型用量：today 是当天，models 是各模型历史累计（tokens 口径 = 上游 usage 字段）
+      usage: usageSummary(),
     });
   }
 
