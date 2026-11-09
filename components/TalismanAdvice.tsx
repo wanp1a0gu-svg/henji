@@ -5,7 +5,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 import { SHOP_PRODUCTS } from "@/lib/shop-data";
 import { recommendTalismans } from "@/lib/talisman-match";
-import { getTalismanMessages, formatFacts } from "@/lib/talisman-i18n";
+import { getTalismanMessages, formatFacts, plainFor } from "@/lib/talisman-i18n";
 
 /**
  * 命盘解读完成后的符纸推荐（只推 1-2 个）。
@@ -72,10 +72,16 @@ export function TalismanAdvice({
               </div>
             </div>
 
-            {/* 命盘依据：让用户能对着自己的盘核对 */}
-            <div className="mt-3 rounded-lg border border-accent/15 bg-accent/[0.05] px-3 py-2">
-              <p className="text-[10px] uppercase tracking-[0.14em] text-accent/60">{t.basis}</p>
-              <p className="mt-1 text-[12px] leading-relaxed text-foreground/85">
+            {/* 大白话：先说人话，再说依据 */}
+            <p className="mt-3 text-[12.5px] leading-[1.85] text-foreground/85">
+              <span className="me-1 text-accent/70">{t.plainLabel}：</span>
+              {plainFor(locale, product.id, facts)}
+            </p>
+
+            {/* 命盘依据：给愿意核对的人 */}
+            <div className="mt-2.5 rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2">
+              <p className="text-[9.5px] uppercase tracking-[0.14em] text-muted/45">{t.basis}</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted/80">
                 {formatFacts(locale, facts)}
               </p>
             </div>
