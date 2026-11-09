@@ -306,6 +306,18 @@ const CHAT =
 const CHAT_CONFIGURED = !!CHAT.apiKey;
 
 /**
+ * 模型降级链：主模型限流/超时时，依次尝试备用模型（同一平台，换模型名即可）。
+ * 例如主用 glm-4.7-flash（质量好但免费池常被打满），
+ * 打满时自动降到 glm-4-flash-250414（更快更稳）。
+ */
+const CHAT_FALLBACK_MODELS = String(
+  process.env.CHAT_FALLBACKS || fileConfig.CHAT_FALLBACKS || ""
+)
+  .split(",")
+  .map((x) => x.trim())
+  .filter(Boolean);
+
+/**
  * 模型调用闸门：按提交顺序排队，先来先算。
  * 免费档只允许 1 并发，排队比直接报错体验好得多。
  * 可用环境变量/配置覆盖：MODEL_CONCURRENCY / MODEL_QUEUE_MAX / MODEL_QUEUE_WAIT_MS
@@ -1906,23 +1918,33 @@ async function callModelOnce(cfg, messages, tools, timeoutMs) {
  * 让用户拿到答案而不是错误页。
  */
 async function callDoubaoRaw(messages, tools, timeoutMs) {
-  const invoke = () => callModelOnce(CHAT, messages, tools, timeoutMs);
-  try {
-    return MODEL_QUEUE ? await MODEL_QUEUE.run(invoke) : await invoke();
-  } catch (e) {
-    // 排队满 / 排队超时：直接抛出去，让上层给出「人太多」的提示，
-    // 不要回退豆包（回退只会把原因覆盖成另一个错误）
-    if (e && (e.code === "QUEUE_FULL" || e.code === "QUEUE_TIMEOUT")) throw e;
-    const canFallback = CHAT.provider !== "doubao" && !!DOUBAO_API_KEY;
-    if (!canFallback) throw e;
-    console.warn("[chat] " + CHAT.provider + " 失败，回退豆包：" + String(e && e.message).slice(0, 120));
-    return await callModelOnce(
-      { provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT },
-      messages,
-      tools,
-      timeoutMs
-    );
+  // 候选链：主模型 → 备用模型（同一平台）→ 豆包（若还配着）
+  const chain = [{ ...CHAT }];
+  for (const m of CHAT_FALLBACK_MODELS) {
+    if (m && m !== CHAT.model) chain.push({ ...CHAT, model: m });
   }
+  if (CHAT.provider !== "doubao" && DOUBAO_API_KEY) {
+    chain.push({ provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT });
+  }
+
+  let lastErr = null;
+  for (let i = 0; i < chain.length; i++) {
+    const cfg = chain[i];
+    const invoke = () => callModelOnce(cfg, messages, tools, timeoutMs);
+    try {
+      return MODEL_QUEUE ? await MODEL_QUEUE.run(invoke) : await invoke();
+    } catch (e) {
+      // 排队满 / 排队超时：直接抛出去，让上层给出「人太多」的提示
+      if (e && (e.code === "QUEUE_FULL" || e.code === "QUEUE_TIMEOUT")) throw e;
+      lastErr = e;
+      const more = i + 1 < chain.length;
+      console.warn(
+        "[chat] " + (cfg.model || cfg.provider) + " 失败" + (more ? "，降级下一个：" : "：") +
+          String(e && e.message).slice(0, 100)
+      );
+    }
+  }
+  throw lastErr || new Error("no chat model available");
 }
 
 /**
