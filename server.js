@@ -260,9 +260,41 @@ try {
   fileConfig = {};
 }
 
+/**
+ * 对话模型配置（可切换 provider）。
+ *
+ * CHAT_PROVIDER=glm   → 智谱 GLM（OpenAI 兼容）
+ * CHAT_PROVIDER=doubao→ 火山方舟豆包（原默认）
+ * 不填时按「有哪个 key 用哪个」自动选，避免升级过程中把对话搞挂。
+ *
+ * GLM 免费档有 1 并发限制：同时两个人在聊天，第二个会排队或失败。
+ * 所以这里保留 fallback 能力，随时可以切回来。
+ */
+const CHAT_PROVIDER =
+  process.env.CHAT_PROVIDER ||
+  fileConfig.CHAT_PROVIDER ||
+  (function () {
+    if (process.env.GLM_API_KEY || fileConfig.GLM_API_KEY) return "glm";
+    return "doubao";
+  })();
+
+const GLM_API_KEY = process.env.GLM_API_KEY || fileConfig.GLM_API_KEY || "";
+const GLM_MODEL = process.env.GLM_MODEL || fileConfig.GLM_MODEL || "glm-4.7-flash";
+const GLM_ENDPOINT =
+  process.env.GLM_ENDPOINT || fileConfig.GLM_ENDPOINT || "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+
 const DOUBAO_API_KEY = process.env.DOUBAO_API_KEY || fileConfig.DOUBAO_API_KEY || "";
 const DOUBAO_MODEL = process.env.DOUBAO_MODEL || fileConfig.DOUBAO_MODEL || "ep-m-20260408172909-vsfqd";
 const DOUBAO_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+
+/** 当前生效的模型通道。 */
+const CHAT = {
+  provider: CHAT_PROVIDER,
+  apiKey: CHAT_PROVIDER === "glm" ? GLM_API_KEY : DOUBAO_API_KEY,
+  model: CHAT_PROVIDER === "glm" ? GLM_MODEL : DOUBAO_MODEL,
+  endpoint: CHAT_PROVIDER === "glm" ? GLM_ENDPOINT : DOUBAO_ENDPOINT,
+};
+const CHAT_CONFIGURED = !!CHAT.apiKey;
 const UPSTREAM_TIMEOUT_MS = 170000; // 神煞详解等长报告约需 90–130s，留足余量（前端轮询 240s）
 
 const FOCUS_VALUES = ["general", "career", "love", "wealth", "health"];
@@ -890,7 +922,7 @@ function handleBaziApi(req, res) {
       });
     }
 
-    if (!DOUBAO_API_KEY) {
+    if (!CHAT_CONFIGURED) {
       return sendJson(res, 500, { error: "Server is not configured yet" });
     }
 
@@ -1078,7 +1110,7 @@ function handleTarotApi(req, res) {
       });
     }
 
-    if (!DOUBAO_API_KEY) {
+    if (!CHAT_CONFIGURED) {
       return sendJson(res, 500, { error: "Server is not configured yet" });
     }
 
@@ -1224,7 +1256,7 @@ function handleZiweiApi(req, res) {
         error: "Too many requests. Please try again later. 请求过于频繁，请稍后再试。",
       });
     }
-    if (!DOUBAO_API_KEY) return sendJson(res, 500, { error: "Server is not configured yet" });
+    if (!CHAT_CONFIGURED) return sendJson(res, 500, { error: "Server is not configured yet" });
 
     const geo = resolvePlaceGeo(place, date, time);
 
@@ -1344,7 +1376,7 @@ function handleBaguaApi(req, res) {
       });
     }
 
-    if (!DOUBAO_API_KEY) {
+    if (!CHAT_CONFIGURED) {
       return sendJson(res, 500, { error: "Server is not configured yet" });
     }
 
@@ -1763,7 +1795,7 @@ function handleChatApi(req, res) {
       });
     }
 
-    if (!DOUBAO_API_KEY) {
+    if (!CHAT_CONFIGURED) {
       return sendJson(res, 500, { error: "Server is not configured yet" });
     }
 
@@ -1802,10 +1834,13 @@ function handleChatStatus(req, res) {
   });
 }
 
-/** 调用豆包 chat/completions，返回完整 message（含 tool_calls）。 */
-async function callDoubaoRaw(messages, tools, timeoutMs) {
+/**
+ * 调用对话模型，返回完整 message（含 tool_calls）。
+ * 名称沿用 callDoubaoRaw，实际走 CHAT 里配置的 provider（glm / doubao）。
+ */
+async function callModelOnce(cfg, messages, tools, timeoutMs) {
   const payload = {
-    model: DOUBAO_MODEL,
+    model: cfg.model,
     messages,
     temperature: 0.7,
     max_tokens: 3000,
@@ -1813,20 +1848,45 @@ async function callDoubaoRaw(messages, tools, timeoutMs) {
   if (tools && tools.length) payload.tools = tools;
 
   const upstream = await httpsPostJson(
-    DOUBAO_ENDPOINT,
-    { Authorization: "Bearer " + DOUBAO_API_KEY },
+    cfg.endpoint,
+    { Authorization: "Bearer " + cfg.apiKey },
     payload,
     timeoutMs
   );
 
   if (upstream.status < 200 || upstream.status >= 300) {
-    throw new Error("upstream error " + upstream.status + " " + String(upstream.text).slice(0, 300));
+    const err = new Error("upstream error " + upstream.status + " " + String(upstream.text).slice(0, 300));
+    err.status = upstream.status;
+    throw err;
   }
 
   const data = JSON.parse(upstream.text);
   const msg = data.choices && data.choices[0] && data.choices[0].message;
   if (!msg) throw new Error("empty completion");
   return msg;
+}
+
+/**
+ * 调用对话模型。
+ *
+ * GLM 免费档只有 1 个并发：两个人同时聊天，第二个会拿到 429。
+ * 所以当主通道（glm）失败且配了豆包 key 时，自动回退一次豆包，
+ * 让用户拿到答案而不是错误页。
+ */
+async function callDoubaoRaw(messages, tools, timeoutMs) {
+  try {
+    return await callModelOnce(CHAT, messages, tools, timeoutMs);
+  } catch (e) {
+    const canFallback = CHAT.provider !== "doubao" && !!DOUBAO_API_KEY;
+    if (!canFallback) throw e;
+    console.warn("[chat] " + CHAT.provider + " 失败，回退豆包：" + String(e && e.message).slice(0, 120));
+    return await callModelOnce(
+      { provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT },
+      messages,
+      tools,
+      timeoutMs
+    );
+  }
 }
 
 /**
@@ -2164,6 +2224,8 @@ const server = http.createServer((req, res) => {
       node: process.version,
       mail: Mailer ? Mailer.isConfigured() : false,
       ziwei: !!ZiweiEngine,
+      // 当前对话模型通道（切换 provider 后可直接看这里确认）
+      chat: { provider: CHAT.provider, model: CHAT.model, configured: CHAT_CONFIGURED },
     });
   }
 
