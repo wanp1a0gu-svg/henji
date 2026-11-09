@@ -174,8 +174,10 @@ function readPayPalEvents(limit) {
 
 // 首页「玄学对话」助手：把站点 skills/ 下的八字与塔罗 skill 封装为可调用工具
 let SkillKnowledge = null;
+let ModelQueue = null;
 try {
   SkillKnowledge = require("./lib/skill-knowledge.js");
+  ModelQueue = require("./lib/model-queue.js");
   const src = SkillKnowledge.skillSources();
   console.error("[boot] skill knowledge loaded (bazi=" + src.bazi + " tarot=" + src.tarot + ")");
 } catch (e) {
@@ -295,6 +297,23 @@ const CHAT = {
   endpoint: CHAT_PROVIDER === "glm" ? GLM_ENDPOINT : DOUBAO_ENDPOINT,
 };
 const CHAT_CONFIGURED = !!CHAT.apiKey;
+
+/**
+ * 模型调用闸门：按提交顺序排队，先来先算。
+ * 免费档只允许 1 并发，排队比直接报错体验好得多。
+ * 可用环境变量/配置覆盖：MODEL_CONCURRENCY / MODEL_QUEUE_MAX / MODEL_QUEUE_WAIT_MS
+ */
+const MODEL_QUEUE = ModelQueue
+  ? ModelQueue.createModelQueue({
+      concurrency: process.env.MODEL_CONCURRENCY || fileConfig.MODEL_CONCURRENCY || 1,
+      maxQueue: process.env.MODEL_QUEUE_MAX || fileConfig.MODEL_QUEUE_MAX || 30,
+      waitMs: process.env.MODEL_QUEUE_WAIT_MS || fileConfig.MODEL_QUEUE_WAIT_MS || 60000,
+    })
+  : null;
+console.error(
+  "[boot] chat provider=" + CHAT.provider + " model=" + CHAT.model + " configured=" + CHAT_CONFIGURED +
+    " queue=" + JSON.stringify(MODEL_QUEUE ? MODEL_QUEUE.stats() : null)
+);
 const UPSTREAM_TIMEOUT_MS = 170000; // 神煞详解等长报告约需 90–130s，留足余量（前端轮询 240s）
 
 const FOCUS_VALUES = ["general", "career", "love", "wealth", "health"];
@@ -1063,10 +1082,16 @@ async function generateReading(jobId, body, overviewOnly) {
     });
   } catch (e) {
     console.error("[bazi] job failed:", (e && e.message) || e);
+    const queued =
+      e && (e.code === "QUEUE_TIMEOUT"
+        ? "现在同时排盘的人有点多，你的请求排太久没轮到。请过一会儿再试一次。\nToo many requests right now — please try again in a moment."
+        : e.code === "QUEUE_FULL"
+          ? "现在排队已满，请过几分钟再来。\nThe queue is full — please try again in a few minutes."
+          : "");
     _jobs.set(jobId, {
       kind: "bazi",
       status: "error",
-      error: "Reading generation failed, please try again later",
+      error: queued || "Reading generation failed, please try again later",
       createdAt: Date.now(),
     });
   }
@@ -1874,9 +1899,13 @@ async function callModelOnce(cfg, messages, tools, timeoutMs) {
  * 让用户拿到答案而不是错误页。
  */
 async function callDoubaoRaw(messages, tools, timeoutMs) {
+  const invoke = () => callModelOnce(CHAT, messages, tools, timeoutMs);
   try {
-    return await callModelOnce(CHAT, messages, tools, timeoutMs);
+    return MODEL_QUEUE ? await MODEL_QUEUE.run(invoke) : await invoke();
   } catch (e) {
+    // 排队满 / 排队超时：直接抛出去，让上层给出「人太多」的提示，
+    // 不要回退豆包（回退只会把原因覆盖成另一个错误）
+    if (e && (e.code === "QUEUE_FULL" || e.code === "QUEUE_TIMEOUT")) throw e;
     const canFallback = CHAT.provider !== "doubao" && !!DOUBAO_API_KEY;
     if (!canFallback) throw e;
     console.warn("[chat] " + CHAT.provider + " 失败，回退豆包：" + String(e && e.message).slice(0, 120));
@@ -2140,10 +2169,17 @@ async function runChat(jobId, body) {
     });
   } catch (e) {
     console.error("[chat] job failed:", (e && e.message) || e);
+    // 排队相关错误单独给一句人话，别让用户以为是网站坏了
+    const queued =
+      e && (e.code === "QUEUE_TIMEOUT"
+        ? "现在同时用的人有点多，你的请求排太久没轮到。请过一会儿再试一次。\nToo many requests right now — please try again in a moment."
+        : e.code === "QUEUE_FULL"
+          ? "现在排队的人已满，请过几分钟再来。\nThe queue is full — please try again in a few minutes."
+          : "");
     _jobs.set(jobId, {
       kind: "chat",
       status: "error",
-      error: "Assistant is busy, please try again later",
+      error: queued || "Assistant is busy, please try again later",
       createdAt: Date.now(),
     });
   }
@@ -2226,6 +2262,7 @@ const server = http.createServer((req, res) => {
       ziwei: !!ZiweiEngine,
       // 当前对话模型通道（切换 provider 后可直接看这里确认）
       chat: { provider: CHAT.provider, model: CHAT.model, configured: CHAT_CONFIGURED },
+      modelQueue: MODEL_QUEUE ? MODEL_QUEUE.stats() : null,
     });
   }
 
