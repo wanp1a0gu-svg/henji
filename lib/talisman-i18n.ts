@@ -1,141 +1,250 @@
 import type { Locale } from "./i18n";
-import type { TalismanReason } from "./talisman-match";
+import type { Fact } from "./talisman-match";
+import type { ElementKey } from "./chart-i18n";
+import { getChartMessages } from "./chart-i18n";
 
 /**
- * 符纸推荐区块的文案（十语言）。
- * 只保留必要的 8 条：标题 / 说明 / 按钮 / 五种推荐理由。
- * 符名和描述直接复用商店数据（已有本地化），不在这里重复维护。
+ * 符纸推荐的文案（十语言）。
+ *
+ * 只保留必要项：标题 / 依据前缀 / 八种依据类型 / 按钮。
+ * 具体数字和五行名从命盘数据来，这里只提供词。
  */
 export interface TalismanMessages {
   title: string;
   note: string;
+  basis: string;
   cta: string;
-  reasons: Record<TalismanReason, string>;
+  terms: {
+    dayMaster: string;
+    wealthStar: string;
+    officialStar: string;
+    sealStar: string;
+    peach: string;
+    weakSelf: string;
+    missingEl: string;
+    excess: string;
+    clash: string;
+  };
 }
 
 const T: Record<Locale, TalismanMessages> = {
-  en: {
-    title: "Charms that match your chart",
-    note: "Picked from our collection by your chart and focus — not by sales pitch.",
-    cta: "View in shop",
-    reasons: {
-      wealth: "Strengthen money luck",
-      career: "Support career",
-      love: "Open up romance",
-      health: "Guard health",
-      balance: "Clear obstacles",
+  zh: {
+    title: "为你推荐这一款",
+    note: "依据你命盘里这几处信息，不是套话。",
+    basis: "命盘依据",
+    cta: "去商店查看",
+    terms: {
+      dayMaster: "日主",
+      wealthStar: "财星",
+      officialStar: "官星",
+      sealStar: "印星",
+      peach: "桃花位",
+      weakSelf: "身弱（同类占比）",
+      missingEl: "五行缺",
+      excess: "过旺",
+      clash: "流年冲日支",
     },
   },
-  zh: {
-    title: "与你命盘相合的符",
-    note: "依据你的命盘与关注方向挑选，不是硬塞推销。",
-    cta: "去商店查看",
-    reasons: {
-      wealth: "补财气",
-      career: "助事业",
-      love: "旺感情",
-      health: "保健康",
-      balance: "化阻碍",
+  en: {
+    title: "One charm that fits your chart",
+    note: "Based on these specific points in your chart — not a sales line.",
+    basis: "Chart basis",
+    cta: "View in shop",
+    terms: {
+      dayMaster: "Day master",
+      wealthStar: "Wealth star",
+      officialStar: "Officer star",
+      sealStar: "Resource star",
+      peach: "Peach-blossom positions",
+      weakSelf: "Weak self (share)",
+      missingEl: "Missing element",
+      excess: "Excess",
+      clash: "Year branch clashes day branch",
     },
   },
   ja: {
-    title: "あなたの命盤に合うお札",
-    note: "命盤と関心ごとから選んでいます。売り込みではありません。",
+    title: "あなたに合うお札はこれ",
+    note: "命盤のこの点を根拠にしています。決まり文句ではありません。",
+    basis: "命盤の根拠",
     cta: "ショップで見る",
-    reasons: {
-      wealth: "金運を補う",
-      career: "仕事を後押し",
-      love: "縁を引き寄せる",
-      health: "健康を守る",
-      balance: "障りを払う",
+    terms: {
+      dayMaster: "日主",
+      wealthStar: "財星",
+      officialStar: "官星",
+      sealStar: "印星",
+      peach: "桃花位",
+      weakSelf: "身弱（同類の割合）",
+      missingEl: "五行に欠ける",
+      excess: "旺じすぎ",
+      clash: "今年の支が日支と冲",
     },
   },
   ko: {
-    title: "당신의 명반과 맞는 부적",
-    note: "명반과 관심사에 따라 고른 것입니다. 판매 권유가 아닙니다.",
+    title: "당신의 명반에 맞는 부적",
+    note: "명반의 다음 지점을 근거로 골랐습니다.",
+    basis: "명반 근거",
     cta: "상점에서 보기",
-    reasons: {
-      wealth: "재운 보강",
-      career: "사업·직장 지원",
-      love: "인연 열기",
-      health: "건강 보호",
-      balance: "장애 해소",
+    terms: {
+      dayMaster: "일주",
+      wealthStar: "재성",
+      officialStar: "관성",
+      sealStar: "인성",
+      peach: "도화",
+      weakSelf: "신약(동류 비율)",
+      missingEl: "오행 결여",
+      excess: "과다",
+      clash: "세운이 일지와 충",
     },
   },
   es: {
-    title: "Talismanes afines a tu carta",
-    note: "Elegidos según tu carta y tu interés, no por venta agresiva.",
+    title: "Un talismán que encaja con tu carta",
+    note: "Basado en estos puntos concretos de tu carta, no en una frase de venta.",
+    basis: "Base de la carta",
     cta: "Ver en la tienda",
-    reasons: {
-      wealth: "Reforzar la fortuna",
-      career: "Apoyar la carrera",
-      love: "Abrir el romance",
-      health: "Proteger la salud",
-      balance: "Despejar obstáculos",
+    terms: {
+      dayMaster: "Amo del día",
+      wealthStar: "Estrella de riqueza",
+      officialStar: "Estrella de autoridad",
+      sealStar: "Estrella de recurso",
+      peach: "Posiciones flor de melocotón",
+      weakSelf: "Yo débil (proporción)",
+      missingEl: "Elemento ausente",
+      excess: "Exceso",
+      clash: "La rama anual choca con la del día",
     },
   },
   fr: {
-    title: "Talismans accordés à votre thème",
-    note: "Choisis selon votre thème et votre préoccupation, sans argumentaire de vente.",
+    title: "Un talisman accordé à votre thème",
+    note: "Fondé sur ces points précis de votre thème, pas sur un argumentaire.",
+    basis: "Base du thème",
     cta: "Voir en boutique",
-    reasons: {
-      wealth: "Renforcer la fortune",
-      career: "Soutenir la carrière",
-      love: "Ouvrir l'amour",
-      health: "Protéger la santé",
-      balance: "Dissiper les obstacles",
+    terms: {
+      dayMaster: "Maître du jour",
+      wealthStar: "Étoile de richesse",
+      officialStar: "Étoile d'autorité",
+      sealStar: "Étoile de ressource",
+      peach: "Positions fleur de pêcher",
+      weakSelf: "Soi faible (part)",
+      missingEl: "Élément absent",
+      excess: "Excès",
+      clash: "La branche annuelle heurte celle du jour",
     },
   },
   de: {
-    title: "Talismane passend zu deinem Chart",
-    note: "Ausgewählt nach Chart und Anliegen – kein Verkaufsgeschwätz.",
+    title: "Ein Talisman, der zu deinem Chart passt",
+    note: "Begründet mit diesen konkreten Punkten deines Charts – kein Verkaufssatz.",
+    basis: "Grundlage im Chart",
     cta: "Im Shop ansehen",
-    reasons: {
-      wealth: "Glückskraft stärken",
-      career: "Beruf unterstützen",
-      love: "Liebe öffnen",
-      health: "Gesundheit schützen",
-      balance: "Hindernisse lösen",
+    terms: {
+      dayMaster: "Tagesherr",
+      wealthStar: "Reichtumsstern",
+      officialStar: "Amtsstern",
+      sealStar: "Ressourcenstern",
+      peach: "Pfirsichblüten-Positionen",
+      weakSelf: "Schwaches Selbst (Anteil)",
+      missingEl: "Fehlendes Element",
+      excess: "Übermaß",
+      clash: "Jahreszweig stößt auf Tageszweig",
     },
   },
   pt: {
-    title: "Talismãs afinados com o teu mapa",
-    note: "Escolhidos pelo mapa e pelo teu foco, sem conversa de vendedor.",
+    title: "Um talismã que combina com o teu mapa",
+    note: "Baseado nestes pontos concretos do teu mapa, não em conversa de venda.",
+    basis: "Base do mapa",
     cta: "Ver na loja",
-    reasons: {
-      wealth: "Reforçar a fortuna",
-      career: "Apoiar a carreira",
-      love: "Abrir o romance",
-      health: "Proteger a saúde",
-      balance: "Limpar obstáculos",
+    terms: {
+      dayMaster: "Senhor do dia",
+      wealthStar: "Estrela da riqueza",
+      officialStar: "Estrela da autoridade",
+      sealStar: "Estrela do recurso",
+      peach: "Posições flor de pêssego",
+      weakSelf: "Eu fraco (proporção)",
+      missingEl: "Elemento ausente",
+      excess: "Excesso",
+      clash: "Ramo anual choca com o do dia",
     },
   },
   ru: {
-    title: "Талисманы под вашу карту",
-    note: "Подобраны по карте и вашему запросу, без навязывания.",
+    title: "Талисман под вашу карту",
+    note: "Основано на этих конкретных точках карты, а не на рекламной фразе.",
+    basis: "Основание в карте",
     cta: "Смотреть в магазине",
-    reasons: {
-      wealth: "Усилить удачу в деньгах",
-      career: "Поддержать карьеру",
-      love: "Открыть отношения",
-      health: "Защитить здоровье",
-      balance: "Убрать препятствия",
+    terms: {
+      dayMaster: "Хозяин дня",
+      wealthStar: "Звезда богатства",
+      officialStar: "Звезда власти",
+      sealStar: "Звезда ресурса",
+      peach: "Позиции цветка персика",
+      weakSelf: "Слабое «я» (доля)",
+      missingEl: "Недостаёт элемента",
+      excess: "Избыток",
+      clash: "Годовая ветвь в столкновении с дневной",
     },
   },
   ar: {
-    title: "تمائم توافق مخططك",
-    note: "اخترناها حسب مخططك واهتمامك، وليس للترويج.",
+    title: "تميمة تناسب مخططك",
+    note: "مبنية على هذه النقاط المحددة في مخططك، لا على عبارة ترويجية.",
+    basis: "أساس المخطط",
     cta: "عرض في المتجر",
-    reasons: {
-      wealth: "تقوية حظ المال",
-      career: "دعم المسار المهني",
-      love: "فتح باب العلاقة",
-      health: "حماية الصحة",
-      balance: "إزالة العوائق",
+    terms: {
+      dayMaster: "سيد اليوم",
+      wealthStar: "نجم المال",
+      officialStar: "نجم السلطة",
+      sealStar: "نجم المورد",
+      peach: "مواضع زهرة الخوخ",
+      weakSelf: "ذات ضعيفة (النسبة)",
+      missingEl: "عنصر مفقود",
+      excess: "زيادة مفرطة",
+      clash: "فرع السنة يصطدم بفرع اليوم",
     },
   },
 };
 
 export function getTalismanMessages(locale: Locale): TalismanMessages {
   return T[locale] || T.en;
+}
+
+/** 把命盘依据拼成一句话，例如「日主甲木 · 财星土×1 · 比劫木×3」。 */
+export function formatFacts(locale: Locale, facts: Fact[]): string {
+  const t = getTalismanMessages(locale);
+  const chart = getChartMessages(locale);
+  const elName = (el?: ElementKey) => (el ? chart.el[el] : "");
+  const zhLike = ["zh", "ja", "ko"].indexOf(locale) >= 0;
+
+  const parts: string[] = [];
+  for (const f of facts) {
+    switch (f.k) {
+      case "dayMaster":
+        parts.push(
+          zhLike
+            ? `${t.terms.dayMaster}${(f.gan || "") + elName(f.el)}`
+            : `${t.terms.dayMaster} ${elName(f.el)}`
+        );
+        break;
+      case "wealthStar":
+      case "officialStar":
+      case "sealStar": {
+        const term =
+          f.k === "wealthStar" ? t.terms.wealthStar : f.k === "officialStar" ? t.terms.officialStar : t.terms.sealStar;
+        parts.push(zhLike ? `${term}${elName(f.el)}×${f.n ?? 0}` : `${term} ${elName(f.el)} ×${f.n ?? 0}`);
+        break;
+      }
+      case "peach":
+        parts.push(zhLike ? `${t.terms.peach}×${f.n ?? 0}` : `${t.terms.peach} ×${f.n ?? 0}`);
+        break;
+      case "weakSelf":
+        parts.push(zhLike ? `${t.terms.weakSelf}${f.n ?? 0}%` : `${t.terms.weakSelf} ${f.n ?? 0}%`);
+        break;
+      case "missingEl":
+        parts.push(zhLike ? `${t.terms.missingEl}${elName(f.el)}` : `${t.terms.missingEl}: ${elName(f.el)}`);
+        break;
+      case "excess":
+        parts.push(zhLike ? `${elName(f.el)}${t.terms.excess}×${f.n ?? 0}` : `${elName(f.el)} ${t.terms.excess} ×${f.n ?? 0}`);
+        break;
+      case "clash":
+        parts.push(t.terms.clash);
+        break;
+    }
+  }
+  return parts.filter(Boolean).join(" · ");
 }

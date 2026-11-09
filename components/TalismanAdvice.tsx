@@ -5,13 +5,13 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 import { SHOP_PRODUCTS } from "@/lib/shop-data";
 import { recommendTalismans } from "@/lib/talisman-match";
-import { getTalismanMessages } from "@/lib/talisman-i18n";
+import { getTalismanMessages, formatFacts } from "@/lib/talisman-i18n";
 
 /**
- * 命盘解读完成后推荐的符纸。
+ * 命盘解读完成后的符纸推荐（只推 1-2 个）。
  *
- * 只推商店里真实存在的款（按 id 取数据），推荐理由由规则算出来、
- * 文案按语言渲染；价格和图片都取自商店数据，避免两处不一致。
+ * 关键点：每个推荐都带「命盘依据」——日主、财星/官星计数、桃花位、身弱比例等，
+ * 用户能对着自己的命盘核对，而不是看一句「助事业」。
  */
 export function TalismanAdvice({
   chart,
@@ -28,9 +28,9 @@ export function TalismanAdvice({
   const items = picks
     .map((p) => {
       const product = SHOP_PRODUCTS.find((x) => x.id === p.id);
-      return product ? { product, reason: p.reason } : null;
+      return product ? { product, facts: p.facts } : null;
     })
-    .filter(Boolean) as { product: (typeof SHOP_PRODUCTS)[number]; reason: keyof typeof t.reasons }[];
+    .filter(Boolean) as { product: (typeof SHOP_PRODUCTS)[number]; facts: any[] }[];
 
   if (!items.length) return null;
 
@@ -43,34 +43,42 @@ export function TalismanAdvice({
         <Sparkles size={14} className="text-accent" />
         <h3 className="font-serif text-base text-accent sm:text-lg">{t.title}</h3>
       </div>
-      <p className="mb-4 text-[11.5px] leading-relaxed text-muted/70">{t.note}</p>
+      <p className="mb-5 text-[11.5px] leading-relaxed text-muted/70">{t.note}</p>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {items.map(({ product, reason }) => (
+      <div className={items.length > 1 ? "grid gap-4 sm:grid-cols-2" : ""}>
+        {items.map(({ product, facts }) => (
           <Link
             key={product.id}
             href={`/${locale}/shop`}
-            className="group flex gap-3 rounded-xl border border-white/[0.07] bg-white/[0.015] p-3 transition hover:border-accent/40 hover:bg-accent/[0.05]"
+            className="group block rounded-xl border border-white/[0.07] bg-white/[0.015] p-4 transition hover:border-accent/40 hover:bg-accent/[0.05]"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={product.image}
-              alt=""
-              className="h-16 w-16 shrink-0 rounded-lg object-cover"
-              loading="lazy"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-serif text-[13.5px] text-foreground group-hover:text-accent">
-                {name(product)}
-              </p>
-              <p className="mt-0.5 inline-block rounded-full border border-accent/25 bg-accent/10 px-1.5 py-0.5 text-[9.5px] text-accent/90">
-                {t.reasons[reason]}
-              </p>
-              <p className="mt-1 line-clamp-2 text-[10.5px] leading-relaxed text-muted/60">
-                {desc(product)}
+            <div className="flex items-start gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={product.image}
+                alt=""
+                className="h-20 w-20 shrink-0 rounded-lg object-cover"
+                loading="lazy"
+              />
+              <div className="min-w-0 flex-1">
+                {/* 英文符名较长，允许两行，避免被 truncate 截成省略号 */}
+                <p className="line-clamp-2 font-serif text-[14.5px] leading-snug text-foreground group-hover:text-accent">
+                  {name(product)}
+                </p>
+                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted/60">
+                  {desc(product)}
+                </p>
+                <p className="mt-1.5 text-[12px] text-accent/80">${product.price}</p>
+              </div>
+            </div>
+
+            {/* 命盘依据：让用户能对着自己的盘核对 */}
+            <div className="mt-3 rounded-lg border border-accent/15 bg-accent/[0.05] px-3 py-2">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-accent/60">{t.basis}</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-foreground/85">
+                {formatFacts(locale, facts)}
               </p>
             </div>
-            <span className="shrink-0 self-center text-[11px] text-accent/70">${product.price}</span>
           </Link>
         ))}
       </div>
