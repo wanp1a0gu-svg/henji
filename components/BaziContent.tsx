@@ -11,6 +11,7 @@ import { getCloud } from "@/lib/cloud";
 import { useAuth } from "./AuthProvider";
 import { SignInGate } from "./SignInGate";
 import { ShareBar } from "./ShareButton";
+import { TalismanAdvice } from "./TalismanAdvice";
 import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
@@ -489,6 +490,10 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                   <p key={i} className="mb-3">{line}</p>
                 ))}
               </div>
+              {chart && (
+                <TalismanAdvice chart={chart} focus={form.focus || "general"} locale={locale} />
+              )}
+
               {tier === "free" && (
                 <div className="mt-8 rounded-2xl border border-accent/25 bg-accent/[0.04] p-5">
                   <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-accent">
