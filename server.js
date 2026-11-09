@@ -304,6 +304,8 @@ const CHAT =
       ? { provider: "glm", apiKey: GLM_API_KEY, model: GLM_MODEL, endpoint: GLM_ENDPOINT }
       : { provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT };
 const CHAT_CONFIGURED = !!CHAT.apiKey;
+/** 推理强度：GLM-5 系列不支持关闭思考，用 low 把延迟压到可接受范围。 */
+const CHAT_REASONING_EFFORT = process.env.CHAT_REASONING_EFFORT || fileConfig.CHAT_REASONING_EFFORT || "";
 
 /**
  * 模型降级链：主模型限流/超时时，依次尝试备用模型（同一平台，换模型名即可）。
@@ -1889,6 +1891,8 @@ async function callModelOnce(cfg, messages, tools, timeoutMs) {
     temperature: 0.7,
     max_tokens: 3000,
   };
+  // 只在配置了才带（老模型不认这个字段，带了会 400）
+  if (CHAT_REASONING_EFFORT) payload.reasoning_effort = CHAT_REASONING_EFFORT;
   if (tools && tools.length) payload.tools = tools;
 
   const upstream = await httpsPostJson(
