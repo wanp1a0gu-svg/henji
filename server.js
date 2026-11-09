@@ -265,9 +265,9 @@ try {
 /**
  * 对话模型配置（可切换 provider）。
  *
- * CHAT_PROVIDER=glm   → 智谱 GLM（OpenAI 兼容）
- * CHAT_PROVIDER=doubao→ 火山方舟豆包（原默认）
- * 不填时按「有哪个 key 用哪个」自动选，避免升级过程中把对话搞挂。
+ * CHAT_PROVIDER=openai → 任意 OpenAI 兼容平台（硅基流动 / 混元 / 通义 …）
+ * CHAT_PROVIDER=glm    → 智谱 GLM（OpenAI 兼容，当前默认）
+ * 豆包通道已于 2026-11-09 按站主要求移除（火山方舟账号欠费，不再使用）。
  *
  * GLM 免费档有 1 并发限制：同时两个人在聊天，第二个会排队或失败。
  * 所以这里保留 fallback 能力，随时可以切回来。
@@ -278,8 +278,7 @@ const CHAT_PROVIDER =
   (function () {
     // 通用 OpenAI 兼容通道优先（硅基流动 / 混元 / 通义 / 千帆 都能用这一套）
     if (process.env.CHAT_ENDPOINT || fileConfig.CHAT_ENDPOINT) return "openai";
-    if (process.env.GLM_API_KEY || fileConfig.GLM_API_KEY) return "glm";
-    return "doubao";
+    return "glm";
   })();
 
 /** 任意 OpenAI 兼容平台：端点 + key + 模型名三件套由配置决定。 */
@@ -292,17 +291,12 @@ const GLM_MODEL = process.env.GLM_MODEL || fileConfig.GLM_MODEL || "glm-4.7-flas
 const GLM_ENDPOINT =
   process.env.GLM_ENDPOINT || fileConfig.GLM_ENDPOINT || "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
-const DOUBAO_API_KEY = process.env.DOUBAO_API_KEY || fileConfig.DOUBAO_API_KEY || "";
-const DOUBAO_MODEL = process.env.DOUBAO_MODEL || fileConfig.DOUBAO_MODEL || "ep-m-20260408172909-vsfqd";
-const DOUBAO_ENDPOINT = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 
 /** 当前生效的模型通道。 */
 const CHAT =
   CHAT_PROVIDER === "openai"
     ? { provider: "openai", apiKey: RAW_KEY, model: RAW_MODEL, endpoint: RAW_ENDPOINT }
-    : CHAT_PROVIDER === "glm"
-      ? { provider: "glm", apiKey: GLM_API_KEY, model: GLM_MODEL, endpoint: GLM_ENDPOINT }
-      : { provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT };
+    : { provider: "glm", apiKey: GLM_API_KEY, model: GLM_MODEL, endpoint: GLM_ENDPOINT };
 const CHAT_CONFIGURED = !!CHAT.apiKey;
 /** 推理强度：GLM-5 系列不支持关闭思考，用 low 把延迟压到可接受范围。 */
 const CHAT_REASONING_EFFORT = process.env.CHAT_REASONING_EFFORT || fileConfig.CHAT_REASONING_EFFORT || "";
@@ -1007,15 +1001,15 @@ function handleBaziStatus(req, res) {
  * 统一生成文本（八字 / 塔罗 / 文王卦 / 紫微 共用）。
  *
  * ⚠️ 这里以前写死走豆包，换模型时只改了聊天路径，导致这四个功能全挂在欠费的豆包上。
- * 现在统一走 callDoubaoRaw 的候选链（主模型 → 备用模型 → 豆包），
+ * 现在统一走 callChatModel 的候选链（主模型 → 备用模型），
  * 排队、降级、reasoning_effort 全部复用同一套逻辑。
  */
-async function callDoubao(system, user) {
+async function generateText(system, user) {
   const messages = [
     { role: "system", content: system },
     { role: "user", content: user },
   ];
-  const msg = await callDoubaoRaw(messages, null, UPSTREAM_TIMEOUT_MS);
+  const msg = await callChatModel(messages, null, UPSTREAM_TIMEOUT_MS);
   const content = (msg && msg.content) || "";
   if (!content) throw new Error("empty completion");
   return content;
@@ -1080,7 +1074,7 @@ async function generateReading(jobId, body, overviewOnly) {
   try {
     const { chart, chartBlock } = chartWithTrueSolar(body);
     const prompts = BaziEngine.buildPrompt(body, chartBlock, { overviewOnly: !!overviewOnly });
-    const content = await callDoubao(prompts.system, prompts.user);
+    const content = await generateText(prompts.system, prompts.user);
 
     _jobs.set(jobId, {
       kind: "bazi",
@@ -1194,7 +1188,7 @@ function handleTarotStatus(req, res) {
 async function generateTarotReading(jobId, payload, draw) {
   try {
     const prompts = TarotEngine.buildTarotPrompt(payload, draw);
-    const content = await callDoubao(prompts.system, prompts.user);
+    const content = await generateText(prompts.system, prompts.user);
     _jobs.set(jobId, {
       kind: "tarot",
       status: "done",
@@ -1361,7 +1355,7 @@ async function generateZiweiReading(jobId, chart, opts) {
       locale: opts.locale,
       gender: opts.gender === "female" ? "女 / female" : "男 / male",
     });
-    const content = await callDoubao(prompts.system, prompts.user);
+    const content = await generateText(prompts.system, prompts.user);
     _jobs.set(jobId, { kind: "ziwei", status: "done", reading: content, chart, createdAt: Date.now() });
   } catch (e) {
     console.error("[ziwei] job failed:", (e && e.message) || e);
@@ -1461,7 +1455,7 @@ function handleBaguaStatus(req, res) {
 async function generateBaguaReading(jobId, payload, draw) {
   try {
     const prompts = BaguaEngine.buildBaguaPrompt(payload, draw);
-    const content = await callDoubao(prompts.system, prompts.user);
+    const content = await generateText(prompts.system, prompts.user);
     _jobs.set(jobId, {
       kind: "bagua",
       status: "done",
@@ -1872,7 +1866,7 @@ function handleChatStatus(req, res) {
 
 /**
  * 调用对话模型，返回完整 message（含 tool_calls）。
- * 名称沿用 callDoubaoRaw，实际走 CHAT 里配置的 provider（glm / doubao）。
+ * 走 CHAT 里配置的 provider（glm / 任意 OpenAI 兼容平台）。
  */
 async function callModelOnce(cfg, messages, tools, timeoutMs) {
   const payload = {
@@ -1911,14 +1905,11 @@ async function callModelOnce(cfg, messages, tools, timeoutMs) {
  * 所以当主通道（glm）失败且配了豆包 key 时，自动回退一次豆包，
  * 让用户拿到答案而不是错误页。
  */
-async function callDoubaoRaw(messages, tools, timeoutMs) {
+async function callChatModel(messages, tools, timeoutMs) {
   // 候选链：主模型 → 备用模型（同一平台）→ 豆包（若还配着）
   const chain = [{ ...CHAT }];
   for (const m of CHAT_FALLBACK_MODELS) {
     if (m && m !== CHAT.model) chain.push({ ...CHAT, model: m });
-  }
-  if (CHAT.provider !== "doubao" && DOUBAO_API_KEY) {
-    chain.push({ provider: "doubao", apiKey: DOUBAO_API_KEY, model: DOUBAO_MODEL, endpoint: DOUBAO_ENDPOINT });
   }
 
   let lastErr = null;
@@ -2136,7 +2127,7 @@ async function runChat(jobId, body) {
     let reply = "";
 
     for (let step = 0; step < CHAT_MAX_STEPS; step++) {
-      const msg = await callDoubaoRaw(messages, tools, UPSTREAM_TIMEOUT_MS);
+      const msg = await callChatModel(messages, tools, UPSTREAM_TIMEOUT_MS);
       const toolCalls = msg.tool_calls || [];
 
       if (!toolCalls.length) {
@@ -2431,7 +2422,7 @@ server.on("error", (e) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.error(
-    "[boot] listening on 0.0.0.0:" + PORT + " doubao=" + (DOUBAO_API_KEY ? "configured" : "MISSING_KEY") + " bazi=" + (BaziEngine ? "ok" : "missing") + " tarot=" + (TarotEngine ? "ok" : "missing") + " chat=" + (SkillKnowledge ? "ok" : "missing") + " truesolar=" + (TrueSolar ? "ok" : "missing") + " shensha=" + (ShenshaExtended ? "ok" : "missing")
+    "[boot] listening on 0.0.0.0:" + PORT + " chatProvider=" + CHAT.provider + " bazi=" + (BaziEngine ? "ok" : "missing") + " tarot=" + (TarotEngine ? "ok" : "missing") + " chat=" + (SkillKnowledge ? "ok" : "missing") + " truesolar=" + (TrueSolar ? "ok" : "missing") + " shensha=" + (ShenshaExtended ? "ok" : "missing")
   );
-  console.log(`Traces server listening on 0.0.0.0:${PORT} (bazi API: ${DOUBAO_API_KEY ? "configured" : "MISSING KEY"})`);
+  console.log(`Traces server listening on 0.0.0.0:${PORT} (chat: ${CHAT.provider} / ${CHAT.model})`);
 });
