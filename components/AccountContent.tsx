@@ -23,6 +23,7 @@ import { ProfileCard } from "./ProfileCard";
 import { WalletCard } from "./WalletCard";
 import { getPaymentMessages } from "@/lib/payment-i18n";
 import { useAuth } from "./AuthProvider";
+import { BaziPdfExport } from "./BaziPdfExport";
 
 interface Reading {
   id: number;
@@ -33,6 +34,9 @@ interface Reading {
   focus: string | null;
   locale: string | null;
   report: string;
+  place: string | null;
+  chart: any | null;
+  tier: string | null;
   created_at: string;
 }
 
@@ -149,7 +153,9 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
     try {
       const { data, error: err } = await getCloud()
         .database.from("readings")
-        .select("id, name, birth_date, birth_time, gender, focus, locale, report, created_at")
+        .select(
+          "id, name, birth_date, birth_time, gender, focus, locale, report, place, chart, tier, created_at"
+        )
         .order("created_at", { ascending: false });
       if (err) {
         setError(err.message || a.errGeneric);
@@ -473,18 +479,45 @@ export function AccountContent({ messages, locale }: { messages: Messages; local
                           </p>
                         ))}
                       </div>
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        disabled={deletingId === r.id}
-                        className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 px-4 py-2 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-60"
-                      >
-                        {deletingId === r.id ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={12} />
-                        )}
-                        {a.delete}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <BaziPdfExport
+                          locale={locale}
+                          labels={{
+                            name: t("bazi.name"),
+                            gender: t("bazi.gender"),
+                            birthDate: t("bazi.birthDate"),
+                            birthTime: t("bazi.birthTime"),
+                            birthPlace: t("bazi.birthPlace"),
+                            male: t("bazi.male"),
+                            female: t("bazi.female"),
+                            disclaimer: t("bazi.disclaimer"),
+                            reportTitle: t("bazi.reportTitle"),
+                          }}
+                          form={{
+                            name: r.name || "",
+                            birthDate: r.birth_date,
+                            birthTime: r.birth_time || "",
+                            place: r.place || "",
+                            gender: r.gender,
+                            focus: r.focus || "general",
+                          }}
+                          report={r.report}
+                          chart={r.chart || null}
+                          tier={r.tier === "free" ? "free" : "full"}
+                        />
+                        <button
+                          onClick={() => handleDelete(r.id)}
+                          disabled={deletingId === r.id}
+                          className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/5 px-4 py-2 text-xs text-red-300 transition hover:bg-red-500/10 disabled:opacity-60"
+                        >
+                          {deletingId === r.id ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={12} />
+                          )}
+                          {a.delete}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

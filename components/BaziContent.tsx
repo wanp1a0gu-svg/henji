@@ -77,7 +77,12 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
   const [tier, setTier] = useState<"free" | "full">("free"); // 当前报告档位
   const [payHint, setPayHint] = useState("");
 
-  const saveReading = async (reportText: string) => {
+  const saveReading = async (
+    reportText: string,
+    chartData: BaziChartData | null = chart,
+    birthPlace: string = form.place,
+    tierValue: "free" | "full" = tier
+  ) => {
     if (!user) return;
     setSaveState("saving");
     try {
@@ -91,6 +96,10 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           focus: form.focus,
           locale,
           report: reportText,
+          // 存命盘/出生地/档位：个人中心导出 PDF 时能把四柱、大运、神煞一起画回去
+          place: birthPlace || null,
+          chart: chartData || null,
+          tier: tierValue,
         });
       setSaveState(saveErr ? "error" : "saved");
     } catch {
@@ -163,7 +172,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
         if (success.tier === "full" && user && user.email) {
           notifyReport(user.email, locale, form.name || "");
         }
-        saveReading(success.report);
+        saveReading(success.report, success.chart || null, form.place, success.tier === "full" ? "full" : "free");
       } else {
         setError(apiError || t("bazi.error"));
       }
