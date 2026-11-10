@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, Shield, FileText, Loader2, RefreshCw, CheckCircle2, CloudUpload, Lock } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getPayMessages } from "@/lib/pay-i18n";
+import { getBaziResumeMessages } from "@/lib/bazi-resume-i18n";
 import { getUiMessages } from "@/lib/ui-i18n";
 import { notifyReport } from "@/lib/notify";
 import { getCloud } from "@/lib/cloud";
@@ -17,6 +18,48 @@ import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
 import { BaziChart, type BaziChartData } from "./BaziChart";
 import { BaziPdfExport } from "./BaziPdfExport";
+
+/**
+ * 未完成的测算任务存本地：付费报告生成要 90–130 秒，用户中途刷新/关页时
+ * jobId 不能丢，否则凭据已被消费、任务还在服务端跑，用户却拿不到报告。
+ * 30 分钟与服务端 _jobs 的 TTL 对齐。
+ */
+const PENDING_KEY = "traces_bazi_pending_v1";
+const PENDING_TTL_MS = 30 * 60 * 1000;
+
+type PendingJob = { jobId: string; createdAt: number; form: Record<string, string> };
+
+function readPendingJob(): PendingJob | null {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as PendingJob;
+    if (!p || !p.jobId || !p.form) return null;
+    if (Date.now() - Number(p.createdAt || 0) > PENDING_TTL_MS) {
+      localStorage.removeItem(PENDING_KEY);
+      return null;
+    }
+    return p;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingJob(jobId: string, form: Record<string, string>) {
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify({ jobId, createdAt: Date.now(), form }));
+  } catch {
+    /* 隐私模式等场景禁写 localStorage：不影响本次流程 */
+  }
+}
+
+function clearPendingJob() {
+  try {
+    localStorage.removeItem(PENDING_KEY);
+  } catch {
+    /* 忽略 */
+  }
+}
 
 /** 同源 API 优先（workbuddy 域名下的 server.js），失败时回退 Cloudflare Worker。 */
 // 只走同源服务端：付费校验在这里，不能再保留任何绕过端点
@@ -76,12 +119,15 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
   const [receipt, setReceipt] = useState<any>(null); // 付款凭据（服务端据此放行）
   const [tier, setTier] = useState<"free" | "full">("free"); // 当前报告档位
   const [payHint, setPayHint] = useState("");
+  const [resumedNotice, setResumedNotice] = useState(false); // 本次报告是刷新后自动接回来的
+  const resumeMsg = getBaziResumeMessages(locale);
 
   const saveReading = async (
     reportText: string,
     chartData: BaziChartData | null = chart,
     birthPlace: string = form.place,
-    tierValue: "free" | "full" = tier
+    tierValue: "free" | "full" = tier,
+    snapshot: Record<string, string> = form as unknown as Record<string, string>
   ) => {
     if (!user) return;
     setSaveState("saving");
@@ -89,11 +135,11 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
       const { error: saveErr } = await getCloud()
         .database.from("readings")
         .insert({
-          name: form.name || null,
-          birth_date: form.birthDate,
-          birth_time: form.birthTime || null,
-          gender: form.gender,
-          focus: form.focus,
+          name: snapshot.name || null,
+          birth_date: snapshot.birthDate,
+          birth_time: snapshot.birthTime || null,
+          gender: snapshot.gender,
+          focus: snapshot.focus,
           locale,
           report: reportText,
           // 存命盘/出生地/档位：个人中心导出 PDF 时能把四柱、大运、神煞一起画回去
@@ -107,6 +153,25 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
     }
   };
 
+  /** 拿到报告后的统一收尾：上屏 → 发信 → 存档（正常生成与断点恢复共用） */
+  const applySuccess = (result: any, snapshot: Record<string, string>, isResumed = false) => {
+    setReport(result.report);
+    setChart(result.chart || null);
+    setTier(result.tier === "full" ? "full" : "free");
+    setResumedNotice(isResumed);
+    // 只有付过款的完整报告才发信；免费档不打扰用户
+    if (result.tier === "full" && user && user.email) {
+      notifyReport(user.email, locale, snapshot.name || "");
+    }
+    saveReading(
+      result.report,
+      result.chart || null,
+      snapshot.place || "",
+      result.tier === "full" ? "full" : "free",
+      snapshot
+    );
+  };
+
   // 游客付费时报告只存在浏览器里：登录后自动补存，避免"关掉页面就没了"
   useEffect(() => {
     if (user && report && saveState === "idle") {
@@ -114,6 +179,39 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, report, saveState]);
+
+  /**
+   * 断点续取：上次生成到一半就刷新/关页了，这里把没做完的任务接回来。
+   * 付费凭据是一次性的，报告丢了没法重跑，所以这一步是兜底。
+   */
+  const resumeTried = useRef(false);
+  useEffect(() => {
+    // 不依赖登录态：会话短暂未就绪时也能先把任务接回来（存档仍等登录后补写）
+    if (resumeTried.current) return;
+    const pending = readPendingJob();
+    if (!pending) return;
+    resumeTried.current = true;
+    setForm(pending.form as any);
+    setLoading(true);
+    setError("");
+    (async () => {
+      const polled = await pollReading("/api/bazi", pending.jobId);
+      if (polled && polled.report) {
+        applySuccess(
+          { report: polled.report, chart: polled.chart, tier: polled.tier },
+          pending.form,
+          true
+        );
+        clearPendingJob();
+      } else {
+        // 任务过期/不存在：清掉标记，让用户重新发起
+        clearPendingJob();
+        setError(polled && polled.error ? polled.error : t("bazi.error"));
+      }
+      setLoading(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (rc: any = receipt) => {
     if (!form.birthDate || !form.gender) {
@@ -125,9 +223,11 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
     setReport("");
     setChart(null);
     setSaveState("idle");
+    setResumedNotice(false);
     try {
       let success: any = null;
       let apiError = "";
+      let hardFailure = false; // 任务报错 or 未付款：断点不再重试
       for (const url of API_ENDPOINTS) {
         try {
           const res = await fetch(url, {
@@ -142,6 +242,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           // 付费墙：未付款/凭据无效，不再尝试其他端点
           if (res.status === 402) {
             apiError = pay.baziNeedPay;
+            hardFailure = true;
             break;
           }
           // 同步模式：直接返回报告
@@ -151,12 +252,17 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           }
           // 异步任务模式（同源 API）：先拿 jobId，再轮询结果
           if (res.ok && data.jobId) {
+            // 先落本地：生成要 1-2 分钟，用户此时刷新也能续上
+            writePendingJob(data.jobId, form as unknown as Record<string, string>);
             const polled = await pollReading(url, data.jobId);
             if (polled && polled.report) {
               success = { report: polled.report, chart: polled.chart, tier: polled.tier };
               break;
             }
-            if (polled && polled.error) apiError = polled.error;
+            if (polled && polled.error) {
+              apiError = polled.error;
+              hardFailure = true;
+            }
             continue;
           }
           if (data.error) apiError = data.error;
@@ -165,15 +271,12 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
         }
       }
       if (success) {
-        setReport(success.report);
-        setChart(success.chart || null);
-        setTier(success.tier === "full" ? "full" : "free");
-        // 只有付过款的完整报告才发信；免费档不打扰用户
-        if (success.tier === "full" && user && user.email) {
-          notifyReport(user.email, locale, form.name || "");
-        }
-        saveReading(success.report, success.chart || null, form.place, success.tier === "full" ? "full" : "free");
+        clearPendingJob();
+        applySuccess(success, form as unknown as Record<string, string>);
       } else {
+        // 只有「任务本身报错 / 未付款」才清断点；纯超时、网络抖动保留，
+        // 用户刷新回来还能把已经生成好的报告接走。
+        if (hardFailure) clearPendingJob();
         setError(apiError || t("bazi.error"));
       }
     } catch (e) {
@@ -312,6 +415,11 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                   {loading ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
                   {loading ? t("bazi.generating") : t("bazi.submit")}
                 </button>
+                {loading && (
+                  <p className="rounded-xl border border-accent/15 bg-accent/[0.04] px-4 py-3 text-center text-xs leading-relaxed text-muted">
+                    {resumeMsg.pending}
+                  </p>
+                )}
                 {payHint && !paid && (
                   <p className="rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3 text-center text-xs text-amber-200/90">
                     {payHint}
@@ -416,7 +524,12 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           <div className="mx-auto mt-8 max-w-6xl">
             <div className="glass glow rounded-2xl p-6 sm:p-10">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <h3 className="font-serif text-2xl text-accent">{t("bazi.reportTitle")}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-serif text-2xl text-accent">{t("bazi.reportTitle")}</h3>
+                  {resumedNotice && (
+                    <p className="mt-1 text-[11px] text-green-300/80">{resumeMsg.resumed}</p>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-3">
                   {report && (
                     <BaziPdfExport
@@ -466,6 +579,9 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
                   )}
                   <button
                     onClick={() => {
+                      // 用户主动重来：连未完成任务的断点一起清掉，别下次又"恢复"出来
+                      clearPendingJob();
+                      setResumedNotice(false);
                       setReport("");
                       setChart(null);
                     }}
