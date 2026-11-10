@@ -273,3 +273,59 @@ html[dir="rtl"] textarea {
   text-align: start;
 }
 
+
+/* ---------------------------------------------------------------------------
+   八字命书 · PDF 导出（components/BaziPdfExport.tsx）
+   思路：打印稿常驻 DOM（portal 到 body 末尾），屏幕上彻底藏起来；
+   打印时把 body 的其它子节点全部 display:none，只留打印稿，
+   这样既不会混杂页面 UI，也不会被隐藏元素撑出空白页。
+   --------------------------------------------------------------------------- */
+#bazi-print-doc {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 14mm 16mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body > *:not(#bazi-print-doc) {
+    display: none !important;
+  }
+
+  #bazi-print-doc {
+    display: block !important;
+    position: static;
+    width: 100%;
+    color: #1c1b18;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 封面单独一页 */
+  #bazi-print-doc .pdf-cover {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* 表格 / 小节尽量不跨页断开 */
+  #bazi-print-doc .pdf-keep {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 标题不孤零零留在页底 */
+  #bazi-print-doc h2,
+  #bazi-print-doc h3,
+  #bazi-print-doc h4 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}

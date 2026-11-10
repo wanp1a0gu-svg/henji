@@ -16,6 +16,7 @@ import { PayPalButton } from "./PayPalButton";
 import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
 import { BaziChart, type BaziChartData } from "./BaziChart";
+import { BaziPdfExport } from "./BaziPdfExport";
 
 /** 同源 API 优先（workbuddy 域名下的 server.js），失败时回退 Cloudflare Worker。 */
 // 只走同源服务端：付费校验在这里，不能再保留任何绕过端点
@@ -407,7 +408,27 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
             <div className="glass glow rounded-2xl p-6 sm:p-10">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-serif text-2xl text-accent">{t("bazi.reportTitle")}</h3>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  {report && (
+                    <BaziPdfExport
+                      locale={locale}
+                      labels={{
+                        name: t("bazi.name"),
+                        gender: t("bazi.gender"),
+                        birthDate: t("bazi.birthDate"),
+                        birthTime: t("bazi.birthTime"),
+                        birthPlace: t("bazi.birthPlace"),
+                        male: t("bazi.male"),
+                        female: t("bazi.female"),
+                        disclaimer: t("bazi.disclaimer"),
+                        reportTitle: t("bazi.reportTitle"),
+                      }}
+                      form={form}
+                      report={report}
+                      chart={chart}
+                      tier={tier}
+                    />
+                  )}
                   {/* save status */}
                   {user ? (
                     saveState === "saving" ? (
