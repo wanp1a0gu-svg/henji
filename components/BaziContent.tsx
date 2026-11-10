@@ -10,6 +10,7 @@ import { getBaziResumeMessages } from "@/lib/bazi-resume-i18n";
 import {
   readPendingJob,
   writePendingJob,
+  writeLastRequest,
   clearPendingJob,
 } from "@/lib/bazi-pending";
 import { getUiMessages } from "@/lib/ui-i18n";
@@ -201,6 +202,8 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           if (res.ok && data.jobId) {
             // 先落本地：生成要 1-2 分钟，用户此刻刷新也能续上
             writePendingJob(data.jobId, form as unknown as Record<string, string>);
+            // 记下本次生成参数：解读页付费升级「完整命书」要用同一组出生信息
+            writeLastRequest(data.jobId, form as unknown as Record<string, string>);
             // 直接进解读页：进度、报告、导出都在那一页
             router.push(
               "/" + locale + "/bazi/reading?id=" + encodeURIComponent(data.jobId) + "&fresh=1"

@@ -69,3 +69,53 @@ export function markReadingSaved(jobId: string) {
     /* 忽略 */
   }
 }
+
+/**
+ * 最近一次提交的原始请求（生成参数）。
+ * 用途：免费版用户在解读页直接付款后，要用同一组出生信息重跑「完整命书」。
+ * 成功后不清除（30 分钟内都可用于升级）。
+ */
+const LAST_REQ_KEY = "traces_bazi_lastreq_v1";
+
+export function writeLastRequest(jobId: string, form: Record<string, string>) {
+  try {
+    localStorage.setItem(LAST_REQ_KEY, JSON.stringify({ jobId, form, at: Date.now() }));
+  } catch {
+    /* 忽略 */
+  }
+}
+
+export function readLastRequest(): { jobId: string; form: Record<string, string> } | null {
+  try {
+    const raw = localStorage.getItem(LAST_REQ_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || !p.form) return null;
+    if (Date.now() - Number(p.at || 0) > PENDING_TTL_MS) {
+      localStorage.removeItem(LAST_REQ_KEY);
+      return null;
+    }
+    return { jobId: p.jobId || "", form: p.form };
+  } catch {
+    return null;
+  }
+}
+
+/** 记录这条测算在 readings 表里的行 id，升级成完整命书后原地更新，避免重复两条记录 */
+const ROW_PREFIX = "traces_bazi_row_v1:";
+
+export function saveReadingRowId(jobId: string, rowId: number | string) {
+  try {
+    localStorage.setItem(ROW_PREFIX + jobId, String(rowId));
+  } catch {
+    /* 忽略 */
+  }
+}
+
+export function readReadingRowId(jobId: string): string | null {
+  try {
+    return localStorage.getItem(ROW_PREFIX + jobId);
+  } catch {
+    return null;
+  }
+}

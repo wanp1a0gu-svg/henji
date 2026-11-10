@@ -6,11 +6,18 @@ import { Loader2, ArrowLeft, CheckCircle2, CloudUpload, RefreshCw } from "lucide
 import type { Locale, Messages } from "@/lib/i18n";
 import { getBaziResumeMessages } from "@/lib/bazi-resume-i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
+import { getPayMessages } from "@/lib/pay-i18n";
+import { getUiMessages } from "@/lib/ui-i18n";
 import {
   readPendingJob,
+  readLastRequest,
+  writeLastRequest,
+  writePendingJob,
   clearPendingJob,
   hasSavedReading,
   markReadingSaved,
+  saveReadingRowId,
+  readReadingRowId,
 } from "@/lib/bazi-pending";
 import { getCloud } from "@/lib/cloud";
 import { notifyReport } from "@/lib/notify";
@@ -19,6 +26,8 @@ import { BaziChart, type BaziChartData } from "./BaziChart";
 import { BaziPdfExport } from "./BaziPdfExport";
 import { ShareBar } from "./ShareButton";
 import { TalismanAdvice } from "./TalismanAdvice";
+import { PayPalButton } from "./PayPalButton";
+import { BalancePayButton } from "./BalancePayButton";
 
 /**
  * 八字解读页（/bazi/reading?id=jobId）
@@ -57,6 +66,8 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
   };
   const msg = getBaziResumeMessages(locale);
   const a = getAuthMessages(locale);
+  const pay = getPayMessages(locale);
+  const ui = getUiMessages(locale);
   const { user, openAuth } = useAuth();
 
   const [phase, setPhase] = useState<Phase>("loading");
@@ -69,6 +80,8 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
   const [resumed, setResumed] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [upgrading, setUpgrading] = useState(false); // 正在付款→重跑完整命书
+  const [payErr, setPayErr] = useState("");
   const started = useRef(false);
   const savedOnce = useRef(false);
 
@@ -104,6 +117,10 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
       setForm(pending.form);
       // 只有不是刚提交过来的，才算"恢复上次的测算"
       setResumed(!fresh);
+    } else {
+      // 已生成完、pending 被清掉后再刷新：用「最近一次请求」兜底，页面付款升级才拿得到出生信息
+      const last = readLastRequest();
+      if (last && (!last.jobId || last.jobId === id)) setForm(last.form);
     }
 
     (async () => {
@@ -145,7 +162,7 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
       try {
         const birthDate = form.birthDate || (chart?.solarText || "").slice(0, 10);
         const gender = form.gender || (chart?.sex === "女" ? "female" : "male");
-        const { error: err } = await getCloud()
+        const { data: inserted, error: err } = await getCloud()
           .database.from("readings")
           .insert({
             name: form.name || null,
@@ -158,12 +175,17 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
             place: form.place || null,
             chart: chart || null,
             tier,
-          });
+          })
+          .select("id");
         if (err) {
           setSaveState("error");
         } else {
           setSaveState("saved");
-          if (jobId) markReadingSaved(jobId);
+          if (jobId) {
+            markReadingSaved(jobId);
+            const row = Array.isArray(inserted) ? inserted[0] : inserted;
+            if (row && row.id) saveReadingRowId(jobId, row.id);
+          }
         }
       } catch {
         setSaveState("error");
@@ -180,6 +202,76 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
     place: form.place || "",
     gender: form.gender || (chart?.sex === "女" ? "female" : "male"),
     focus: form.focus || "general",
+  };
+
+  /** 免费版在解读页直接付款：凭据 + 原始出生信息重跑一份完整命书，成功后原地替换 */
+  const upgrade = async (receipt: any) => {
+    const payload = {
+      name: form.name || pdfForm.name || "",
+      birthDate: form.birthDate || pdfForm.birthDate,
+      birthTime: form.birthTime || pdfForm.birthTime || "",
+      place: form.place || pdfForm.place || "",
+      gender: form.gender || pdfForm.gender,
+      focus: form.focus || "general",
+    };
+    if (!payload.birthDate) {
+      setPayErr(t("bazi.required"));
+      return;
+    }
+    setUpgrading(true);
+    setPayErr("");
+    try {
+      const res = await fetch("/api/bazi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, locale, receipt }),
+      });
+      const data = (await res.json()) as any;
+      if (!res.ok || !data.jobId) {
+        setPayErr(pay.baziNeedPay);
+        setUpgrading(false);
+        return;
+      }
+      // 落断点：就算用户这时刷新，也能从待办任务接回来
+      writePendingJob(data.jobId, payload);
+      writeLastRequest(data.jobId, payload);
+      const job = await pollJob(data.jobId);
+      if (!job || job.status === "error" || !job.report) {
+        setPayErr(msg.upgradeFailed);
+        setUpgrading(false);
+        return;
+      }
+      setReport(job.report);
+      setChart(job.chart || chart);
+      setTier("full");
+      setJobId(data.jobId);
+      clearPendingJob();
+      markReadingSaved(data.jobId);
+      // 地址栏换成新任务号：刷新后看到的是完整版
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + "?id=" + encodeURIComponent(data.jobId)
+      );
+      if (user && user.email) notifyReport(user.email, locale, payload.name || "");
+      // 账户里的那条记录原地更新成完整版，避免免费版 + 完整版两条重复
+      const rowId = readReadingRowId(jobId);
+      if (user && rowId) {
+        try {
+          await getCloud()
+            .database.from("readings")
+            .update({ report: job.report, chart: job.chart || chart, tier: "full" })
+            .eq("id", rowId);
+        } catch {
+          /* 更新失败不影响阅读，记录仍在 */
+        }
+      }
+      setSaveState(user ? "saved" : "idle");
+    } catch {
+      setPayErr(msg.upgradeFailed);
+    } finally {
+      setUpgrading(false);
+    }
   };
 
   return (
@@ -328,6 +420,70 @@ export function BaziReadingView({ messages, locale }: { messages: Messages; loca
                 </p>
               ))}
             </div>
+
+            {tier === "free" && (
+              <div className="mt-9 rounded-2xl border border-accent/25 bg-accent/[0.05] p-5 sm:p-6">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="font-serif text-lg text-accent">{msg.unlockTitle}</h2>
+                  <p className="font-serif text-2xl text-accent">{t("bazi.price")}</p>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-muted">{msg.unlockDesc}</p>
+
+                {!user ? (
+                  <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-4 text-center">
+                    <p className="mb-3 text-[11px] leading-relaxed text-muted">{ui.payLoginHint}</p>
+                    <button
+                      onClick={openAuth}
+                      className="rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-xs text-accent transition hover:bg-accent/20"
+                    >
+                      {a.gateCta}
+                    </button>
+                  </div>
+                ) : upgrading ? (
+                  <p className="mt-4 flex items-center gap-2 text-xs text-accent">
+                    <Loader2 size={13} className="animate-spin" /> {msg.loadingTitle}
+                  </p>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    <PayPalButton
+                      product="bazi"
+                      locale={locale}
+                      note={pay.baziNote}
+                      onSuccess={async (order: any) => {
+                        // 订单入库（失败不阻塞生成）
+                        try {
+                          await getCloud().database.from("payment_orders").insert({
+                            owner_id: user ? user.id : null,
+                            method: "paypal",
+                            amount: order.amount || "6.80",
+                            currency: order.currency || "USD",
+                            product: order.product || "bazi",
+                            status: "completed",
+                            paypal_order_id: order.orderId || null,
+                            payer_email: order.payerEmail || null,
+                            contact: order.payerEmail || null,
+                            capture_raw: order,
+                          });
+                        } catch {
+                          /* 入库失败不阻塞用户 */
+                        }
+                        await upgrade({ channel: "paypal", id: order.orderId });
+                      }}
+                    />
+                    <BalancePayButton
+                      product="bazi"
+                      locale={locale}
+                      onSuccess={(order: any) => {
+                        upgrade(order && order.receipt ? order.receipt : null);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {payErr && <p className="mt-3 text-xs leading-relaxed text-red-300">{payErr}</p>}
+                <p className="mt-4 text-[10px] leading-relaxed text-muted/60">{t("bazi.disclaimer")}</p>
+              </div>
+            )}
 
             {chart && <TalismanAdvice chart={chart} focus={pdfForm.focus} locale={locale} />}
 
