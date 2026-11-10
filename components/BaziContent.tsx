@@ -1,11 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkles, Shield, FileText, Loader2, RefreshCw, CheckCircle2, CloudUpload, Lock } from "lucide-react";
 import { Locale, Messages } from "@/lib/i18n";
 import { getAuthMessages } from "@/lib/auth-i18n";
 import { getPayMessages } from "@/lib/pay-i18n";
 import { getBaziResumeMessages } from "@/lib/bazi-resume-i18n";
+import {
+  readPendingJob,
+  writePendingJob,
+  clearPendingJob,
+} from "@/lib/bazi-pending";
 import { getUiMessages } from "@/lib/ui-i18n";
 import { notifyReport } from "@/lib/notify";
 import { getCloud } from "@/lib/cloud";
@@ -18,48 +24,6 @@ import { BalancePayButton } from "./BalancePayButton";
 import { Select } from "./Select";
 import { BaziChart, type BaziChartData } from "./BaziChart";
 import { BaziPdfExport } from "./BaziPdfExport";
-
-/**
- * 未完成的测算任务存本地：付费报告生成要 90–130 秒，用户中途刷新/关页时
- * jobId 不能丢，否则凭据已被消费、任务还在服务端跑，用户却拿不到报告。
- * 30 分钟与服务端 _jobs 的 TTL 对齐。
- */
-const PENDING_KEY = "traces_bazi_pending_v1";
-const PENDING_TTL_MS = 30 * 60 * 1000;
-
-type PendingJob = { jobId: string; createdAt: number; form: Record<string, string> };
-
-function readPendingJob(): PendingJob | null {
-  try {
-    const raw = localStorage.getItem(PENDING_KEY);
-    if (!raw) return null;
-    const p = JSON.parse(raw) as PendingJob;
-    if (!p || !p.jobId || !p.form) return null;
-    if (Date.now() - Number(p.createdAt || 0) > PENDING_TTL_MS) {
-      localStorage.removeItem(PENDING_KEY);
-      return null;
-    }
-    return p;
-  } catch {
-    return null;
-  }
-}
-
-function writePendingJob(jobId: string, form: Record<string, string>) {
-  try {
-    localStorage.setItem(PENDING_KEY, JSON.stringify({ jobId, createdAt: Date.now(), form }));
-  } catch {
-    /* 隐私模式等场景禁写 localStorage：不影响本次流程 */
-  }
-}
-
-function clearPendingJob() {
-  try {
-    localStorage.removeItem(PENDING_KEY);
-  } catch {
-    /* 忽略 */
-  }
-}
 
 /** 同源 API 优先（workbuddy 域名下的 server.js），失败时回退 Cloudflare Worker。 */
 // 只走同源服务端：付费校验在这里，不能再保留任何绕过端点
@@ -101,6 +65,7 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
   const a = getAuthMessages(locale);
   const pay = getPayMessages(locale);
   const { user, openAuth } = useAuth();
+  const router = useRouter();
 
   const [form, setForm] = useState({
     name: "",
@@ -186,30 +151,12 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
    */
   const resumeTried = useRef(false);
   useEffect(() => {
-    // 不依赖登录态：会话短暂未就绪时也能先把任务接回来（存档仍等登录后补写）
+    // 有未完成的任务 → 直接去解读页接着看（那边负责轮询与存档）
     if (resumeTried.current) return;
     const pending = readPendingJob();
     if (!pending) return;
     resumeTried.current = true;
-    setForm(pending.form as any);
-    setLoading(true);
-    setError("");
-    (async () => {
-      const polled = await pollReading("/api/bazi", pending.jobId);
-      if (polled && polled.report) {
-        applySuccess(
-          { report: polled.report, chart: polled.chart, tier: polled.tier },
-          pending.form,
-          true
-        );
-        clearPendingJob();
-      } else {
-        // 任务过期/不存在：清掉标记，让用户重新发起
-        clearPendingJob();
-        setError(polled && polled.error ? polled.error : t("bazi.error"));
-      }
-      setLoading(false);
-    })();
+    router.replace("/" + locale + "/bazi/reading?id=" + encodeURIComponent(pending.jobId));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -252,18 +199,13 @@ export function BaziContent({ messages, locale }: { messages: Messages; locale: 
           }
           // 异步任务模式（同源 API）：先拿 jobId，再轮询结果
           if (res.ok && data.jobId) {
-            // 先落本地：生成要 1-2 分钟，用户此时刷新也能续上
+            // 先落本地：生成要 1-2 分钟，用户此刻刷新也能续上
             writePendingJob(data.jobId, form as unknown as Record<string, string>);
-            const polled = await pollReading(url, data.jobId);
-            if (polled && polled.report) {
-              success = { report: polled.report, chart: polled.chart, tier: polled.tier };
-              break;
-            }
-            if (polled && polled.error) {
-              apiError = polled.error;
-              hardFailure = true;
-            }
-            continue;
+            // 直接进解读页：进度、报告、导出都在那一页
+            router.push(
+              "/" + locale + "/bazi/reading?id=" + encodeURIComponent(data.jobId) + "&fresh=1"
+            );
+            return;
           }
           if (data.error) apiError = data.error;
         } catch {
