@@ -131,6 +131,24 @@ function loadServerConfigField(key) {
   }
 }
 
+/**
+ * 小痕（站内猫咪助理）总开关 —— 与前端 lib/cat-status.ts 读的是同一份 cat-status.json。
+ * online=false 时 /api/chat 直接返回 503，不进豆包、不写库，省额度。
+ * 读不到文件时按「在线」处理，避免配置缺失把功能误杀。
+ */
+const CAT_STATUS = (() => {
+  try {
+    const s = JSON.parse(fs.readFileSync(path.join(__dirname, "cat-status.json"), "utf8"));
+    return {
+      online: s.online !== false,
+      notice: (s.offlineNotice && (s.offlineNotice.zh || s.offlineNotice.en)) || "小痕正在打盹，暂时不在线。",
+    };
+  } catch {
+    return { online: true, notice: "" };
+  }
+})();
+if (!CAT_STATUS.online) console.log("[cat] 小痕已下线：/api/chat 返回 503 维护提示");
+
 /** 关键事件摘要（日志/对账用，不含敏感卡号等）。 */
 function summarizePayPalEvent(ev) {
   const t = (ev && ev.event_type) || "";
@@ -2364,6 +2382,14 @@ const server = http.createServer((req, res) => {
   }
 
   if (clean === "/api/chat") {
+    // 小痕下线：一律 503 维护提示，请求不进豆包、不落库
+    if (!CAT_STATUS.online) {
+      return sendJson(res, 503, {
+        error: "cat_offline",
+        code: "CAT_OFFLINE",
+        message: CAT_STATUS.notice || "小痕正在打盹，暂时不在线。",
+      });
+    }
     return handleChatApi(req, res);
   }
 

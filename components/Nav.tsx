@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 import { BrandMark } from "./BrandMark";
 import { openCatAssistant } from "@/lib/cat-open";
+import { CAT_ONLINE } from "@/lib/cat-status";
 
 export function Nav({ messages, locale }: { messages: Messages; locale: Locale }) {
   const t = (key: string) => {
@@ -67,7 +68,8 @@ export function Nav({ messages, locale }: { messages: Messages; locale: Locale }
   }[] = [
     { label: t("nav.home"), href: link("/") },
     // 对话没有独立页面了，点它直接打开右下角小痕弹窗
-    { label: t("nav.advisor"), action: "open-cat" },
+    // 小痕下线时整条导航项不出现（见 cat-status.json）
+    ...(CAT_ONLINE ? [{ label: t("nav.advisor"), action: "open-cat" as const }] : []),
     {
       label: t("nav.features"),
       children: [

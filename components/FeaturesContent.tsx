@@ -14,6 +14,7 @@ import {
 import { Locale } from "@/lib/i18n";
 import { getFeaturesMessages, FREE_KEYS, MID_KEYS, HIGH_KEYS, type FeatureItem } from "@/lib/features-i18n";
 import { openCatAssistant } from "@/lib/cat-open";
+import { CAT_ONLINE } from "@/lib/cat-status";
 
 const ICONS: Record<string, any> = {
   advisor: Sparkles,
@@ -97,7 +98,9 @@ export function FeaturesContent({ locale }: { locale: Locale }) {
     );
   };
 
-  const byKeys = (keys: string[]) => t.items.filter((i) => keys.indexOf(i.key) !== -1);
+  // 小痕下线时不列出来（序号仍会自动重排，不会留空档）
+  const byKeys = (keys: string[]) =>
+    t.items.filter((i) => keys.indexOf(i.key) !== -1 && (CAT_ONLINE || i.key !== "advisor"));
 
   const block = (label: string, keys: string[], hot: boolean) => (
     <section className="mt-6 first:mt-0">

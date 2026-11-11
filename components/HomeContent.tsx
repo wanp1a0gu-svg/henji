@@ -6,6 +6,7 @@ import { Locale, Messages } from "@/lib/i18n";
 import { COURSES_OPEN } from "@/lib/site-config";
 import { getUiMessages } from "@/lib/ui-i18n";
 import { openCatAssistant } from "@/lib/cat-open";
+import { CAT_ONLINE } from "@/lib/cat-status";
 import { HomeKnowledge } from "./HomeKnowledge";
 import { HomeFeatures } from "./HomeFeatures";
 
@@ -118,16 +119,18 @@ export function HomeContent({ messages, locale }: { messages: Messages; locale: 
             </a>
           </div>
 
-          {/* 打开右下角小痕弹窗（对话不再有独立区块） */}
-          <button
-            type="button"
-            onClick={openCatAssistant}
-            className="mt-8 inline-flex items-center gap-2 text-xs text-muted transition hover:text-accent"
-          >
-            <Sparkles size={13} />
-            {ui.chatCta}
-            <ArrowRight size={12} />
-          </button>
+          {/* 打开右下角小痕弹窗（对话不再有独立区块）；小痕下线时这块不渲染 */}
+          {CAT_ONLINE && (
+            <button
+              type="button"
+              onClick={openCatAssistant}
+              className="mt-8 inline-flex items-center gap-2 text-xs text-muted transition hover:text-accent"
+            >
+              <Sparkles size={13} />
+              {ui.chatCta}
+              <ArrowRight size={12} />
+            </button>
+          )}
         </div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-muted/50">

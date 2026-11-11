@@ -10,6 +10,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { CatAssistant } from "@/components/CatAssistant";
+import { CAT_ONLINE } from "@/lib/cat-status";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -98,7 +99,8 @@ export default async function LocaleLayout({
       {children}
       <Footer messages={messages} locale={locale as Locale} />
       <WhatsAppButton locale={locale as Locale} />
-      <CatAssistant locale={locale as Locale} />
+      {/* 小痕下线时整个组件都不挂载：悬浮猫、弹窗、轮询一起消失 */}
+      {CAT_ONLINE && <CatAssistant locale={locale as Locale} />}
     </AuthProvider>
   );
 }

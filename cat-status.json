@@ -1,0 +1,8 @@
+{
+  "_readme": "小痕（站内猫咪助理）总开关。online=false 时：前端全部入口消失 + /api/chat 直接返回维护提示（不消耗豆包额度）。改完必须重新 npm run build 并发布，线上才生效。把 false 改回 true 即可原样恢复。",
+  "online": false,
+  "offlineNotice": {
+    "zh": "小痕正在打盹，暂时不在线。其他功能都正常。",
+    "en": "Xiao Hen is taking a nap and is offline for now. Everything else works as usual."
+  }
+}

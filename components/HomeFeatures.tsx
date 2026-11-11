@@ -14,6 +14,7 @@ import {
 import { Locale } from "@/lib/i18n";
 import { getFeaturesMessages, FREE_KEYS, MID_KEYS, HIGH_KEYS } from "@/lib/features-i18n";
 import { openCatAssistant } from "@/lib/cat-open";
+import { CAT_ONLINE } from "@/lib/cat-status";
 
 const ICONS: Record<string, any> = {
   advisor: Sparkles,
@@ -37,7 +38,8 @@ export function HomeFeatures({ locale }: { locale: Locale }) {
   const t = getFeaturesMessages(locale);
   const link = (p: string) => `/${locale}${p}`;
 
-  const keys = [...FREE_KEYS, ...MID_KEYS, ...HIGH_KEYS];
+  // 小痕下线时把它从要点里摘掉，避免出现点了没反应的卡片
+  const keys = [...FREE_KEYS, ...MID_KEYS, ...HIGH_KEYS].filter((k) => CAT_ONLINE || k !== "advisor");
   const items = keys.map((k) => t.items.find((i) => i.key === k)).filter(Boolean) as typeof t.items;
 
   return (
