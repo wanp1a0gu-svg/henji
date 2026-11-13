@@ -2,35 +2,49 @@
 
 import { createWorkBuddyCloud } from "@tencent-ai/workbuddy-cloud-sdk";
 import type { Database } from "./cloud-db";
+import { createSupabaseCloud, type CloudLike } from "./cloud-supabase";
 
 /**
- * publicConfig returned by the WorkBuddy Cloud Service activation
- * (application wbapp_9pvnTdP5dI1cB9PjsWg1Ou).
- * These are end-user-facing values: the publishable key identifies the app
- * and carries no permissions on its own (server enforces origin match).
+ * 云服务入口。
+ *
+ * 两条通道共存，由环境变量决定走哪条：
+ *   · 配了 NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY → Supabase
+ *   · 都没配                                                        → 旧的 WorkBuddy 云
+ *
+ * 这样可以先在本地/预览环境用 Supabase 联调，线上保持原样，
+ * 等验收通过再切环境变量，代码不用动第二遍。
  */
+
+/** 旧通道的 publicConfig（application wbapp_9pvnTdP5dI1cB9PjsWg1Ou）。 */
 export const CLOUD_PUBLIC_CONFIG = {
   endpoint: "https://mingli-club.app.workbuddy.host",
   oauthRelayBaseUrl: "https://www.workbuddy.cn/v2/as/genie-baas/oauth",
   publishableKey: "wbpk_9pvnTdP5dI1cB9PjsWg1Ou_M5lnSU0Mf6S22hwzrcrYK74jwvHMELMu",
 };
 
-type CloudClient = ReturnType<typeof createWorkBuddyCloud<Database>>;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-let _cloud: CloudClient | null = null;
+/** 当前是否走 Supabase 通道。 */
+export const USING_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+type AnyCloud = CloudLike | ReturnType<typeof createWorkBuddyCloud<Database>>;
+
+let _cloud: AnyCloud | null = null;
 
 /**
- * Lazy singleton — the SDK must only be instantiated in the browser
- * (this project is a static export, so modules can be evaluated during
- * prerender where browser APIs are unavailable).
+ * Lazy singleton —— SDK 只能在浏览器里实例化
+ * （本站是静态导出，预渲染阶段没有浏览器 API）。
  */
-export function getCloud(): CloudClient {
+export function getCloud(): any {
   if (!_cloud) {
-    _cloud = createWorkBuddyCloud<Database>({
-      endpoint: CLOUD_PUBLIC_CONFIG.endpoint,
-      oauthRelayBaseUrl: CLOUD_PUBLIC_CONFIG.oauthRelayBaseUrl,
-      publishableKey: CLOUD_PUBLIC_CONFIG.publishableKey,
-    });
+    _cloud = USING_SUPABASE
+      ? createSupabaseCloud(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : createWorkBuddyCloud<Database>({
+          endpoint: CLOUD_PUBLIC_CONFIG.endpoint,
+          oauthRelayBaseUrl: CLOUD_PUBLIC_CONFIG.oauthRelayBaseUrl,
+          publishableKey: CLOUD_PUBLIC_CONFIG.publishableKey,
+        });
   }
   return _cloud;
 }
