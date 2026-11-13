@@ -1,14 +1,13 @@
-# 痕迹 Traces · 会话交接（Railway 已上线版）
+# 痕迹 Traces · 会话交接（已上线 · 自有域名可用）
 
-> 更新：2026-11-13 15:55
+> 更新：2026-11-13 16:25
 > 换账号 / 换机器后，新会话**先读这份**，不要让用户重讲一遍。
 
 ---
 
 ## 一句话现状
 
-**站已经活了**：Railway 上跑着，`https://traces-live-production.up.railway.app` 全部功能正常；
-`tracesclub.com` 已在 Railway 绑定好，**只差阿里云两条 DNS 记录**就能用自有域名访问。
+**站已经完全活了**：`https://tracesclub.com` 证书已签发、DNS 已生效，全部接口实测通过。
 
 ---
 
@@ -19,11 +18,33 @@ Railway 面板   : https://railway.com/project/b0872dd3-f9f7-4b0e-8637-3e9fe0a8a
 账号           : wanp1a0gu@gmail.com（TRIAL，30 天或 $5 额度）
 项目 / 服务    : traces-live / traces-live（serviceId ee3395da-387a-4924-afea-a82ce6f179d8）
 默认域名       : https://traces-live-production.up.railway.app
-自定义域名     : https://tracesclub.com（已绑定，Verified: no，等 DNS）
+自定义域名     : https://tracesclub.com（ACTIVE，证书 VALID）
+域名 ID        : c72bd3fc-5508-4e80-88d7-6fb2f1464f8a
+DNS 托管       : 阿里云云解析（dns17/dns18.hichina.com），账号 nk2763432559
 ```
 
-实测通过：`POST /api/health` 200、`POST /api/chat` 503 `cat_offline`、`/zh/features` 7 条 `feat-row`、
-`/en` 200、`/sitemap.xml` 200、未知路径 404。
+实测通过（走 `curl --noproxy '*'`，本机 http_proxy 会掐 TLS 重协商）：
+`/zh` 200 · `/en` 200 · `/sitemap.xml` 200 · `/zh/features` 7 条 `feat-row` ·
+`POST /api/health` 200 · `POST /api/chat` 503 `cat_offline` · 未知路径 404。
+
+### DNS 现状（重要）
+
+阿里云已加两条：
+
+| 类型 | 主机记录 | 记录值 |
+|---|---|---|
+| CNAME | `@` | `zoyyaqek.up.railway.app` |
+| TXT | `_railway-verify` | `railway-verify=ce97417c04d9b1b6c7c66bc486a210b15071396e066fead8ee46e495b0922938` |
+
+**遗留隐患**：顶点 `@` 上原本就有企业邮箱的 3 条 MX + 1 条 SPF TXT，现在又挂了 CNAME。
+DNS 规范里 CNAME 不能与其他类型共存 —— 阿里云允许这么存，Google/阿里 DNS 实测能同时返回 MX 和 CNAME，
+但严格的解析器可能返回空答案。彻底解决只有三条路：
+
+1. 把域名 DNS 迁到 Cloudflare（免费版支持顶平 CNAME 展平），NS 改到 CF；
+2. 阿里云升级套餐用 ALIAS（免费档的 ALIAS 在控制台存在但**不可选/灰**，已试过）；
+3. 确认企业邮箱不用了 → 删掉 `@` 的 MX/TXT，只留 CNAME。
+
+在此之前，`@` 的 SPF（TXT）实际已被 CNAME 覆盖，发信 SPF 校验会失效（当前用 Gmail SMTP 代发，影响有限）。
 
 ---
 
@@ -48,22 +69,16 @@ CLI 已全局安装：`railway 5.74.0`；登录态在 `~/.railway`，失效就 `
 
 ## 待办
 
-1. **DNS（唯一阻塞项）**：阿里云域名控制台 → `tracesclub.com` 解析设置，加两条：
-
-   | 记录类型 | 主机记录 | 记录值 |
-   |---|---|---|
-   | CNAME | `@` | `zoyyaqek.up.railway.app` |
-   | TXT | `_railway-verify` | `railway-verify=ce97417c04d9b1b6c7c66bc486a210b15071396e066fead8ee46e495b0922938` |
-
-   加完用 `railway domain status c72bd3fc-5508-4e80-88d7-6fb2f1464f8a` 看
-   `Verified` 是否变 yes、证书状态是否 VALID。备案若未完成，国内访问仍可能被拦。
-
-2. **PayPal webhook 换地址**：开发者后台把 webhook 指向 `https://tracesclub.com/api/paypal/webhook`。
+1. **PayPal webhook 换地址**：开发者后台把 webhook 指向 `https://tracesclub.com/api/paypal/webhook`。
+   ⚠️ PayPal **不能改已建 webhook 的 URL**，只能删掉重建；重建后 webhookId 会变，必须同步更新
+   Railway 的 `PAYPAL_WEBHOOK_ID` 变量并重新部署，否则 `/api/paypal/webhook` 验签会失败。
    回跳地址不用管（前端 SDK 现算，`server.js` 里没有硬编码 return_url）。
    顺带把 `server.js` CSP 里遗留的 `https://mingli-bazi-api.wanp1a0gu.workers.dev` 删掉。
 
-3. **www 子域**：TRIAL 档每个服务只允许 **1 个自定义域名**，`www.tracesclub.com` 加不进去。
-   要么升级 Hobby（$5/月）后补绑，要么在阿里云做 301 转发。
+2. **www 子域**：TRIAL 档每个服务只允许 **1 个自定义域名**，`www.tracesclub.com` 加不进去。
+   要么升级 Hobby（$5/月）后补绑，要么在阿里云做 301 转发（显性URL）。
+
+3. **顶点 CNAME 与邮箱记录的冲突**：见上面「DNS 现状」，需要用户决定走哪条路。
 
 4. **用户重挂**：10 个老用户在新站重新注册（同邮箱）后执行 `db/supabase/05-remap-users.sql`。
 
@@ -87,6 +102,22 @@ CLI 已全局安装：`railway 5.74.0`；登录态在 `~/.railway`，失效就 `
   而会话 Cookie 是内存态、不落盘，所以「复制配置」拿不到别人的登录态 —— 需要人在那个窗口里登录一次。
 - `wallet_transactions_ref_uniq` 只约束 `kind='grant'`（旧数据两笔提现 ref_id 都是 1）。
 - 钱包密钥必须与 `app_secrets.wallet_secret` 和 `WALLET_RECHARGE_SECRET` 三处一致。
+- **本机 curl 访问 `*.railway.app` / `tracesclub.com` 要加 `--noproxy '*'`**：走本机
+  `http_proxy` 时 schannel 会卡在 TLS 重协商，直接返回 `HTTP 000`，看起来像站点挂了。
+
+### 阿里云控制台自动化（下次别再摸索）
+
+- 控制台是 SPA，`解析设置` 之类的链接**没有 href**，合成 `click()` 事件无效，必须用
+  CDP `Input.dispatchMouseEvent` 发真实鼠标事件（`D:\wbtmp\xy.mjs` / `tapsel.mjs`）。
+- 下拉框（Flex/Next 组件）**鼠标点选项不生效**，只有键盘能在选项间移动：打开后读
+  `.next-menu-item` 里带 `active/focus` 类的项，按 `ArrowDown` 走到目标再 `Enter`
+  （`D:\wbtmp\picktype.mjs`）。
+- 选项里 `ALIAS` 是灰的（免费版不给用），键盘会跳过它 —— 所以顶点只能用 CNAME。
+- 表单会出现「主机记录填写说明」浮层**盖住记录值输入框**，此时 `elementFromPoint`
+  命中不到 input，打字会丢。先点一下抽屉空白处关掉浮层再填（`D:\wbtmp\type3.mjs` 已内置可见性校验）。
+- 页面底表和抽屉里都有 `placeholder="请输入主机记录"` 的输入框，按 `getBoundingClientRect().left>1100`
+  区分抽屉内的那个。
+- 提交后还有一层「解析变更确认」弹窗，要点 `.next-dialog` 里的 `确定`。
 
 ---
 
@@ -109,5 +140,5 @@ Supabase 项目：`https://eyetamiemmpnbwipusjx.supabase.co`（ap-southeast-1，
 
 ```bash
 cd "/d/网站/traces-live" && git log --oneline -3 && cat cat-status.json | head -5
-curl -s -X POST https://traces-live-production.up.railway.app/api/health -w '\n%{http_code}\n'
+curl -s --noproxy '*' -X POST https://tracesclub.com/api/health -w '\n%{http_code}\n'
 ```
