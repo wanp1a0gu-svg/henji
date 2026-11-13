@@ -96,3 +96,6 @@ Thumbs.db
 
 # 迁移生成物（含真实邮箱与金额）
 db/supabase/04-import-data.sql
+
+# 合并版建库脚本（含签名密钥）
+db/supabase/BUNDLE-schema.local.sql

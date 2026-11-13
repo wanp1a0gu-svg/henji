@@ -81,8 +81,10 @@ create table if not exists public.wallet_transactions (
   balance_after numeric,
   created_at    timestamptz not null default now()
 );
+-- 只对"充值类"流水做唯一：旧库里两笔提现流水的 ref_id 都是 1，
+-- 全局唯一会冲突；防重放真正需要约束的是 grant（充值时 ref_id = 订单号）
 create unique index if not exists wallet_transactions_ref_uniq
-  on public.wallet_transactions (ref_id) where ref_id is not null;
+  on public.wallet_transactions (ref_id) where ref_id is not null and kind = 'grant';
 create index if not exists wallet_transactions_owner_idx on public.wallet_transactions (owner_id);
 
 -- 5. 提现 --------------------------------------------------------------------
