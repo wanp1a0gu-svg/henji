@@ -121,7 +121,7 @@ def build(backup_path, out_path):
     rows = tables.get("wallet_transactions", [])
     if rows:
         add("-- 3) 钱包流水（保留原 id，末尾对齐序列）")
-        add("insert into public.wallet_transactions (id, owner_id, amount, kind, product, ref_id, note, balance_after, created_at) overriding system value")
+        add("insert into public.wallet_transactions (id, owner_id, amount, kind, product, ref_id, note, balance_after, created_at)")
         add("select v.id, u.id::text, v.amount::numeric, v.kind, v.product, v.ref_id, v.note, v.balance_after::numeric, v.created_at::timestamptz")
         add("from (values")
         vals = []
@@ -144,7 +144,7 @@ def build(backup_path, out_path):
     rows = tables.get("payment_orders", [])
     if rows:
         add("-- 4) 订单（保留原 id；金额字段保持 text 不转数字）")
-        add("insert into public.payment_orders (id, owner_id, method, amount, currency, product, status, paypal_order_id, payer_email, contact, shipping_address, capture_raw, fulfillment, payer_note, tracking_number, carrier, created_at) overriding system value")
+        add("insert into public.payment_orders (id, owner_id, method, amount, currency, product, status, paypal_order_id, payer_email, contact, shipping_address, capture_raw, fulfillment, payer_note, tracking_number, carrier, created_at)")
         add("select v.id, coalesce(u.id::text, v.old_id), v.method, v.amount, v.currency, v.product, v.status, v.paypal_order_id, v.payer_email, v.contact, v.shipping_address, v.capture_raw, v.fulfillment, v.payer_note, v.tracking_number, v.carrier, v.created_at")
         add("from (values")
         vals = []
@@ -169,7 +169,7 @@ def build(backup_path, out_path):
     rows = tables.get("readings", [])
     if rows:
         add("-- 5) 测算记录（对不上用户的会保留原 owner_id）")
-        add("insert into public.readings (id, owner_id, name, birth_date, birth_time, gender, focus, locale, place, tier, chart, report, created_at) overriding system value")
+        add("insert into public.readings (id, owner_id, name, birth_date, birth_time, gender, focus, locale, place, tier, chart, report, created_at)")
         add("select v.id, coalesce(u.id::text, v.old_id), v.name, v.birth_date, v.birth_time, v.gender, v.focus, v.locale, v.place, v.tier, v.chart, v.report, v.created_at")
         add("from (values")
         vals = []
@@ -192,7 +192,7 @@ def build(backup_path, out_path):
     rows = tables.get("withdrawals", [])
     if rows:
         add("-- 6) 提现申请")
-        add("insert into public.withdrawals (id, owner_id, amount, account, note, status, admin_note, created_at, updated_at) overriding system value")
+        add("insert into public.withdrawals (id, owner_id, amount, account, note, status, admin_note, created_at, updated_at)")
         add("select v.id, coalesce(u.id::text, v.old_id), v.amount::numeric, v.account, v.note, v.status, v.admin_note, v.created_at, v.updated_at")
         add("from (values")
         vals = []
@@ -260,7 +260,7 @@ def build(backup_path, out_path):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--backup", default=os.path.join(ROOT, "db", "backups", "2026-11-11", "backup.json"))
-    ap.add_argument("--out", default=os.path.join(ROOT, "db", "supabase", "03-import-data.sql"))
+    ap.add_argument("--out", default=os.path.join(ROOT, "db", "supabase", "04-import-data.sql"))
     a = ap.parse_args()
     if not os.path.exists(a.backup):
         sys.exit(f"找不到备份文件: {a.backup}")

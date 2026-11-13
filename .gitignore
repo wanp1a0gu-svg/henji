@@ -95,4 +95,4 @@ Thumbs.db
 .wbapp_*.genie
 
 # 迁移生成物（含真实邮箱与金额）
-db/supabase/03-import-data.sql
+db/supabase/04-import-data.sql
