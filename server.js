@@ -137,6 +137,14 @@ function loadServerConfigField(key) {
  * 读不到文件时按「在线」处理，避免配置缺失把功能误杀。
  */
 const CAT_STATUS = (() => {
+  // 环境变量优先：CAT_ONLINE=false 可在不改镜像的情况下临时下线小痕
+  const envFlag = String(process.env.CAT_ONLINE || "").trim().toLowerCase();
+  if (envFlag === "false" || envFlag === "0" || envFlag === "off") {
+    return { online: false, notice: "小痕正在打盹，暂时不在线。其他功能都正常。" };
+  }
+  if (envFlag === "true" || envFlag === "1" || envFlag === "on") {
+    return { online: true, notice: "" };
+  }
   try {
     const s = JSON.parse(fs.readFileSync(path.join(__dirname, "cat-status.json"), "utf8"));
     return {

@@ -15,6 +15,9 @@ ENV NODE_ENV=production
 COPY server.js ./
 COPY lib ./lib
 
+# 小痕开关（server.js 启动时读，缺文件会按「在线」兜底，必须随镜像一起带上）
+COPY cat-status.json ./
+
 # 静态站点（next export 的产物，由 server.js 直接托管）
 COPY release ./release
 
