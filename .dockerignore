@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+.next
+dist
+db/backups
+docs
+*.md
+.env
+.env.*
+server-config.json
+.wbapp_*.genie

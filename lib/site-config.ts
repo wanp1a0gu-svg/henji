@@ -6,7 +6,7 @@
  * 站点正式地址（用于 SEO：canonical / og:url / sitemap）。
  * ⚠️ 绑定自定义域名后，改这一处即可（sitemap 由 scripts/build-sitemap.py 重新生成）。
  */
-export const SITE_URL = "https://mingli-club.app.workbuddy.host";
+export const SITE_URL = "https://tracesclub.com";
 
 /**
  * 管理后台（/admin）管理员邮箱白名单。

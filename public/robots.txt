@@ -4,4 +4,4 @@ Disallow: /account
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://mingli-club.app.workbuddy.host/sitemap.xml
+Sitemap: https://tracesclub.com/sitemap.xml

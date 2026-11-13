@@ -5,6 +5,10 @@ import { createPortal } from "react-dom";
 import { FileDown } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 import { getBaziPdfMessages } from "@/lib/bazi-pdf-i18n";
+import { SITE_URL } from "@/lib/site-config";
+
+/** PDF 页脚展示的域名（跟随 SITE_URL，换域名不用改 PDF 代码）。 */
+const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
 import {
   getChartMessages,
   shishenLabel,
@@ -473,7 +477,7 @@ function PrintDocument({ locale, labels, form, report, chart, tier }: Props) {
               letterSpacing: "0.08em",
             }}
           >
-            {pdf.brandLine} · mingli-club.app.workbuddy.host · {pdf.generated} {generatedAt}
+            {pdf.brandLine} · {SITE_HOST} · {pdf.generated} {generatedAt}
           </p>
         </section>
       )}
