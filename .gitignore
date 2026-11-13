@@ -93,3 +93,6 @@ Thumbs.db
 
 # 旧版发布绑定文件（当前版本已不使用，仅供旧客户端发布时识别）
 .wbapp_*.genie
+
+# 迁移生成物（含真实邮箱与金额）
+db/supabase/03-import-data.sql
