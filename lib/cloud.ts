@@ -22,11 +22,29 @@ export const CLOUD_PUBLIC_CONFIG = {
   publishableKey: "wbpk_9pvnTdP5dI1cB9PjsWg1Ou_M5lnSU0Mf6S22hwzrcrYK74jwvHMELMu",
 };
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const RAW_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
+/**
+ * 实际使用的 Supabase 地址。
+ *
+ * 国内网络对 `*.supabase.co` 做 SNI 阻断：TCP 能连上，TLS 握手被 reset，
+ * 浏览器侧表现为 `Failed to fetch`，注册/登录/读写全部失效。
+ * 线上（tracesclub.com）因此统一走同域反代 `/supabase/*`，由 server.js 转发；
+ * 本地开发和预览环境仍按环境变量直连。
+ */
+function supabaseUrl(): string {
+  if (!RAW_SUPABASE_URL) return "";
+  if (typeof window === "undefined") return RAW_SUPABASE_URL;
+  const host = window.location.hostname;
+  if (host === "tracesclub.com" || host === "www.tracesclub.com") {
+    return `${window.location.origin}/supabase`;
+  }
+  return RAW_SUPABASE_URL;
+}
+
 /** 当前是否走 Supabase 通道。 */
-export const USING_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+export const USING_SUPABASE = Boolean(RAW_SUPABASE_URL && SUPABASE_ANON_KEY);
 
 type AnyCloud = CloudLike | ReturnType<typeof createWorkBuddyCloud<Database>>;
 
@@ -39,7 +57,7 @@ let _cloud: AnyCloud | null = null;
 export function getCloud(): any {
   if (!_cloud) {
     _cloud = USING_SUPABASE
-      ? createSupabaseCloud(SUPABASE_URL, SUPABASE_ANON_KEY)
+      ? createSupabaseCloud(supabaseUrl(), SUPABASE_ANON_KEY)
       : createWorkBuddyCloud<Database>({
           endpoint: CLOUD_PUBLIC_CONFIG.endpoint,
           oauthRelayBaseUrl: CLOUD_PUBLIC_CONFIG.oauthRelayBaseUrl,

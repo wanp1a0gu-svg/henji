@@ -50,7 +50,11 @@ export function AuthProvider({
   const refreshUser = useCallback(async () => {
     try {
       const cloud = getCloud();
-      const { data: session } = await cloud.auth.getSession();
+      const { data } = await cloud.auth.getSession();
+      // 两种云实现的返回结构不同：
+      //   Supabase 包装层 → { data: { session } }
+      //   WorkBuddy 云     → { data: session }
+      const session = (data && (data as any).session) ?? data ?? null;
       setUser((session?.user as AuthUser) ?? null);
     } catch {
       setUser(null);

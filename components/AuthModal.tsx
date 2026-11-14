@@ -331,11 +331,12 @@ export function AuthModal({
                   <input
                     type="text"
                     inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={8}
                     value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value)}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 8))}
                     placeholder={m.codePlaceholder}
                     className={inputCls}
-                    autoComplete="one-time-code"
                   />
                 </div>
                 {pending && !pending.isExistingUser && (

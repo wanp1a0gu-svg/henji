@@ -759,7 +759,7 @@ const SECURITY_HEADERS = {
     "style-src 'self' 'unsafe-inline' https://*.paypal.com https://*.paypalobjects.com",
     "img-src 'self' data: blob: https://*.paypal.com https://*.paypalobjects.com",
     "font-src 'self' data: https://*.paypalobjects.com",
-    "connect-src 'self' https://mingli-bazi-api.wanp1a0gu.workers.dev https://*.paypal.com https://*.paypalobjects.com",
+    "connect-src 'self' https://*.paypal.com https://*.paypalobjects.com",
     "frame-src https://*.paypal.com",
     "object-src 'none'",
     "base-uri 'self'",
@@ -2326,12 +2326,73 @@ function isFile(p) {
   }
 }
 
+/**
+ * Supabase 反向代理。
+ *
+ * 为什么要这个：国内网络对 `*.supabase.co` 做 SNI 阻断（TCP 能连上，
+ * TLS 握手被 reset），浏览器直接请求会报 "Failed to fetch"，
+ * 注册/登录/读写全部失效。把 API 收到自己域名下（同源）即可绕开。
+ *
+ * 前端（lib/cloud.ts）在 tracesclub.com 上会把 SUPABASE_URL 切成
+ * `${origin}/supabase`，这里把它原样转给真实项目域名。
+ */
+const SUPABASE_ORIGIN = process.env.SUPABASE_PROXY_TARGET || "eyetamiemmpnbwipusjx.supabase.co";
+
+function proxySupabase(req, res, pathWithQuery) {
+  const headers = Object.assign({}, req.headers);
+  delete headers.connection;
+  delete headers["accept-encoding"]; // 让上游返回明文，省得处理压缩体
+  headers.host = SUPABASE_ORIGIN;
+
+  const upstream = https.request(
+    {
+      hostname: SUPABASE_ORIGIN,
+      port: 443,
+      path: pathWithQuery || "/",
+      method: req.method,
+      headers,
+      servername: SUPABASE_ORIGIN,
+      timeout: 30000,
+    },
+    (up) => {
+      const out = Object.assign({}, up.headers);
+      delete out.connection;
+      delete out["content-encoding"];
+      delete out["transfer-encoding"];
+      res.writeHead(up.statusCode || 502, out);
+      up.pipe(res);
+    }
+  );
+
+  upstream.on("timeout", () => {
+    upstream.destroy(new Error("supabase proxy timeout"));
+  });
+  upstream.on("error", (err) => {
+    if (!res.headersSent) {
+      sendJson(res, 502, {
+        error: "supabase_proxy_failed",
+        message: String((err && err.message) || err),
+      });
+    } else {
+      res.end();
+    }
+  });
+
+  req.pipe(upstream);
+}
+
 const server = http.createServer((req, res) => {
   const urlPath = req.url || "/";
   const clean = urlPath.split("?")[0].split("#")[0];
 
   if (clean === "/api/bazi") {
     return handleBaziApi(req, res);
+  }
+
+  // Supabase 同源反代：/supabase/auth/v1/... → https://<project>.supabase.co/auth/v1/...
+  if (clean === "/supabase" || clean.indexOf("/supabase/") === 0) {
+    const rest = urlPath.slice("/supabase".length);
+    return proxySupabase(req, res, rest || "/");
   }
 
   if (clean === "/api/tarot") {
